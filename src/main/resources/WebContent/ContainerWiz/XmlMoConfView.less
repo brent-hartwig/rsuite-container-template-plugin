@@ -1,0 +1,35 @@
+.xml-mo-conf-view {
+	display: flex;
+	flex-direction: column;
+	min-height: 100%;
+	align-items: stretch;
+	align-content: stretch;
+	margin: 0;
+	padding: 0;
+	&>.config-container {
+		flex: 1 1 auto;
+		border-bottom: 1px solid @chrome-color;
+		padding-bottom: 0.5em;
+		margin-bottom: 0.5em;
+	}
+	&>.ui-buttonset {
+		flex: 0 0 auto;
+		display: flex;
+		justify-content: flex-end;
+		flex-direction: row;
+		.ui-button-cancel {
+			margin-left: 1em;
+		}
+	}
+	input, select {
+		box-sizing: border-box;
+		height: 1.8em;
+	}
+	.problems {
+		background-color: @error-background-color;
+		border: 1px solid @error-border-color;
+		color: @error-text-color;
+		padding: 0 1em;
+		margin-bottom: 1em;
+	}
+}

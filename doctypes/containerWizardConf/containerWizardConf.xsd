@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://www.rsicms.com/rsuite/ns/conf/container-wizard" xmlns:c="http://www.rsicms.com/rsuite/ns/conf/container-wizard" xmlns:r="http://www.rsuitecms.com/rsuite/ns/metadata"
+    xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" vc:minVersion="1.1">
+  <xs:import namespace="http://www.rsuitecms.com/rsuite/ns/metadata" schemaLocation="rsuite.xsd"/>
+  <xs:element name="container-wizard-conf">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="c:pages"/>
+        <xs:element ref="c:primary-container"/>
+        <xs:element ref="c:acls"/>
+      </xs:sequence>
+      <xs:attribute name="name" use="required"/>
+      <xs:attribute ref="r:rsuiteId" use="optional"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="pages">
+    <xs:complexType>
+      <xs:sequence maxOccurs="unbounded">
+        <xs:element ref="c:page"/>
+      </xs:sequence>
+      <xs:attribute ref="r:rsuiteId" use="optional"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="page">
+    <xs:complexType>
+      <xs:attribute name="action-id" use="optional" type="xs:string"/>
+      <xs:attribute name="form-id" use="optional" type="xs:string"/>
+      <xs:attribute name="sub-pages" use="required" type="xs:boolean"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="primary-container">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element ref="c:container-conf"/>
+        <xs:element ref="c:xml-mo-conf"/>
+      </xs:choice>
+      <xs:attribute name="type" use="required" type="xs:string"/>
+      <xs:attribute name="acl-id" use="required" type="xs:string"/>
+      <xs:attribute name="default-acl-id" use="required" type="xs:string"/>
+      <xs:attribute ref="r:rsuiteId" use="optional"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="container-conf">
+    <xs:complexType>
+      <xs:attribute name="acl-id" use="optional" type="xs:string"/>
+      <xs:attribute name="name" use="required"/>
+      <xs:attribute name="type" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="xml-mo-conf">
+    <xs:complexType>
+      <xs:attribute name="acl-id" use="optional" type="xs:string"/>
+      <xs:attribute name="required" use="optional" type="xs:boolean"/>
+      <xs:attribute name="multiple" use="optional" type="xs:boolean"/>
+      <xs:attribute name="name" use="required"/>
+      <xs:attribute name="template-lmd-value" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="acls">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="c:acl"/>
+      </xs:sequence>
+      <xs:attribute ref="r:rsuiteId" use="optional"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="acl">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="c:ace"/>
+      </xs:sequence>
+      <xs:attribute name="id" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ace">
+    <xs:complexType>
+      <xs:attribute name="content-permissions" use="required"/>
+      <xs:attribute name="project-role" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

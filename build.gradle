@@ -1,0 +1,133 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'eclipse'
+
+apply from: 'http://ivy.reallysi.com/ivy-repo/rsuite-community/repositories.gradle'
+apply from: 'http://ivy.reallysi.com/ivy-repo/rsuite-community/std-plugin-tasks.gradle'
+
+group = "rsuite-community"
+project.buildDir = 'target'
+
+configurations {
+	includeInJar {
+		transitive = false
+	}
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+	// JAXB dependencies (2)
+	compile 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
+	compile 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
+
+	compile ('rsi:rsuite-api:4.1.14') {
+		transitive=false
+	}
+	compile ('rsuite-community:rsuite-message-props-lib:0.0.1') {
+		transitive=false
+	}
+	compile ('rsuite-community:rsuite-mo-utils-lib:0.0.1') {
+		transitive=false
+	}
+	compile ('rsuite-community:rsuite-operation-lib:0.0.1') {
+		transitive=false
+	}
+	compile ('rsuite-community:rsuite-search-utils-lib:0.0.1') {
+		transitive=false
+	}
+	compile ('rsuite-community:rsuite-web-services-lib:0.0.1') {
+		transitive=false
+	}
+	compile ('rsuite-community:rsuite-xml-utils-lib:0.0.1') {
+		transitive=false
+	}
+	compile ('apache:commons-io:1.4') {
+		transitive=false
+	}
+	compile ('apache:commons-lang:3.3.1') {
+		transitive=false
+	}
+	compile ('apache:commons-logging:1.1.1') {
+		transitive=false
+	}
+	
+	includeInJar ('rsuite-community:rsuite-conf-utils-lib:0.0.1') {
+		transitive=false
+	}
+	includeInJar ('rsuite-community:rsuite-message-props-lib:0.0.1') {
+		transitive=false
+	}
+	includeInJar ('rsuite-community:rsuite-mo-utils-lib:0.0.1') {
+		transitive=false
+	}
+	includeInJar ('rsuite-community:rsuite-operation-lib:0.0.1') {
+		transitive=false
+	}
+	includeInJar ('rsuite-community:rsuite-search-utils-lib:0.0.1') {
+		transitive=false
+	}
+	includeInJar ('rsuite-community:rsuite-web-services-lib:0.0.1') {
+		transitive=false
+	}
+	includeInJar ('rsuite-community:rsuite-xml-utils-lib:0.0.1') {
+		transitive=false
+	}
+	includeInJar ('apache:commons-lang:3.3.1') {
+		transitive=false
+	}
+	
+	configurations.compile.extendsFrom(configurations.includeInJar)
+}
+
+// Not for everyone
+compileJava.dependsOn clean
+
+jar () {
+	baseName='rsuite-container-wizard-plugin'
+	from configurations.includeInJar
+}
+
+task packageDoctypes(type: Copy) {
+	String destPath = "${project.buildDir}/resources/main/doctypes" 
+    into new File(destPath)
+    from "doctypes"
+    doLast {
+    	println "** Copied doctypes into ${destPath}"
+    }
+}
+jar.dependsOn packageDoctypes
+
+task packageScripts(type: Copy) {
+	String destPath = "${project.buildDir}/resources/main/scripts" 
+    into new File(destPath)
+    from "scripts"
+    doLast {
+    	println "** Copied scripts into ${destPath}"
+    }
+}
+jar.dependsOn packageScripts
+
+// Run this task whenever containerWizardConf.xsd changes.
+task jaxb(type: JavaExec) {
+
+	// Generate *within* the Java source directory.
+	if (sourceSets.main.java.srcDirs.size() != 1) {
+		throw new Exception("Need exactly one directory to write generated source files into.")
+	}
+	String firstJavaSrcPath = sourceSets.main.java.srcDirs.toArray().getAt(0).getAbsolutePath()
+
+    classpath = sourceSets.main.runtimeClasspath
+
+    main = 'com.sun.tools.xjc.XJCFacade'
+    
+    args = [
+    	"-d", "${firstJavaSrcPath}",
+        "-p", "com.rsicms.rsuite.containerWizard.jaxb",
+        "doctypes/containerWizardConf/containerWizardConf.xsd"
+    ]
+    
+}

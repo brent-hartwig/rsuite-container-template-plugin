@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://www.rsuitecms.com/rsuite/ns/metadata"  >
+  <!-- Add to every element configured to be a managed object -->
+  <xs:attribute name="rsuiteId" type="xs:string"/>
+</xs:schema>

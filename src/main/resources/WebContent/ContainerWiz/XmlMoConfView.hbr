@@ -1,0 +1,41 @@
+<table>
+    <thead>
+        {{#if view.parentView.problems.length}}
+            <tr>
+                <td colspan="3">
+                    <div class="problems">
+                        <h4>Errors:</h4>
+                        <ul>
+                            {{#each problem in view.parentView.problems}}
+                                <li>{{{problem}}}</li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+        {{/if}}
+        <tr>
+            <th class="sectionType" colspan="3" align="left">Section type&nbsp; {{view view.SectionTypeSelector}}</th>
+        </tr>
+        <tr>
+            <td colspan="2">&nbsp;</td>
+            <td class="add">
+                {{view view.AddButton}}
+            </td>
+        </tr>
+        <tr>
+            <th>Template</th>
+            <th>Title</th>
+            <th>&nbsp;</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each instance in view.instances}}
+            <tr>
+                <td class="template">{{view view.TemplateSelector}}</td>
+                <td class="title">{{view view.TitleField}}</td>
+                <td class="remove">{{view view.RemoveButton}}</td>
+            </tr>
+        {{/each}}
+    </tbody>
+</table>
