@@ -12,8 +12,10 @@ import org.apache.commons.logging.LogFactory;
 
 import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.User;
+import com.reallysi.rsuite.api.UserType;
 import com.reallysi.rsuite.api.security.ACE;
 import com.reallysi.rsuite.api.security.ACL;
+import com.reallysi.rsuite.api.security.Role;
 import com.reallysi.rsuite.api.security.RoleDescriptor;
 import com.reallysi.rsuite.api.security.RoleManager;
 import com.reallysi.rsuite.service.SecurityService;
@@ -82,6 +84,59 @@ public class AclMap extends HashMap<String, ACL> {
         log.info("Defined the '" + roleName + "' role");
       }
     }
+  }
+
+  /**
+   * Get a list of role names from ACLs.
+   * <p>
+   * This could be made into a utility method by passing the map or its collection in.
+   * 
+   * @return A list of role names associated with this AclMap.
+   */
+  public List<String> getRoleNames() {
+    return getRoleNames(null);
+  }
+
+  /**
+   * Get a list of distinct role names from this AclMap, plus those of the included user.
+   * <p>
+   * This could be made into a utility method by passing the map or its collection in.
+   * 
+   * @param user When a local user, the local user's roles are also included in the return. If not
+   *        desired, pass in null (or use the signature that does).
+   * @return A list of role names associated with this AclMap.
+   */
+  public List<String> getRoleNames(User user) {
+    List<String> names = new ArrayList<String>();
+
+    // Conditionally add the given user's roles.
+    if (user != null && user.getUserType() == UserType.LOCAL) {
+      for (Role role : user.getRoles()) {
+        if (!names.contains(role.getName())) {
+          names.add(role.getName());
+        }
+      }
+    }
+
+    // Add the roles in this map.
+    Iterator<ACL> aclIt = values().iterator();
+    Iterator<ACE> aceIt;
+    ACL acl;
+    ACE ace;
+    String name;
+    while (aclIt.hasNext()) {
+      acl = aclIt.next();
+      aceIt = acl.iterator();
+      while (aceIt.hasNext()) {
+        ace = aceIt.next();
+        name = ace.getRole().getName();
+        if (!names.contains(name)) {
+          names.add(name);
+        }
+      }
+    }
+
+    return names;
   }
 
   public static String getRoleName(String projectRoleNamePrefix, String baseRoleName) {

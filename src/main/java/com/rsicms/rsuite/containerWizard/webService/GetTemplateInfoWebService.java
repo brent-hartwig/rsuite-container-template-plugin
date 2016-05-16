@@ -12,8 +12,6 @@ import org.apache.commons.logging.LogFactory;
 
 import com.reallysi.rsuite.api.ManagedObject;
 import com.reallysi.rsuite.api.RSuiteException;
-import com.reallysi.rsuite.api.Session;
-import com.reallysi.rsuite.api.User;
 import com.reallysi.rsuite.api.remoteapi.CallArgumentList;
 import com.reallysi.rsuite.api.remoteapi.RemoteApiExecutionContext;
 import com.reallysi.rsuite.api.remoteapi.RemoteApiResult;
@@ -41,9 +39,6 @@ public class GetTemplateInfoWebService extends BaseWebService implements Contain
       CallArgumentUtils.logArguments(args, log);
       // }
 
-      Session session = context.getSession();
-      User user = session.getUser();
-
       // We need the template type to look up all qualifying templates
       String xmlTemplateType = args.getFirstString(PARAM_NAME_XML_TEMPLATE_TYPE);
       if (StringUtils.isBlank(xmlTemplateType)) {
@@ -51,8 +46,11 @@ public class GetTemplateInfoWebService extends BaseWebService implements Contain
             + "' parameter was not specified but is required.");
       }
 
-      List<ManagedObject> moList = ContainerWizardSearchUtils.getXmlTemplates(user,
-          context.getSearchService(), xmlTemplateType);
+      // Users may not have permissions to the templates; it's okay (and needed) to include those in
+      // the search results.
+      List<ManagedObject> moList = ContainerWizardSearchUtils.getXmlTemplates(
+          context.getAuthorizationService().getSystemUser(), context.getSearchService(),
+          xmlTemplateType);
       List<Map<String, String>> responseList = new ArrayList<Map<String, String>>();
       for (ManagedObject mo : moList) {
         Map<String, String> map = new HashMap<String, String>();

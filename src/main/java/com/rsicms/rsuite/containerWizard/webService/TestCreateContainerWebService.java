@@ -17,7 +17,6 @@ import com.reallysi.rsuite.api.remoteapi.RemoteApiExecutionContext;
 import com.reallysi.rsuite.api.remoteapi.RemoteApiResult;
 import com.reallysi.rsuite.api.remoteapi.result.RestResult;
 import com.reallysi.rsuite.api.remoteapi.result.UserInterfaceAction;
-import com.rsicms.rsuite.containerWizard.AclMap;
 import com.rsicms.rsuite.containerWizard.ContainerWizard;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConfUtils;
 import com.rsicms.rsuite.containerWizard.FutureManagedObject;
@@ -83,13 +82,10 @@ public class TestCreateContainerWebService extends InvokeContainerWizardWebServi
       }
       String jobCode = containerMetadata.get(LMD_NAME_JOB_CODE).get(0);
 
-      // Construct the ACL map
-      AclMap aclMap = new AclMap(context.getSecurityService(), conf, jobCode);
-      aclMap.createUndefinedRoles(user, context.getAuthorizationService().getRoleManager());
-
       // Create the container
       String parentId = context.getContentAssemblyService().getRootFolder(user).getId();
-      ContentAssembly ca = createContainer(context, user, conf, wizard, parentId, aclMap);
+      ContentAssembly ca =
+          createPrimaryContainer(context, context.getSession(), conf, wizard, parentId);
 
       RestResult rr = getNotificationResult(context,
           "Created '" + ca.getDisplayName() + "' (ID: " + ca.getId() + ")", "Container Wizard");

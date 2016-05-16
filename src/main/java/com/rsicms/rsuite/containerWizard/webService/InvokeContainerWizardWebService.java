@@ -3,7 +3,6 @@ package com.rsicms.rsuite.containerWizard.webService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,8 +20,7 @@ import com.reallysi.rsuite.api.ManagedObject;
 import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.Session;
 import com.reallysi.rsuite.api.User;
-import com.reallysi.rsuite.api.control.ContentAssemblyBuilder;
-import com.reallysi.rsuite.api.control.ContentAssemblyBuilderResults;
+import com.reallysi.rsuite.api.UserType;
 import com.reallysi.rsuite.api.control.ContentAssemblyCreateOptions;
 import com.reallysi.rsuite.api.control.ManagedObjectAdvisor;
 import com.reallysi.rsuite.api.control.ObjectAttachOptions;
@@ -34,10 +32,13 @@ import com.reallysi.rsuite.api.remoteapi.RemoteApiResult;
 import com.reallysi.rsuite.api.remoteapi.result.InvokeWebServiceAction;
 import com.reallysi.rsuite.api.remoteapi.result.RestResult;
 import com.reallysi.rsuite.api.remoteapi.result.UserInterfaceAction;
-import com.reallysi.rsuite.api.security.ACL;
+import com.reallysi.rsuite.api.security.LocalUserManager;
 import com.reallysi.rsuite.api.xml.RSuiteNamespaces;
 import com.reallysi.rsuite.api.xml.XPathEvaluator;
+import com.reallysi.rsuite.service.AuthorizationService;
+import com.reallysi.rsuite.service.ContentAssemblyService;
 import com.reallysi.rsuite.service.ManagedObjectService;
+import com.reallysi.rsuite.service.SearchService;
 import com.reallysi.rsuite.service.SecurityService;
 import com.rsicms.rsuite.containerWizard.AclMap;
 import com.rsicms.rsuite.containerWizard.ContainerWizard;
@@ -51,6 +52,7 @@ import com.rsicms.rsuite.containerWizard.jaxb.Page;
 import com.rsicms.rsuite.containerWizard.jaxb.PrimaryContainer;
 import com.rsicms.rsuite.containerWizard.jaxb.XmlMoConf;
 import com.rsicms.rsuite.utils.mo.MOUtils;
+import com.rsicms.rsuite.utils.search.SearchUtils;
 import com.rsicms.rsuite.utils.webService.BaseWebService;
 import com.rsicms.rsuite.utils.webService.CallArgumentUtils;
 import com.rsicms.rsuite.utils.webService.WebServiceUtilsMessageProperties;
@@ -93,14 +95,29 @@ public class InvokeContainerWizardWebService extends BaseWebService
         wizard = ContainerWizard.deserialize(serialiazedWizard);
       }
 
+      // Handle cancel link, need a better indication from form submission
+      if (args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0) == null) {
+        return getNotificationResult(context, "Create product is canceled.", "Container Wizard");
+      }
+
       // Retain values provided by the user.
-      retainUserInput(wizard, args);
+      retainUserInput(context.getSearchService(), user, wizard, args);
       log.info(wizard.getInfo());
 
       // Is there another page to display?
       RestResult restResult;
       Integer pageIdx = args.getFirstInteger(PARAM_NAME_NEXT_PAGE_IDX, -1);
       boolean reachedLastSubPage = args.getFirstBoolean(PARAM_NAME_REACHED_LAST_SUB_PAGE, false);
+
+      // Find the end of the wizard form
+      Integer configuredSubPageSize = 0;
+      for (Object o : conf.getPrimaryContainer().getContainerConfOrXmlMoConf()) {
+        if (o instanceof XmlMoConf)
+          configuredSubPageSize++;
+      }
+      reachedLastSubPage =
+          (args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0)) >= configuredSubPageSize;
+
       if (pageIdx >= 0) {
         // Bump the page index up by one if we've processed the last sub page.
         if (reachedLastSubPage) {
@@ -219,15 +236,10 @@ public class InvokeContainerWizardWebService extends BaseWebService
         if (!containerMetadata.containsKey(LMD_NAME_JOB_CODE)) {
           return getErrorResult("Job code not specified but required.");
         }
-        String jobCode = containerMetadata.get(LMD_NAME_JOB_CODE).get(0);
-
-        // Construct the ACL map
-        AclMap aclMap = new AclMap(context.getSecurityService(), conf, jobCode);
-        aclMap.createUndefinedRoles(superUser, context.getAuthorizationService().getRoleManager());
-
         // Create the container
         String parentId = context.getContentAssemblyService().getRootFolder(user).getId();
-        ContentAssembly ca = createContainer(context, user, conf, wizard, parentId, aclMap);
+        ContentAssembly ca =
+            createPrimaryContainer(context, context.getSession(), conf, wizard, parentId);
 
         RestResult rr = getNotificationResult(context,
             "Created '" + ca.getDisplayName() + "' (ID: " + ca.getId() + ")", "Container Wizard");
@@ -253,10 +265,11 @@ public class InvokeContainerWizardWebService extends BaseWebService
     return args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0) - 1;
   }
 
-  protected void retainUserInput(ContainerWizard wizard, CallArgumentList args) {
+  protected void retainUserInput(SearchService searchService, User user, ContainerWizard wizard,
+      CallArgumentList args) throws RSuiteException {
 
     /*
-     * TODO: how to inject business validation logic?
+     * TODO: implement a better way to inject business validation logic.
      */
 
     // Container name
@@ -271,7 +284,13 @@ public class InvokeContainerWizardWebService extends BaseWebService
     if (lmdArgs != null && lmdArgs.size() > 0) {
       for (CallArgument arg : lmdArgs) {
         if (!arg.isFile() && !arg.isFileItem()) {
+
+          if ("JobCode".equalsIgnoreCase(arg.getName())) {
+            throwIfInvalidJobCode(user, searchService, arg.getValue());
+          }
+
           wizard.addContainerMetadata(arg.getName(), arg.getValue());
+
         }
       }
     }
@@ -299,33 +318,79 @@ public class InvokeContainerWizardWebService extends BaseWebService
 
   }
 
-  protected ContentAssembly createContainer(ExecutionContext context, User user,
-      ContainerWizardConf conf, ContainerWizard wizard, String parentId, AclMap aclMap)
+  /**
+   * Validate the job code.
+   * 
+   * @param user
+   * @param searchService
+   * @param jobCode
+   * @throws RSuiteException Thrown if job code is invalid.
+   */
+  protected void throwIfInvalidJobCode(User user, SearchService searchService, String jobCode)
+      throws RSuiteException {
+
+    if (StringUtils.isEmpty(jobCode)) {
+      throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID, "Job code is missing.");
+    }
+
+    jobCode = jobCode.trim();
+
+    // TODO: move to JS
+    if (!jobCode.matches("\\d+")) {
+      throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
+          "Job code '" + jobCode + "' is not all digits.");
+    }
+
+    // TODO: move to JS
+    if (jobCode.trim().matches("^6\\d{5}") || jobCode.trim().matches("700000")) {
+      throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
+          "Job code '" + jobCode + "' is in range of 600000 to 700000.");
+    }
+
+    List<ManagedObject> containers = SearchUtils.searchForContentAssemblies(user, searchService,
+        "product", LMD_NAME_JOB_CODE, jobCode.trim(), null, 1);
+    if (containers != null && !containers.isEmpty()) {
+      throw new RSuiteException(RSuiteException.ERROR_ALREADY_EXISTS,
+          "Job code '" + jobCode + "' is already assigned to a product.");
+    }
+  }
+
+  protected ContentAssembly createPrimaryContainer(ExecutionContext context, Session session,
+      ContainerWizardConf conf, ContainerWizard wizard, String parentId)
       throws RSuiteException, IOException, TransformerException {
 
+    User user = session.getUser();
     PrimaryContainer pcConf = conf.getPrimaryContainer();
+    SecurityService securityService = context.getSecurityService();
     String defaultAclId = pcConf.getDefaultAclId();
-
-    // Set up the primary container's options
-    ContentAssemblyCreateOptions pcOptions = new ContentAssemblyCreateOptions();
-    pcOptions.setACL(aclMap.get(pcConf.getAclId()));
-    pcOptions.setMetaDataItems(wizard.getContainerMetadataAsList());
-    pcOptions.setType(pcConf.getType());
-
-    ContentAssemblyBuilder caBuilder = context.getContentAssemblyService()
-        .constructContentAssemblyBuilder(user, parentId, wizard.getContainerName(), pcOptions);
-
     XPathEvaluator eval = XPathUtils.getXPathEvaluator(context, RSuiteNamespaces.MetaDataNS);
 
-    // Iterate through everything we're to create in the new container
+    // Create primary container; hold back on ACL until ID is known.
+    ContentAssemblyCreateOptions pcOptions = new ContentAssemblyCreateOptions();
+    pcOptions.setMetaDataItems(wizard.getContainerMetadataAsList());
+    pcOptions.setType(pcConf.getType());
+    ContentAssembly primaryContainer = context.getContentAssemblyService()
+        .createContentAssembly(user, parentId, wizard.getContainerName(), pcOptions);
+    log.info("Created primary container with ID " + primaryContainer.getId());
+
+    // Construct AclMap using new container's ID, and create new roles.
+    AclMap aclMap = new AclMap(context.getSecurityService(), conf, primaryContainer.getId());
+    aclMap.createUndefinedRoles(superUser, context.getAuthorizationService().getRoleManager());
+
+    // Grant roles to current user, reconstruct user instance, and set the container's ACL.
+    user = grantRoles(context.getAuthorizationService(), user, aclMap);
+    session.setUser(user); // enables CMS UI user to access the new container.
+    securityService.setACL(user, primaryContainer.getId(), aclMap.get(pcConf.getAclId()));
+
+    // Iterate through the configuration and user-input to populate new container.
     int xmlMoConfIdx = -1;
-    Map<String, ACL> postCommitAclUpdateMap = new HashMap<String, ACL>();
     for (Object o : pcConf.getContainerConfOrXmlMoConf()) {
       if (o instanceof ContainerConf) {
-        addContainer(caBuilder, (ContainerConf) o, aclMap, defaultAclId, postCommitAclUpdateMap);
+        addContainer(context.getContentAssemblyService(), user, primaryContainer, (ContainerConf) o,
+            aclMap, defaultAclId);
       } else if (o instanceof XmlMoConf) {
         // Process all future MOs associated with this XML MO conf.
-        addManagedObjects(context, user, eval, caBuilder, (XmlMoConf) o,
+        addManagedObjects(context, user, eval, primaryContainer, (XmlMoConf) o,
             wizard.getFutureManagedObjectListByKey(String.valueOf(++xmlMoConfIdx)), aclMap,
             defaultAclId);
       } else {
@@ -333,53 +398,64 @@ public class InvokeContainerWizardWebService extends BaseWebService
       }
     }
 
-    // Ask RSuite to create the container.
-    ContentAssemblyBuilderResults results = caBuilder.commit();
-    List<RSuiteException> exList = results.getExceptionList();
-    if (exList != null && exList.size() > 0) {
-      StringBuilder sb = new StringBuilder("Encountered ").append(exList.size())
-          .append(" exception(s) while attempting to create the container.");
-      for (int i = 0; i < exList.size(); i++) {
-        RSuiteException ex = exList.get(i);
-        sb.append(" ").append(i).append(".) ").append(ex.getMessage());
-      }
-      throw new RSuiteException(RSuiteException.ERROR_INTERNAL_ERROR, sb.toString());
-    } else {
-      // RCS-4415: Update ACLs after successful commit.
-      if (postCommitAclUpdateMap.size() > 0) {
-        SecurityService securityService = context.getSecurityService();
-        for (Map.Entry<String, ACL> entry : postCommitAclUpdateMap.entrySet()) {
-          securityService.setACL(superUser, entry.getKey(), entry.getValue());
-        }
-      }
-
-      return results.getContentAssembly();
-    }
+    return primaryContainer;
   }
 
-  protected String addContainer(ContentAssemblyBuilder caBuilder, ContainerConf conf, AclMap aclMap,
-      String defaultAclId, Map<String, ACL> postCommitAclUpdateMap) throws RSuiteException {
+  /**
+   * Grant the roles in the given AclMap to the specified user.
+   * <p>
+   * TODO: This will need to change after sprint 17 as the user creating this container ought to be
+   * able to specify which users get which roles (associated with this container).
+   * 
+   * @param roleManager
+   * @param user
+   * @param aclMap
+   * @return The user provided, but possibly an updated instance thereof (inclusive of new roles).
+   * @throws RSuiteException
+   */
+  protected User grantRoles(AuthorizationService authService, User user, AclMap aclMap)
+      throws RSuiteException {
+
+    if (authService.isAdministrator(user)) {
+      // Don't bother
+    } else if (user.getUserType() == UserType.LOCAL) {
+      LocalUserManager localUserManager = authService.getLocalUserManager();
+
+      localUserManager.updateUser(user.getUserId(), user.getFullName(), user.getEmail(),
+          StringUtils.join(aclMap.getRoleNames(user), ","));
+
+      // Necessary for RSuite to honor recently granted roles.
+      log.info("Reloading local user accounts...");
+      localUserManager.reload();
+
+      return localUserManager.getUser(user.getUserId());
+    }
+
+    throw new RSuiteException(RSuiteException.ERROR_FUNCTIONALITY_NOT_SUPPORTED,
+        "This feature does not yet support non-local users.");
+  }
+
+  protected String addContainer(ContentAssemblyService caService, User user,
+      ContentAssembly primaryContainer, ContainerConf conf, AclMap aclMap, String defaultAclId)
+      throws RSuiteException {
     ContentAssemblyCreateOptions options = new ContentAssemblyCreateOptions();
-    // RCS-4415: ACL provided here is ignored; set after commit().
-    ACL acl = aclMap.get(conf.getAclId() != null ? conf.getAclId() : defaultAclId);
-    options.setACL(acl);
+    options.setACL(aclMap.get(conf.getAclId() != null ? conf.getAclId() : defaultAclId));
     options.setType(conf.getType());
-    String id = caBuilder.createCANode(caBuilder.getId(), conf.getName(), options);
-    postCommitAclUpdateMap.put(id, acl);
-    return id;
+    return caService.createCANode(user, primaryContainer.getId(), conf.getName(), options).getId();
   }
 
   protected List<ManagedObject> addManagedObjects(ExecutionContext context, User user,
-      XPathEvaluator eval, ContentAssemblyBuilder caBuilder, XmlMoConf conf,
+      XPathEvaluator eval, ContentAssembly primaryContainer, XmlMoConf conf,
       List<FutureManagedObject> fmoList, AclMap aclMap, String defaultAclId)
       throws RSuiteException, IOException, TransformerException {
 
     List<ManagedObject> moList = new ArrayList<ManagedObject>();
     ManagedObjectService moService = context.getManagedObjectService();
+    ContentAssemblyService caService = context.getContentAssemblyService();
 
     if (fmoList != null && fmoList.size() > 0) {
-      ACL rsuiteAcl = aclMap.get(conf.getAclId() != null ? conf.getAclId() : defaultAclId);
-      ManagedObjectAdvisor advisor = new LocalManagedObjectAdvisor(rsuiteAcl);
+      ManagedObjectAdvisor advisor = new LocalManagedObjectAdvisor(
+          aclMap.get(conf.getAclId() != null ? conf.getAclId() : defaultAclId));
 
       String rsuiteIdAttName =
           new StringBuilder(RSuiteNamespaces.MetaDataNS.getPrefix()).append(":rsuiteId").toString();
@@ -406,7 +482,11 @@ public class InvokeContainerWizardWebService extends BaseWebService
           atts.removeNamedItem(rsuiteIdAttName);
         }
 
-        // TODO: Add title
+        // TODO: figure out how to make this configurable
+        if (StringUtils.isNotBlank(fmo.getTitle())) {
+          Node titleNode = eval.executeXPathToNode("title", elem);
+          titleNode.setTextContent(fmo.getTitle());
+        }
 
         // Load MO
         filename = context.getIDGenerator().allocateId().concat(".xml");
@@ -417,8 +497,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
             advisor);
         moList.add(mo);
 
-        // Give to builder
-        caBuilder.attach(caBuilder.getId(), mo.getId(), options);
+        // Create reference
+        caService.attach(user, primaryContainer.getId(), mo.getId(), options);
       }
     }
 
