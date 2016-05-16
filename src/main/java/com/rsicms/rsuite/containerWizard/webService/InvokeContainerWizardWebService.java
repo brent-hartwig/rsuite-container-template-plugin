@@ -97,7 +97,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
 
       // Handle cancel link, need a better indication from form submission
       if (args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0) == null) {
-        return getNotificationResult(context, "Create product is canceled.", "Container Wizard");
+        return getNotificationResult(context, "Create product is canceled.", "Create Product");
       }
 
       // Retain values provided by the user.
@@ -115,8 +115,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
         if (o instanceof XmlMoConf)
           configuredSubPageSize++;
       }
-      reachedLastSubPage =
-          (args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0)) >= configuredSubPageSize;
+      reachedLastSubPage = (args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0)
+              + args.getFirstInteger(PARAM_NAME_SECTION_TYPE_IDX, 0)) >= configuredSubPageSize;
 
       if (pageIdx >= 0) {
         // Bump the page index up by one if we've processed the last sub page.
@@ -242,7 +242,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
             createPrimaryContainer(context, context.getSession(), conf, wizard, parentId);
 
         RestResult rr = getNotificationResult(context,
-            "Created '" + ca.getDisplayName() + "' (ID: " + ca.getId() + ")", "Container Wizard");
+            "Created '" + ca.getDisplayName() + "' (ID: " + ca.getId() + ")", "Create Product");
         UserInterfaceAction action = new UserInterfaceAction("rsuite:refreshManagedObjects");
         action.addProperty("objects", parentId);
         action.addProperty("children", false);

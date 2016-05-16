@@ -28,7 +28,7 @@ ContainerWiz.XmlMoConfView = Ember.ContainerView.extend(RSuite.view.Dialog, {
 	index: 0,
 	classNames: ['xml-mo-conf-view'],
 	title: function () {
-		return "Container Wizard, step " + this.get('subPageIndex');
+		return "Create Product Wizard";
 	}.property('subPageIndex'),
 	icon: 'createFromTemplate',
 	sectionType: function (name, value) {
