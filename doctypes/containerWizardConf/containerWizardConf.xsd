@@ -25,6 +25,7 @@
     <xs:complexType>
       <xs:attribute name="action-id" use="optional" type="xs:string"/>
       <xs:attribute name="form-id" use="optional" type="xs:string"/>
+      <xs:attribute name="api-name" use="optional" type="xs:string"/>
       <xs:attribute name="sub-pages" use="required" type="xs:boolean"/>
     </xs:complexType>
   </xs:element>
