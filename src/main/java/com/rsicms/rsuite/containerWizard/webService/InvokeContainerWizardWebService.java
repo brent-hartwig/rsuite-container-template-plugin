@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.transform.TransformerException;
 
@@ -116,7 +115,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
           configuredSubPageSize++;
       }
       reachedLastSubPage = (args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0)
-              + args.getFirstInteger(PARAM_NAME_SECTION_TYPE_IDX, 0)) >= configuredSubPageSize;
+          + args.getFirstInteger(PARAM_NAME_SECTION_TYPE_IDX, 0)) >= configuredSubPageSize;
 
       if (pageIdx >= 0) {
         // Bump the page index up by one if we've processed the last sub page.
@@ -231,11 +230,6 @@ public class InvokeContainerWizardWebService extends BaseWebService
 
 
       } else {
-        // Determine the job code --TODO: how to decouple this?
-        Map<String, List<String>> containerMetadata = wizard.getContainerMetadata();
-        if (!containerMetadata.containsKey(LMD_NAME_JOB_CODE)) {
-          return getErrorResult("Job code not specified but required.");
-        }
         // Create the container
         String parentId = context.getContentAssemblyService().getRootFolder(user).getId();
         ContentAssembly ca =

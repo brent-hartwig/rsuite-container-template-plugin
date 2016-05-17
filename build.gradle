@@ -55,6 +55,14 @@ dependencies {
 		transitive=false
 	}
 	
+	// For unit tests
+	compile ('junit:junit:4.12') {
+		transitive=false
+	}
+	compile ('org.mockito:mockito-all:1.9.5') {
+		transitive=false
+	}
+	
 	includeInJar ('rsuite-community:rsuite-conf-utils-lib:0.0.1') {
 		transitive=false
 	}
@@ -110,6 +118,32 @@ task packageScripts(type: Copy) {
     }
 }
 jar.dependsOn packageScripts
+
+task packageTests(type: Jar) {
+  from sourceSets.test.output
+  appendix = 'tests'
+}
+
+artifacts {
+    archives packageTests
+}
+
+task deployLocalDeluxe (dependsOn: 'install') << {
+	copy {
+		from jar.archivePath
+		into "${rsuite_plugins}"
+		rename jar.archiveName, jar.baseName + "." + jar.extension
+	}
+	// A convenience to bypass Ivy...
+	if (project.hasProperty('container_wizard_additional_target_dir')) {
+		copy {
+			from jar.archivePath
+			into "${container_wizard_additional_target_dir}"
+			rename jar.archiveName, jar.baseName + "." + jar.extension
+		}
+    	println "** Also copied plugin to ${container_wizard_additional_target_dir}"
+	}
+}
 
 // Run this task whenever containerWizardConf.xsd changes.
 task jaxb(type: JavaExec) {
