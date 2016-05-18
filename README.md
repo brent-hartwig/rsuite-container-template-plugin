@@ -103,7 +103,11 @@ Two additional deployment steps are required when deploying this project's plugi
 ```
 
 ## Unit Tests
-Unit tests are to be within the `test.com.rsicms.rsuite.containerWizard` package.  Version 0.9.2 includes a Hello World sample.  The sample was introduced to prove a client project is able to execute this community plugin's tests from within its test harness.  Below is a sample TestNG configuration file, incorporating the unit tests of community projects it uses (Only one at the time.).
+JUnit tests were selected for this project, so as not to impose TestNG on others.  Yet, as shown below, these tests may be executed by TestNG.
+
+Unit tests are to be within the `test.com.rsicms.rsuite.containerWizard` package.
+
+Version 0.9.2 includes a Hello World sample.  The sample was introduced to prove a client project is able to execute this community plugin's tests from within its test harness.  Below is a sample TestNG configuration file, incorporating the unit tests of community projects it uses (Only one at the time.).
 
 ```
 <suite name="Java Community Unit Tests" verbose="1">
@@ -116,4 +120,9 @@ Unit tests are to be within the `test.com.rsicms.rsuite.containerWizard` package
 
 </suite>
 ```
+
+Per [TestNG documentation](http://testng.org/doc/migrating.html), there are two additional requirements:
+
+1. The JUnit JAR needs to be added to TestNG's classpath
+2. testng/@mode needs to be set to "mixed"
 
