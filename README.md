@@ -101,3 +101,19 @@ Two additional deployment steps are required when deploying this project's plugi
     <run-groovy-script dir="${container.wizard.tmp.home}/scripts/groovy" script="InitSchemas.groovy" />
 </target>
 ```
+
+## Unit Tests
+Unit tests are to be within the `test.com.rsicms.rsuite.containerWizard` package.  Version 0.9.2 includes a Hello World sample.  The sample was introduced to prove a client project is able to execute this community plugin's tests from within its test harness.  Below is a sample TestNG configuration file, incorporating the unit tests of community projects it uses (Only one at the time.).
+
+```
+<suite name="Java Community Unit Tests" verbose="1">
+  
+  <test name="Java Community Unit Tests" junit="true">
+    <packages>
+      <package name="test.com.rsicms.rsuite.containerWizard.*" />
+    </packages>
+  </test>
+
+</suite>
+```
+
