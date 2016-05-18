@@ -21,7 +21,6 @@ import com.rsicms.rsuite.containerWizard.ContainerWizardSearchUtils;
 import com.rsicms.rsuite.utils.mo.MOUtils;
 import com.rsicms.rsuite.utils.webService.BaseWebService;
 import com.rsicms.rsuite.utils.webService.CallArgumentUtils;
-import com.rsicms.rsuite.utils.webService.WebServiceUtilsMessageProperties;
 
 /**
  * Serves up information on XML templates found by a specified XML template type.
@@ -65,8 +64,10 @@ public class GetTemplateInfoWebService extends BaseWebService implements Contain
 
     } catch (Exception e) {
       log.warn("Unable to complete request", e);
-      return getErrorResult(WebServiceUtilsMessageProperties
-          .get("web.service.error.unable.to.complete", e.getMessage()));
+      // TODO: get WebServiceUtilsMessageProperties working
+      // return getErrorResult(WebServiceUtilsMessageProperties
+      // .get("web.service.error.unable.to.complete", e.getMessage()));
+      return getErrorResult(e.getMessage());
     } finally {
       log.info("Duration in millis: " + (new Date().getTime() - start.getTime()));
     }

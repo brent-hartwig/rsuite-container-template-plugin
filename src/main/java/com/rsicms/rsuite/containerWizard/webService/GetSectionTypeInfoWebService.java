@@ -24,7 +24,6 @@ import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 import com.rsicms.rsuite.containerWizard.jaxb.XmlMoConf;
 import com.rsicms.rsuite.utils.webService.BaseWebService;
 import com.rsicms.rsuite.utils.webService.CallArgumentUtils;
-import com.rsicms.rsuite.utils.webService.WebServiceUtilsMessageProperties;
 
 /**
  * Serves up section type information to the container contents form by interpreting the wizard's
@@ -85,8 +84,10 @@ public class GetSectionTypeInfoWebService extends BaseWebService
 
     } catch (Exception e) {
       log.warn("Unable to complete request", e);
-      return getErrorResult(WebServiceUtilsMessageProperties
-          .get("web.service.error.unable.to.complete", e.getMessage()));
+      // TODO: get WebServiceUtilsMessageProperties working
+      // return getErrorResult(WebServiceUtilsMessageProperties
+      // .get("web.service.error.unable.to.complete", e.getMessage()));
+      return getErrorResult(e.getMessage());
     } finally {
       log.info("Duration in millis: " + (new Date().getTime() - start.getTime()));
     }

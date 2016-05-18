@@ -22,7 +22,6 @@ import com.rsicms.rsuite.containerWizard.ContainerWizardConfUtils;
 import com.rsicms.rsuite.containerWizard.FutureManagedObject;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 import com.rsicms.rsuite.utils.webService.CallArgumentUtils;
-import com.rsicms.rsuite.utils.webService.WebServiceUtilsMessageProperties;
 
 /**
  * A means to test part of the main web service using hard-coded data. Likely to be thrown away
@@ -97,8 +96,10 @@ public class TestCreateContainerWebService extends InvokeContainerWizardWebServi
 
     } catch (Exception e) {
       log.warn("Unable to complete request", e);
-      return getErrorResult(WebServiceUtilsMessageProperties
-          .get("web.service.error.unable.to.complete", e.getMessage()));
+      // TODO: get WebServiceUtilsMessageProperties working
+      // return getErrorResult(WebServiceUtilsMessageProperties
+      // .get("web.service.error.unable.to.complete", e.getMessage()));
+      return getErrorResult(e.getMessage());
     } finally {
       log.info("Duration in millis: " + (new Date().getTime() - start.getTime()));
     }
