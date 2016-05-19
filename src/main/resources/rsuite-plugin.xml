@@ -19,16 +19,6 @@
             handler="com.rsicms.rsuite.containerWizard.webService.GetTemplateInfoWebService"
             label="Get Template Information" />
 
-		<!-- FIXME: remove after this is no longer helpful. -->            
-        <remoteApiDefinition id="@pluginId@-ws-test-create-container"
-            handler="com.rsicms.rsuite.containerWizard.webService.TestCreateContainerWebService"
-            label="Test Create Container" />
-            
-		<!-- FIXME: remove after this is no longer helpful. -->            
-        <remoteApiDefinition id="@pluginId@-ws-test-container-contents-form"
-            handler="com.rsicms.rsuite.containerWizard.webService.TestContainerContentsFormWebService"
-            label="Test the Container Contents Form" />
-
 	</extensionProvider>
 	
     <extensionProvider id="rsuite.UI">
