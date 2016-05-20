@@ -324,6 +324,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
   protected void throwIfInvalidJobCode(User user, SearchService searchService, String jobCode)
       throws RSuiteException {
 
+    /* Utility form validation performs these tasks
     if (StringUtils.isEmpty(jobCode)) {
       throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID, "Job code is missing.");
     }
@@ -341,7 +342,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
       throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
           "Job code '" + jobCode + "' is in range of 600000 to 700000.");
     }
-
+    */
+    
     List<ManagedObject> containers = SearchUtils.searchForContentAssemblies(user, searchService,
         "product", LMD_NAME_JOB_CODE, jobCode.trim(), null, 1);
     if (containers != null && !containers.isEmpty()) {

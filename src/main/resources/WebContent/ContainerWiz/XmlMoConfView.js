@@ -163,7 +163,7 @@ ContainerWiz.XmlMoConfView = Ember.ContainerView.extend(RSuite.view.Dialog, {
 				optionValuePath: "content.moid",
 				prompt: function () {
 					var index = this.get('instance.index');
-					return index === 0 ? null : 'None selected';
+					return null;
 				}.property('instance.index'),
 				contentLengthChanged: Ember.observer(function () {
 					Ember.run.schedule('timers', this, function () {
@@ -213,7 +213,7 @@ ContainerWiz.XmlMoConfView = Ember.ContainerView.extend(RSuite.view.Dialog, {
 					tagName: 'button',
 					isVisible: function () {
 						var idx = this.get('parentView.parentView.subPageIndex');
-						return idx >= 2;
+						return idx >= 1;
 					}.property('parentView.parentView.subPageIndex'),
 					classNames: [ 'ui-clickable', 'ui-button', 'ui-button-text-icon-primary'],
 					childViews: [
