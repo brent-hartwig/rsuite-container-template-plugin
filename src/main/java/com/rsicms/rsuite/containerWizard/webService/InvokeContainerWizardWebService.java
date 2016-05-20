@@ -412,7 +412,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
       throws RSuiteException {
 
     if (authService.isAdministrator(user)) {
-      // Don't bother
+      return user;
     } else if (user.getUserType() == UserType.LOCAL) {
       LocalUserManager localUserManager = authService.getLocalUserManager();
 
