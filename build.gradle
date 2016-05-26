@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'eclipse'
@@ -128,20 +130,31 @@ artifacts {
     archives packageTests
 }
 
-task deployLocalDeluxe (dependsOn: 'install') << {
+install {
+    repositories.mavenInstaller {
+        addFilter('rsuite-container-wizard-plugin-tests') {artifact, file ->
+            artifact.name == 'rsuite-container-wizard-plugin-tests'
+        }
+    }
+}
+
+// Deploy plugin to plugins directory.  Also deploy plugin and unit tests JAR
+// within the client project's lib dir, identified by ${client_project_lib_dir}
+task deployLocalMulti (dependsOn: 'install') << {
 	copy {
 		from jar.archivePath
 		into "${rsuite_plugins}"
 		rename jar.archiveName, jar.baseName + "." + jar.extension
 	}
 	// A convenience to bypass Ivy...
-	if (project.hasProperty('container_wizard_additional_target_dir')) {
+	if (project.hasProperty('client_project_lib_dir')) {
 		copy {
-			from jar.archivePath
-			into "${container_wizard_additional_target_dir}"
-			rename jar.archiveName, jar.baseName + "." + jar.extension
+			from jar.destinationDir
+			include "*.jar"
+			into "${client_project_lib_dir}"
+			rename "(.*)-${projectVersion}(.*)", '$1$2'
 		}
-    	println "** Also copied plugin to ${container_wizard_additional_target_dir}"
+    	println "** Copied JAR(s) from ${jar.destinationDir} to ${client_project_lib_dir}"
 	}
 }
 
