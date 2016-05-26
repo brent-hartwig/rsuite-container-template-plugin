@@ -79,6 +79,22 @@ Sample:
 </acls>
 ```
 
+## Retaining User Input
+Each time the wizard's main web service is consumed, it retains expected user-input.  The following documents what the web service looks for.
+
+### Container Name
+The new container name should be specified by a parameter named "containerName".
+
+### Container Layered Metadata
+Layered metadata values may be specified by parameters whose names begin with "lmd".  That prefix is stripped off before the metadata is set.  For instance, a parameter named "lmdMyName" with a value of "My Value" instructs the wizard to set the "MyName" layered metadata to "My Value" on the new container.
+
+At this time, this metadata is only applied to the main container created by the plugin, as opposed to any other object created by the wizard.
+
+It's possible to validate some parameter values.  Our plan is to make the validation logic configurable.  We're not there yet.  There's one hard-coded test against "lmdJobCode".  There's also a second yet generic test.  If the parameter being tested is accompanied by a second with the same name plus "-Verify", the wizard will throw an exception if the two values do not match.  This is a way to ask the user to enter a value twice, and only proceed if the values match.  For the verification arguments, do not include the "lmd" parameter name prefix.  For example, to add a verified piece of layered metadata named "JobCode", configure a form (wizard page) to include parameters named "lmdJobCode" and "JobCode-Verify". 
+
+### Managed Objects
+The wizard also looks for parameters named "templateId".  For each one it finds, the wizard keeps track of the page it was specified on, the template ID, and the value of the "title" parameter (optional).  Later this information is used to create new managed objects.  A future version of this wizard may also be able to use this information to support "back" and confirmation features.
+
 ## JAXB
 This project's build script includes the `jaxb` task to generate JAXB classes from the wizard configuration's XML Schema.  This task should be executed after modifying `containerWizardConf.xsd`. 
 
@@ -107,7 +123,7 @@ JUnit tests were selected for this project, so as not to impose TestNG on others
 
 Unit tests are to be within the `test.com.rsicms.rsuite.containerWizard` package.
 
-Version 0.9.2 includes a Hello World sample.  The sample was introduced to prove a client project is able to execute this community plugin's tests from within its test harness.  Below is a sample TestNG configuration file, incorporating the unit tests of community projects it uses (Only one at the time.).
+Version 0.9.1 includes a Hello World sample.  The sample was introduced to prove a client project is able to execute this community plugin's tests from within its test harness.  Below is a sample TestNG configuration file, incorporating the unit tests of community projects it uses (Only one at the time.).
 
 ```
 <suite name="Java Community Unit Tests" verbose="1">

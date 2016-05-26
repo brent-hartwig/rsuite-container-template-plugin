@@ -280,6 +280,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
       for (CallArgument arg : lmdArgs) {
         if (!arg.isFile() && !arg.isFileItem()) {
 
+          performDataReEntryTest(arg, args);
+
           if ("JobCode".equalsIgnoreCase(arg.getName())) {
             throwIfInvalidJobCode(user, searchService, arg.getValue());
           }
@@ -314,6 +316,35 @@ public class InvokeContainerWizardWebService extends BaseWebService
   }
 
   /**
+   * If the singled-out argument has a re-entry value, require the values match.
+   * 
+   * @param arg
+   * @param args
+   * @throws RSuiteException Thrown when a verify value has been provided but the values differ.
+   */
+  protected void performDataReEntryTest(CallArgument arg, CallArgumentList args)
+      throws RSuiteException {
+    if (arg != null && args != null) {
+      String val2 =
+          args.getFirstString(new StringBuilder(arg.getName()).append("-Verify").toString());
+      if (StringUtils.isNotBlank(val2)) {
+        String val1 = arg.getValue().trim();
+        val2 = val2.trim();
+        if (!val2.equalsIgnoreCase(val1)) {
+          /*
+           * TODO: would be more user friendly to not make the user start over. Could be a
+           * client-side test; or, could re-display form with values provided by user plus an error
+           * message.
+           */
+          throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
+              new StringBuilder("\"").append(arg.getName()).append("\" values do not match: ")
+                  .append(val1).append(", ").append(val2).toString());
+        }
+      }
+    }
+  }
+
+  /**
    * Validate the job code.
    * 
    * @param user
@@ -324,26 +355,22 @@ public class InvokeContainerWizardWebService extends BaseWebService
   protected void throwIfInvalidJobCode(User user, SearchService searchService, String jobCode)
       throws RSuiteException {
 
-    /* Utility form validation performs these tasks
-    if (StringUtils.isEmpty(jobCode)) {
-      throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID, "Job code is missing.");
-    }
+    /*
+     * Utility form validation performs these tasks if (StringUtils.isEmpty(jobCode)) { throw new
+     * RSuiteException(RSuiteException.ERROR_PARAM_INVALID, "Job code is missing."); }
+     * 
+     * jobCode = jobCode.trim();
+     * 
+     * // TODO: move to JS if (!jobCode.matches("\\d+")) { throw new
+     * RSuiteException(RSuiteException.ERROR_PARAM_INVALID, "Job code '" + jobCode +
+     * "' is not all digits."); }
+     * 
+     * // TODO: move to JS if (jobCode.trim().matches("^6\\d{5}") ||
+     * jobCode.trim().matches("700000")) { throw new
+     * RSuiteException(RSuiteException.ERROR_PARAM_INVALID, "Job code '" + jobCode +
+     * "' is in range of 600000 to 700000."); }
+     */
 
-    jobCode = jobCode.trim();
-
-    // TODO: move to JS
-    if (!jobCode.matches("\\d+")) {
-      throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
-          "Job code '" + jobCode + "' is not all digits.");
-    }
-
-    // TODO: move to JS
-    if (jobCode.trim().matches("^6\\d{5}") || jobCode.trim().matches("700000")) {
-      throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
-          "Job code '" + jobCode + "' is in range of 600000 to 700000.");
-    }
-    */
-    
     List<ManagedObject> containers = SearchUtils.searchForContentAssemblies(user, searchService,
         "product", LMD_NAME_JOB_CODE, jobCode.trim(), null, 1);
     if (containers != null && !containers.isEmpty()) {

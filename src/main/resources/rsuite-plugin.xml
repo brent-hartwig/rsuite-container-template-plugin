@@ -9,7 +9,7 @@
 
         <remoteApiDefinition id="@pluginId@-ws-invoke-wizard"
             handler="com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService"
-            label="Invoke Container Wizard" />
+            label="Create Product" />
             
         <remoteApiDefinition id="@pluginId@-ws-get-section-type-info"
             handler="com.rsicms.rsuite.containerWizard.webService.GetSectionTypeInfoWebService"
