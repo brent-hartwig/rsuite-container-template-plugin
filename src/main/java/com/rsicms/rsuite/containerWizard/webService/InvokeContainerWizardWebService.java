@@ -510,6 +510,9 @@ public class InvokeContainerWizardWebService extends BaseWebService
         if (StringUtils.isNotBlank(fmo.getTitle())) {
           Node titleNode = eval.executeXPathToNode("title", elem);
           titleNode.setTextContent(fmo.getTitle());
+          Node productTitleNode = eval.executeXPathToNode("body/product_title", elem);
+          if (productTitleNode != null)
+            productTitleNode.setTextContent(fmo.getTitle());
         }
 
         // Load MO
