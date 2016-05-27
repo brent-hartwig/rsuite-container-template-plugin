@@ -56,10 +56,16 @@ dependencies {
 	}
 	
 	// For unit tests
-	compile ('junit:junit:4.12') {
+	testCompile ('junit:junit:4.12') {
 		transitive=false
 	}
-	compile ('org.mockito:mockito-all:1.9.5') {
+	testCompile ('hamcrest:hamcrest-core:1.3') {
+		transitive=false
+	}
+	testCompile ('org.mockito:mockito-all:1.9.5') {
+		transitive=false
+	}
+	testCompile ('apache:commons-fileupload:1.2.1') {
 		transitive=false
 	}
 	

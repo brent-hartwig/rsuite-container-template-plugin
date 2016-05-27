@@ -322,7 +322,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
    * @param args
    * @throws RSuiteException Thrown when a verify value has been provided but the values differ.
    */
-  protected void performDataReEntryTest(CallArgument arg, CallArgumentList args)
+  public static void performDataReEntryTest(CallArgument arg, CallArgumentList args)
       throws RSuiteException {
     if (arg != null && args != null) {
       String val2 =
