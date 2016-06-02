@@ -27,16 +27,15 @@ public class ContainerWizardConfUtils {
     }
 
     List<ManagedObject> candidateMos = moService.getObjectsByAlias(user, alias);
-    if (candidateMos.size() == 1) {
-      return candidateMos.get(0);
-    } else if (candidateMos.size() == 0) {
+    if (candidateMos == null || candidateMos.size() == 0) {
       throw new RSuiteException(RSuiteException.ERROR_OBJECT_NOT_FOUND,
           "Unable to find a wizard configuration MO with the '" + alias + "' alias.");
-    } else {
-      throw new RSuiteException(RSuiteException.ERROR_INTERNAL_ERROR,
-          "Found " + candidateMos.size() + " wizard configuration MOs with the '" + alias
-              + "' alias when exactly one is required.");
+    } else if (candidateMos.size() == 1) {
+      return candidateMos.get(0);
     }
+
+    throw new RSuiteException(RSuiteException.ERROR_INTERNAL_ERROR, "Found " + candidateMos.size()
+        + " wizard configuration MOs with the '" + alias + "' alias when exactly one is required.");
   }
 
   public static ContainerWizardConf getContainerWizardConf(User user,

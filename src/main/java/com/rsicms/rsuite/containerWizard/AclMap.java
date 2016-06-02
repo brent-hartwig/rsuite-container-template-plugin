@@ -30,9 +30,9 @@ public class AclMap extends HashMap<String, ACL> {
 
   private static final long serialVersionUID = 1L;
 
-  private static Log log = LogFactory.getLog(AclMap.class);
+  private static final Log log = LogFactory.getLog(AclMap.class);
 
-  protected final static String UNDERSCORE = "_";
+  protected static final String UNDERSCORE = "_";
 
   public AclMap(SecurityService securityService, ContainerWizardConf conf,
       String projectRoleNamePrefix) throws RSuiteException {
