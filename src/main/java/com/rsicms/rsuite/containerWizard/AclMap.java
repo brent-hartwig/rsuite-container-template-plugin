@@ -54,9 +54,10 @@ public class AclMap extends HashMap<String, ACL> {
     }
   }
 
-  public void createUndefinedRoles(User user, RoleManager roleManager) throws RSuiteException {
+  public List<String> createUndefinedRoles(User user, RoleManager roleManager) throws RSuiteException {
     // Create list of roles associated to this map.
     List<String> roleNames = new ArrayList<String>();
+    List<String> resultRoleNames = new ArrayList<String>();
     for (Map.Entry<String, ACL> entry : this.entrySet()) {
       ACL acl = entry.getValue();
       Iterator<ACE> it = acl.iterator();
@@ -81,9 +82,11 @@ public class AclMap extends HashMap<String, ACL> {
       }
       if (!found) {
         roleManager.createRole(user, roleName, roleName, roleName);
+        resultRoleNames.add(roleName);
         log.info("Defined the '" + roleName + "' role");
       }
     }
+    return resultRoleNames;
   }
 
   /**
