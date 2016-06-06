@@ -24,10 +24,11 @@ import com.rsicms.rsuite.containerWizard.advisors.mo.LocalManagedObjectAdvisor;
 public class LocalManagedObjectAdvisorTest {
   
   /**
-   * Verify the ACL given to constructor is set on the advisor context.
+   * Verify the ACL given to constructor is set on the advisor context
+   * if it is root object operation.
    */
   @Test
-  public void setAcl() throws RSuiteException {
+  public void setAclIfItIsRootObjectOfOperation() throws RSuiteException {
     
     ManagedObjectAdvisorContext advisorContext = new ManagedObjectAdvisorContext() {
       ACL acl = null;
@@ -93,12 +94,93 @@ public class LocalManagedObjectAdvisorTest {
     ACL originalAcl = Mockito.mock(ACL.class);
     LocalManagedObjectAdvisor lmoa = new LocalManagedObjectAdvisor(originalAcl);
     
+    // advise during insert
     ExecutionContext context = Mockito.mock(ExecutionContext.class);
     lmoa.adviseDuringInsert(context, advisorContext);
     
     // Get ACL from advisor context
     ACL setAcl = advisorContext.getACL();
     assertEquals(originalAcl, setAcl);
+  }
+  
+  /**
+   * Verify the ACL given to constructor is not set on the advisor context
+   * if it is not root object operation.
+   */
+  @Test
+  public void doNotSetAclIfItIsNotRootObjectOfOperation() throws RSuiteException {
+    
+    ManagedObjectAdvisorContext advisorContext = new ManagedObjectAdvisorContext() {
+      ACL acl = null;
+      @Override
+      public void setACL(ACL arg0) {
+        this.acl = arg0;
+      }
+      @Override
+      public boolean isRootObjectOfOperation() {
+        return false;
+      }
+      @Override
+      public VariantContainer getVariantContainer() {
+        return null;
+      }
+      @Override
+      public User getUser() {
+        return null;
+      }
+      @Override
+      public File getNonXmlFile() {
+        return null;
+      }
+      @Override
+      public MetaDataContainer getMetaDataContainer() {
+        return null;
+      }
+      @Override
+      public ManagedObject getInsertParentManagedObject() {
+        return null;
+      }
+      @Override
+      public String getId() {
+        return null;
+      }
+      @Override
+      public String getExternalFileName() {
+        return null;
+      }
+      @Override
+      public Element getElement() {
+        return null;
+      }
+      @Override
+      public ContentAssemblyNodeContainer getContentAssembly() {
+        return null;
+      }
+      @Override
+      public Map<String, Object> getCallContext() {
+        return null;
+      }
+      @Override
+      public AliasContainer getAliasContainer() {
+        return null;
+      }
+      @Override
+      public ACL getACL() {
+        return acl;
+      }
+    };
+    
+    // Pass ACL to constructor
+    ACL originalAcl = Mockito.mock(ACL.class);
+    LocalManagedObjectAdvisor lmoa = new LocalManagedObjectAdvisor(originalAcl);
+    
+    // advise during insert
+    ExecutionContext context = Mockito.mock(ExecutionContext.class);
+    lmoa.adviseDuringInsert(context, advisorContext);
+    
+    // Get ACL from advisor context
+    ACL setAcl = advisorContext.getACL();
+    assertEquals(null, setAcl);
   }
 
 }
