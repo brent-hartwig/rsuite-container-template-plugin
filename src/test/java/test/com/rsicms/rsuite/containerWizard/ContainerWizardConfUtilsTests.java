@@ -12,6 +12,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -19,6 +20,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
@@ -27,6 +29,7 @@ import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.User;
 import com.reallysi.rsuite.service.ManagedObjectService;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConfUtils;
+import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 
 public class ContainerWizardConfUtilsTests {
 
@@ -190,19 +193,22 @@ public class ContainerWizardConfUtilsTests {
 
   @Test
   public void ableToUnmarshallElementToContainerWizardConf()
-      throws ParserConfigurationException, SAXException, IOException, URISyntaxException {
-    InputStream inputStream =
-        this.getClass().getClassLoader().getResourceAsStream("AuditReportProductConfiguration.xml");
-    assertNotNull("Unable to load the test's product configuration file.", inputStream);
-    // File confFile = new File(uri.toString());
-
+      throws ParserConfigurationException, SAXException, IOException, URISyntaxException, RSuiteException, JAXBException {
+    
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     DocumentBuilder db = dbf.newDocumentBuilder();
-    Element elem = db.parse(inputStream).getDocumentElement();
-
-    // TODO: remove once able to load the configuration file, then finish the test.
-    assertNotNull(elem);
-    assertEquals(elem.getTagName(), "container-wizard-conf");
+    Document doc = db.newDocument();
+    Element elem = doc.createElementNS(
+        "http://www.rsicms.com/rsuite/ns/conf/container-wizard",
+        "container-wizard-conf");
+    elem.setAttribute("name", "Audit Report Product Configuration");
+    
+    ManagedObject mo = Mockito.mock(ManagedObject.class);
+    Mockito.when(mo.getElement()).thenReturn(elem);
+    ContainerWizardConf conf = ContainerWizardConfUtils.getContainerWizardConf(mo);
+    
+    assertNotNull(conf);
+    assertEquals(conf.getName(), "Audit Report Product Configuration");
   }
 
 }
