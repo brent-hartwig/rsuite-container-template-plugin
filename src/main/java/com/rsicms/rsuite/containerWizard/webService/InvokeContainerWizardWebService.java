@@ -260,7 +260,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
     return args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0) - 1;
   }
 
-  protected void retainUserInput(SearchService searchService, User user, ContainerWizard wizard,
+  public void retainUserInput(SearchService searchService, User user, ContainerWizard wizard,
       CallArgumentList args) throws RSuiteException {
 
     /*
