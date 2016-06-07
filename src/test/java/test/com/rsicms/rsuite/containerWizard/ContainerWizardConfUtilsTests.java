@@ -7,7 +7,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +29,7 @@ import com.reallysi.rsuite.api.User;
 import com.reallysi.rsuite.service.ManagedObjectService;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConfUtils;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
+import com.rsicms.rsuite.containerWizard.jaxb.XmlMoConf;
 
 public class ContainerWizardConfUtilsTests {
 
@@ -191,6 +191,10 @@ public class ContainerWizardConfUtilsTests {
         "More than one container wizard configuration MO with same alias yet exception not thrown.");
   }
 
+  /**
+   * Verify that it is able to unmarshal xml configuration element into a java Container
+   * Wizard Conf object using JAXB.  
+   */
   @Test
   public void ableToUnmarshallElementToContainerWizardConf()
       throws ParserConfigurationException, SAXException, IOException, URISyntaxException, RSuiteException, JAXBException {
@@ -198,6 +202,8 @@ public class ContainerWizardConfUtilsTests {
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     DocumentBuilder db = dbf.newDocumentBuilder();
     Document doc = db.newDocument();
+    
+    // will re-visit to add more nodes
     Element elem = doc.createElementNS(
         "http://www.rsicms.com/rsuite/ns/conf/container-wizard",
         "container-wizard-conf");
@@ -209,6 +215,87 @@ public class ContainerWizardConfUtilsTests {
     
     assertNotNull(conf);
     assertEquals(conf.getName(), "Audit Report Product Configuration");
+  }
+  
+  /**
+   * Verify that the unmarshaled java Container Wizard object can return a list of
+   * XmlMoConf objects.
+   */
+  @Test
+  public void getXmlMoConfs() throws ParserConfigurationException, SAXException, IOException, RSuiteException, JAXBException {
+    
+    String expectedXmlMoConfName = "Cover";
+    
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    DocumentBuilder db = dbf.newDocumentBuilder();
+    Document doc = db.newDocument();
+    
+    Element containerWizardConf = doc.createElementNS(
+        "http://www.rsicms.com/rsuite/ns/conf/container-wizard",
+        "container-wizard-conf");
+    
+    Element primaryContainer = doc.createElementNS(
+        "http://www.rsicms.com/rsuite/ns/conf/container-wizard",
+        "primary-container");
+    
+    Element xmlMoConf = doc.createElementNS(
+        "http://www.rsicms.com/rsuite/ns/conf/container-wizard",
+        "xml-mo-conf");
+    xmlMoConf.setAttribute("name", expectedXmlMoConfName);
+    
+    primaryContainer.appendChild(xmlMoConf);
+    containerWizardConf.appendChild(primaryContainer);
+    
+    ManagedObject mo = Mockito.mock(ManagedObject.class);
+    Mockito.when(mo.getElement()).thenReturn(containerWizardConf);
+    ContainerWizardConf conf = ContainerWizardConfUtils.getContainerWizardConf(mo);
+    
+    List<XmlMoConf> resultXmlMoConfs = ContainerWizardConfUtils.getXmlMoConfList(conf);
+    
+    assertEquals(resultXmlMoConfs.get(0).getName(), expectedXmlMoConfName);
+    
+  }
+  
+  /**
+   * Verify that the unmarshaled java Container Wizard object can return a sub list of
+   * XmlMoConf objects.
+   */
+  @Test
+  public void getXmlMoConfsSubList() throws ParserConfigurationException, SAXException, IOException, RSuiteException, JAXBException {
+    
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    DocumentBuilder db = dbf.newDocumentBuilder();
+    Document doc = db.newDocument();
+    
+    Element containerWizardConf = doc.createElementNS(
+        "http://www.rsicms.com/rsuite/ns/conf/container-wizard",
+        "container-wizard-conf");
+    
+    Element primaryContainer = doc.createElementNS(
+        "http://www.rsicms.com/rsuite/ns/conf/container-wizard",
+        "primary-container");
+    
+    int startIdx = 3;
+    int totalMoConfs = 10;
+    int expectedSize = totalMoConfs - startIdx;
+    
+    for (int i = 0; i < totalMoConfs; i++) {
+      Element elem = doc.createElementNS(
+          "http://www.rsicms.com/rsuite/ns/conf/container-wizard",
+          "xml-mo-conf");
+      primaryContainer.appendChild(elem);
+    }
+    
+    containerWizardConf.appendChild(primaryContainer);
+    
+    ManagedObject mo = Mockito.mock(ManagedObject.class);
+    Mockito.when(mo.getElement()).thenReturn(containerWizardConf);
+    ContainerWizardConf conf = ContainerWizardConfUtils.getContainerWizardConf(mo);
+    
+    List<XmlMoConf> resultXmlMoConfs = ContainerWizardConfUtils.getXmlMoConfSubList(conf, startIdx, false);
+    
+    assertEquals(resultXmlMoConfs.size(), expectedSize);
+    
   }
 
 }
