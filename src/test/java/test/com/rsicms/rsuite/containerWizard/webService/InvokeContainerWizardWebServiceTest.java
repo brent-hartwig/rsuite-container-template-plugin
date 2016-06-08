@@ -1,6 +1,8 @@
 package test.com.rsicms.rsuite.containerWizard.webService;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
@@ -17,6 +19,7 @@ import com.reallysi.rsuite.api.remoteapi.CallArgumentList;
 import com.reallysi.rsuite.service.SearchService;
 import com.rsicms.rsuite.containerWizard.ContainerWizard;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConstants;
+import com.rsicms.rsuite.containerWizard.FutureManagedObject;
 import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService;
 
 public class InvokeContainerWizardWebServiceTest implements ContainerWizardConstants {
@@ -72,10 +75,38 @@ public class InvokeContainerWizardWebServiceTest implements ContainerWizardConst
 
     try {
       service.retainUserInput(searchService, user, wizard, args);
-      fail("retainUserInput didn't throw RSuiteException when it's expected to.");
     } catch (RSuiteException e) {
-
+      assertThat("Error message should report is already assigned to a product.", e.getMessage(),
+          containsString("is already assigned to a product"));
+      return;
     }
+
+    fail("No or other exception is thrown!");
+  }
+  
+  /**
+   * Verify the future MO list is set in container wizard.
+   */
+  @Test
+  public void setFutureMos() throws RSuiteException {
+
+    String expectedTemplateMoId = "12345";
+
+    ContainerWizard wizard = new ContainerWizard();
+    CallArgument arg1 = new CallArgument(PARAM_NAME_XML_TEMPLATE_MO_ID, expectedTemplateMoId);
+    CallArgument arg2 = new CallArgument(PARAM_NAME_NEXT_SUB_PAGE_IDX, "1");
+    List<CallArgument> argList = new ArrayList<CallArgument>();
+    argList.add(arg1);
+    argList.add(arg2);
+    CallArgumentList args = new CallArgumentList(argList);
+    SearchService searchService = Mockito.mock(SearchService.class);
+    User user = Mockito.mock(User.class);
+
+    InvokeContainerWizardWebService service = new InvokeContainerWizardWebService();
+    service.retainUserInput(searchService, user, wizard, args);
+
+    List<FutureManagedObject> futureMoList = wizard.getFutureManagedObjectListByKey("0");
+    assertEquals(futureMoList.get(0).getTemplateMoId(), expectedTemplateMoId);
 
   }
 
