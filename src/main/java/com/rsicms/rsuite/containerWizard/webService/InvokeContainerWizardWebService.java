@@ -352,31 +352,20 @@ public class InvokeContainerWizardWebService extends BaseWebService
    * @param jobCode
    * @throws RSuiteException Thrown if job code is invalid.
    */
-  protected void throwIfInvalidJobCode(User user, SearchService searchService, String jobCode)
+  public void throwIfInvalidJobCode(User user, SearchService searchService, String jobCode)
       throws RSuiteException {
 
-    /*
-     * Utility form validation performs these tasks if (StringUtils.isEmpty(jobCode)) { throw new
-     * RSuiteException(RSuiteException.ERROR_PARAM_INVALID, "Job code is missing."); }
-     * 
-     * jobCode = jobCode.trim();
-     * 
-     * // TODO: move to JS if (!jobCode.matches("\\d+")) { throw new
-     * RSuiteException(RSuiteException.ERROR_PARAM_INVALID, "Job code '" + jobCode +
-     * "' is not all digits."); }
-     * 
-     * // TODO: move to JS if (jobCode.trim().matches("^6\\d{5}") ||
-     * jobCode.trim().matches("700000")) { throw new
-     * RSuiteException(RSuiteException.ERROR_PARAM_INVALID, "Job code '" + jobCode +
-     * "' is in range of 600000 to 700000."); }
-     */
-
-    List<ManagedObject> containers = SearchUtils.searchForContentAssemblies(user, searchService,
-        "product", LMD_NAME_JOB_CODE, jobCode.trim(), null, 1);
+    List<ManagedObject> containers = searchIfJobCodeIsAlreadyAssigned(user, searchService, jobCode);
     if (containers != null && !containers.isEmpty()) {
       throw new RSuiteException(RSuiteException.ERROR_ALREADY_EXISTS,
           "Job code '" + jobCode + "' is already assigned to a product.");
     }
+  }
+  
+  public List<ManagedObject> searchIfJobCodeIsAlreadyAssigned(User user, SearchService searchService, String jobCode)
+      throws RSuiteException {
+    return SearchUtils.searchForContentAssemblies(user, searchService,
+        "product", LMD_NAME_JOB_CODE, jobCode.trim(), null, 1);
   }
 
   protected ContentAssembly createPrimaryContainer(ExecutionContext context, Session session,
