@@ -427,7 +427,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
    * @return The user provided, but possibly an updated instance thereof (inclusive of new roles).
    * @throws RSuiteException
    */
-  protected User grantRoles(AuthorizationService authService, User user, AclMap aclMap)
+  public User grantRoles(AuthorizationService authService, User user, AclMap aclMap)
       throws RSuiteException {
 
     if (authService.isAdministrator(user)) {
