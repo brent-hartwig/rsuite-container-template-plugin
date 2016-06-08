@@ -18,7 +18,7 @@ import com.rsicms.rsuite.containerWizard.jaxb.XmlMoConf;
 
 public class ContainerWizardConfUtils {
 
-  public static ManagedObject getContainerWizardConfMo(User user, ManagedObjectService moService,
+  public ManagedObject getContainerWizardConfMo(User user, ManagedObjectService moService,
       String alias) throws RSuiteException {
 
     if (StringUtils.isBlank(alias)) {
@@ -38,22 +38,22 @@ public class ContainerWizardConfUtils {
         + " wizard configuration MOs with the '" + alias + "' alias when exactly one is required.");
   }
 
-  public static ContainerWizardConf getContainerWizardConf(User user,
-      ManagedObjectService moService, String alias) throws JAXBException, RSuiteException {
+  public ContainerWizardConf getContainerWizardConf(User user, ManagedObjectService moService,
+      String alias) throws JAXBException, RSuiteException {
     ManagedObject mo = getContainerWizardConfMo(user, moService, alias);
     JAXBContext jaxbContext = JAXBContext.newInstance(
         ContainerWizardConf.class.getPackage().getName(), ObjectFactory.class.getClassLoader());
     return (ContainerWizardConf) jaxbContext.createUnmarshaller().unmarshal(mo.getElement());
   }
 
-  public static ContainerWizardConf getContainerWizardConf(ManagedObject mo)
+  public ContainerWizardConf getContainerWizardConf(ManagedObject mo)
       throws JAXBException, RSuiteException {
     JAXBContext jaxbContext = JAXBContext.newInstance(
         ContainerWizardConf.class.getPackage().getName(), ObjectFactory.class.getClassLoader());
     return (ContainerWizardConf) jaxbContext.createUnmarshaller().unmarshal(mo.getElement());
   }
 
-  public static List<XmlMoConf> getXmlMoConfList(ContainerWizardConf conf) {
+  public List<XmlMoConf> getXmlMoConfList(ContainerWizardConf conf) {
     List<XmlMoConf> XmlMoConfList = new ArrayList<XmlMoConf>();
     for (Object o : conf.getPrimaryContainer().getContainerConfOrXmlMoConf()) {
       if (o instanceof XmlMoConf) {
@@ -74,7 +74,7 @@ public class ContainerWizardConfUtils {
    *        instance marked as required should be included.
    * @return All or some of the XML MO configuration instances within the provided configuration.
    */
-  public static List<XmlMoConf> getXmlMoConfSubList(ContainerWizardConf conf, int startIdx,
+  public List<XmlMoConf> getXmlMoConfSubList(ContainerWizardConf conf, int startIdx,
       boolean throughFirstRequired) {
     int i = 0;
     List<XmlMoConf> XmlMoConfList = new ArrayList<XmlMoConf>();

@@ -52,10 +52,11 @@ public class GetSectionTypeInfoWebService extends BaseWebService
         return getErrorResult(
             "The '" + PARAM_NAME_CONF_ALIAS + "' parameter was not specified but is required.");
       }
-      ManagedObject confMo = ContainerWizardConfUtils.getContainerWizardConfMo(user,
-          context.getManagedObjectService(), confAlias);
+      ContainerWizardConfUtils confUtils = new ContainerWizardConfUtils();
+      ManagedObject confMo =
+          confUtils.getContainerWizardConfMo(user, context.getManagedObjectService(), confAlias);
       log.info("conf MO ID: " + confMo.getId());
-      ContainerWizardConf conf = ContainerWizardConfUtils.getContainerWizardConf(confMo);
+      ContainerWizardConf conf = confUtils.getContainerWizardConf(confMo);
       log.info("have conf ?= " + (conf != null));
 
       List<Map<String, String>> responseList = new ArrayList<Map<String, String>>();
@@ -66,8 +67,7 @@ public class GetSectionTypeInfoWebService extends BaseWebService
             + "' parameter was not specified but is required.");
       }
       Integer currentSubPageIdx = args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0);
-      List<XmlMoConf> xmlMoConfList =
-          ContainerWizardConfUtils.getXmlMoConfSubList(conf, currentSubPageIdx, true);
+      List<XmlMoConf> xmlMoConfList = confUtils.getXmlMoConfSubList(conf, currentSubPageIdx, true);
 
       for (XmlMoConf xmlMoConf : xmlMoConfList) {
         Map<String, String> map = new HashMap<String, String>();

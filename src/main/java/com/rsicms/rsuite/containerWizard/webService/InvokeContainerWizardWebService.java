@@ -79,10 +79,11 @@ public class InvokeContainerWizardWebService extends BaseWebService
 
       // Load the wizard configuration.
       // By loading each time, technically it could change mid-instance.
+      ContainerWizardConfUtils confUtils = new ContainerWizardConfUtils();
       String confAlias = args.getFirstString(PARAM_NAME_CONF_ALIAS);
-      ManagedObject confMo = ContainerWizardConfUtils.getContainerWizardConfMo(user,
-          context.getManagedObjectService(), confAlias);
-      ContainerWizardConf conf = ContainerWizardConfUtils.getContainerWizardConf(confMo);
+      ManagedObject confMo =
+          confUtils.getContainerWizardConfMo(user, context.getManagedObjectService(), confAlias);
+      ContainerWizardConf conf = confUtils.getContainerWizardConf(confMo);
 
       // Construct or reconstruct an instance of the container wizard
       ContainerWizard wizard;
@@ -361,11 +362,11 @@ public class InvokeContainerWizardWebService extends BaseWebService
           "Job code '" + jobCode + "' is already assigned to a product.");
     }
   }
-  
-  public List<ManagedObject> searchIfJobCodeIsAlreadyAssigned(User user, SearchService searchService, String jobCode)
-      throws RSuiteException {
-    return SearchUtils.searchForContentAssemblies(user, searchService,
-        "product", LMD_NAME_JOB_CODE, jobCode.trim(), null, 1);
+
+  public List<ManagedObject> searchIfJobCodeIsAlreadyAssigned(User user,
+      SearchService searchService, String jobCode) throws RSuiteException {
+    return SearchUtils.searchForContentAssemblies(user, searchService, "product", LMD_NAME_JOB_CODE,
+        jobCode.trim(), null, 1);
   }
 
   protected ContentAssembly createPrimaryContainer(ExecutionContext context, Session session,

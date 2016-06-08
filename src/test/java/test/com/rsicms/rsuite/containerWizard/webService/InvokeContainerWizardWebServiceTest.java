@@ -20,15 +20,15 @@ import com.rsicms.rsuite.containerWizard.ContainerWizardConstants;
 import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService;
 
 public class InvokeContainerWizardWebServiceTest implements ContainerWizardConstants {
-  
+
   /**
    * Verify the container name is set in container wizard.
    */
   @Test
   public void setContainerName() throws RSuiteException {
-    
+
     String expectedContainerName = "Container Name";
-    
+
     ContainerWizard wizard = new ContainerWizard();
     CallArgument arg = new CallArgument(PARAM_NAME_CONTAINER_NAME, expectedContainerName);
     List<CallArgument> argList = new ArrayList<CallArgument>();
@@ -36,21 +36,21 @@ public class InvokeContainerWizardWebServiceTest implements ContainerWizardConst
     CallArgumentList args = new CallArgumentList(argList);
     SearchService searchService = Mockito.mock(SearchService.class);
     User user = Mockito.mock(User.class);
-    
+
     InvokeContainerWizardWebService service = new InvokeContainerWizardWebService();
     service.retainUserInput(searchService, user, wizard, args);
-    
+
     String resultContainerName = wizard.getContainerName();
     assertEquals(resultContainerName, expectedContainerName);
-    
+
   }
-  
+
   /**
    * Verify that RSuiteException is thrown when jobCode is already assigned.
    */
   @Test
   public void jobCodeIsAlreadyAssigned() throws RSuiteException {
-    
+
     String jobCode = "111111";
     List<ManagedObject> containers = new ArrayList<ManagedObject>();
     ManagedObject mo = Mockito.mock(ManagedObject.class);
@@ -59,23 +59,24 @@ public class InvokeContainerWizardWebServiceTest implements ContainerWizardConst
     List<CallArgument> argList = new ArrayList<CallArgument>();
     argList.add(arg);
     CallArgumentList args = new CallArgumentList(argList);
-    
+
     ContainerWizard wizard = Mockito.mock(ContainerWizard.class);
     SearchService searchService = Mockito.mock(SearchService.class);
     User user = Mockito.mock(User.class);
-    
+
     InvokeContainerWizardWebService service = Mockito.mock(InvokeContainerWizardWebService.class);
     Mockito.doCallRealMethod().when(service).retainUserInput(searchService, user, wizard, args);
     Mockito.doCallRealMethod().when(service).throwIfInvalidJobCode(user, searchService, jobCode);
-    Mockito.when(service.searchIfJobCodeIsAlreadyAssigned(user, searchService, jobCode)).thenReturn(containers);
-    
+    Mockito.when(service.searchIfJobCodeIsAlreadyAssigned(user, searchService, jobCode))
+        .thenReturn(containers);
+
     try {
       service.retainUserInput(searchService, user, wizard, args);
-      fail( "retainUserInput didn't throw RSuiteException when it's expected to." );
+      fail("retainUserInput didn't throw RSuiteException when it's expected to.");
     } catch (RSuiteException e) {
-      
+
     }
-    
+
   }
 
 }
