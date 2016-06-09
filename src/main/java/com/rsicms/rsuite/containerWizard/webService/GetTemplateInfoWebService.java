@@ -53,7 +53,7 @@ public class GetTemplateInfoWebService extends BaseWebService implements Contain
       List<Map<String, String>> responseList = new ArrayList<Map<String, String>>();
       for (ManagedObject mo : moList) {
         Map<String, String> map = new HashMap<String, String>();
-        map.put("name", MOUtils.getDisplayNameQuietly(mo));
+        map.put("name", getDisplayName(mo));
         map.put("moid", mo.getId());
         responseList.add(map);
       }
@@ -71,6 +71,22 @@ public class GetTemplateInfoWebService extends BaseWebService implements Contain
     } finally {
       log.info("Duration in millis: " + (new Date().getTime() - start.getTime()));
     }
+  }
+
+  /**
+   * Add some grace and protection for the MO's display name.
+   * 
+   * @param mo
+   * @return Either the MO's display name, it's ID, or a truncated version.
+   */
+  public String getDisplayName(ManagedObject mo) {
+    String name = MOUtils.getDisplayNameQuietly(mo);
+    if (StringUtils.isBlank(name)) {
+      return mo.getId();
+    } else if (name.length() > 30) {
+      return name.substring(0, 26).concat("...");
+    }
+    return name;
   }
 
   protected Integer getCurrentSubPageIdx(CallArgumentList args) {
