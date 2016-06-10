@@ -8,14 +8,21 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hamcrest.core.IsInstanceOf;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import com.reallysi.rsuite.api.ManagedObject;
 import com.reallysi.rsuite.api.RSuiteException;
+import com.reallysi.rsuite.api.Session;
 import com.reallysi.rsuite.api.User;
 import com.reallysi.rsuite.api.remoteapi.CallArgument;
 import com.reallysi.rsuite.api.remoteapi.CallArgumentList;
+import com.reallysi.rsuite.api.remoteapi.RemoteApiExecutionContext;
+import com.reallysi.rsuite.api.remoteapi.RemoteApiResult;
+import com.reallysi.rsuite.api.remoteapi.result.MessageDialogResult;
+import com.reallysi.rsuite.service.AuthorizationService;
 import com.reallysi.rsuite.service.SearchService;
 import com.rsicms.rsuite.containerWizard.ContainerWizard;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConstants;
@@ -41,7 +48,7 @@ public class InvokeContainerWizardWebServiceTest implements ContainerWizardConst
     User user = Mockito.mock(User.class);
 
     InvokeContainerWizardWebService service = new InvokeContainerWizardWebService();
-    service.retainUserInput(searchService, user, wizard, args);
+    service.retainUserInput(searchService, user, wizard, args, -1);
 
     String resultContainerName = wizard.getContainerName();
     assertEquals(resultContainerName, expectedContainerName);
@@ -68,13 +75,13 @@ public class InvokeContainerWizardWebServiceTest implements ContainerWizardConst
     User user = Mockito.mock(User.class);
 
     InvokeContainerWizardWebService service = Mockito.mock(InvokeContainerWizardWebService.class);
-    Mockito.doCallRealMethod().when(service).retainUserInput(searchService, user, wizard, args);
+    Mockito.doCallRealMethod().when(service).retainUserInput(searchService, user, wizard, args, -1);
     Mockito.doCallRealMethod().when(service).throwIfInvalidJobCode(user, searchService, jobCode);
     Mockito.when(service.searchIfJobCodeIsAlreadyAssigned(user, searchService, jobCode))
         .thenReturn(containers);
 
     try {
-      service.retainUserInput(searchService, user, wizard, args);
+      service.retainUserInput(searchService, user, wizard, args, -1);
     } catch (RSuiteException e) {
       assertThat("Error message should report is already assigned to a product.", e.getMessage(),
           containsString("is already assigned to a product"));
@@ -83,7 +90,7 @@ public class InvokeContainerWizardWebServiceTest implements ContainerWizardConst
 
     fail("No or other exception is thrown!");
   }
-  
+
   /**
    * Verify the future MO list is set in container wizard.
    */
@@ -103,11 +110,40 @@ public class InvokeContainerWizardWebServiceTest implements ContainerWizardConst
     User user = Mockito.mock(User.class);
 
     InvokeContainerWizardWebService service = new InvokeContainerWizardWebService();
-    service.retainUserInput(searchService, user, wizard, args);
+    service.retainUserInput(searchService, user, wizard, args, 0);
 
     List<FutureManagedObject> futureMoList = wizard.getFutureManagedObjectListByKey("0");
     assertEquals(futureMoList.get(0).getTemplateMoId(), expectedTemplateMoId);
 
   }
 
+  @Test
+  public void stillDevelopingThisTest() throws RSuiteException {
+    // Set up the web service's execution context.
+    User user = Mockito.mock(User.class);
+    Session session = new Session("Unit Test", user);
+    AuthorizationService authService = Mockito.mock(AuthorizationService.class);
+    Mockito.when(authService.getSystemUser()).thenReturn(user);
+    RemoteApiExecutionContext context = Mockito.mock(RemoteApiExecutionContext.class);
+    Mockito.when(context.getSession()).thenReturn(session);
+    Mockito.when(context.getAuthorizationService()).thenReturn(authService);
+
+    // Set up the web service's arguments.
+    List<CallArgument> argList = new ArrayList<CallArgument>();
+    // CallArgument arg = new CallArgument("MyNumber", "123456");
+    // argList.add(arg);
+
+    CallArgumentList args = new CallArgumentList(argList);
+
+    InvokeContainerWizardWebService webService =
+        Mockito.mock(InvokeContainerWizardWebService.class);
+    Mockito.doCallRealMethod().when(webService).execute(context, args);
+
+    RemoteApiResult result = webService.execute(context, args);
+    Assert.assertNotNull("Web service return is null", result);
+    Assert.assertThat(new StringBuilder("Received instance of ").append(result.getClass().getName())
+        .append(" when ").append(MessageDialogResult.class.getName()).append(" was expected.")
+        .toString(), result, new IsInstanceOf(MessageDialogResult.class));
+
+  }
 }

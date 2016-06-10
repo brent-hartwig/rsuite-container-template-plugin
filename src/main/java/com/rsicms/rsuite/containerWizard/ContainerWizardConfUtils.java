@@ -40,10 +40,7 @@ public class ContainerWizardConfUtils {
 
   public ContainerWizardConf getContainerWizardConf(User user, ManagedObjectService moService,
       String alias) throws JAXBException, RSuiteException {
-    ManagedObject mo = getContainerWizardConfMo(user, moService, alias);
-    JAXBContext jaxbContext = JAXBContext.newInstance(
-        ContainerWizardConf.class.getPackage().getName(), ObjectFactory.class.getClassLoader());
-    return (ContainerWizardConf) jaxbContext.createUnmarshaller().unmarshal(mo.getElement());
+    return getContainerWizardConf(getContainerWizardConfMo(user, moService, alias));
   }
 
   public ContainerWizardConf getContainerWizardConf(ManagedObject mo)
@@ -51,6 +48,16 @@ public class ContainerWizardConfUtils {
     JAXBContext jaxbContext = JAXBContext.newInstance(
         ContainerWizardConf.class.getPackage().getName(), ObjectFactory.class.getClassLoader());
     return (ContainerWizardConf) jaxbContext.createUnmarshaller().unmarshal(mo.getElement());
+  }
+
+  /**
+   * Get the number of XML MO configurations in the provided wizard configuration.
+   * 
+   * @param conf
+   * @return The number of XML MO configurations in the provided wizard configuration.
+   */
+  public int getXmlMoConfCount(ContainerWizardConf conf) {
+    return getXmlMoConfList(conf).size();
   }
 
   public List<XmlMoConf> getXmlMoConfList(ContainerWizardConf conf) {

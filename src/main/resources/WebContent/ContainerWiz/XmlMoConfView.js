@@ -296,7 +296,7 @@ RSuite.Action({
 			}, []),
 			sectionConfig = Ember.get(context, 'confAlias'),
 			nextPageIdx = Ember.get(context, 'nextPageIdx'),
-			submitTo = Ember.get(context, 'remoteApiName')
+			submitTo = Ember.get(context, 'apiName')
 			subPage = Ember.get(context, 'nextSubPageIdx'),
 			passThruTest = Ember.get(context, 'passThruTest'),
 			containerWizard = Ember.get(context, 'containerWizard'),

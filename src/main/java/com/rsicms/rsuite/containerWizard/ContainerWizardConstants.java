@@ -13,7 +13,6 @@ public interface ContainerWizardConstants {
   String PARAM_NAME_NEXT_PAGE_IDX = "nextPageIdx";
   String PARAM_NAME_NEXT_SUB_PAGE_IDX = "nextSubPageIdx";
   String PARAM_NAME_SECTION_TYPE_IDX = "sectionTypeIdx";
-  String PARAM_NAME_REACHED_LAST_SUB_PAGE = "reachedLastSubPage";
   String PARAM_NAME_SECTION_TYPE = "sectionType";
   String PARAM_NAME_XML_TEMPLATE_MO_ID = "templateId";
   String PARAM_NAME_XML_TEMPLATE_TYPE = "xmlTemplateType";

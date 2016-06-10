@@ -28,7 +28,6 @@ import com.reallysi.rsuite.api.remoteapi.CallArgument;
 import com.reallysi.rsuite.api.remoteapi.CallArgumentList;
 import com.reallysi.rsuite.api.remoteapi.RemoteApiExecutionContext;
 import com.reallysi.rsuite.api.remoteapi.RemoteApiResult;
-import com.reallysi.rsuite.api.remoteapi.result.InvokeWebServiceAction;
 import com.reallysi.rsuite.api.remoteapi.result.RestResult;
 import com.reallysi.rsuite.api.remoteapi.result.UserInterfaceAction;
 import com.reallysi.rsuite.api.security.LocalUserManager;
@@ -44,10 +43,10 @@ import com.rsicms.rsuite.containerWizard.ContainerWizard;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConfUtils;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConstants;
 import com.rsicms.rsuite.containerWizard.FutureManagedObject;
+import com.rsicms.rsuite.containerWizard.PageNavigation;
 import com.rsicms.rsuite.containerWizard.advisors.mo.LocalManagedObjectAdvisor;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerConf;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
-import com.rsicms.rsuite.containerWizard.jaxb.Page;
 import com.rsicms.rsuite.containerWizard.jaxb.PrimaryContainer;
 import com.rsicms.rsuite.containerWizard.jaxb.XmlMoConf;
 import com.rsicms.rsuite.utils.mo.MOUtils;
@@ -62,189 +61,56 @@ public class InvokeContainerWizardWebService extends BaseWebService
 
   private static Log log = LogFactory.getLog(InvokeContainerWizardWebService.class);
 
-  protected User superUser;
+  protected User systemUser;
 
   @Override
   public RemoteApiResult execute(RemoteApiExecutionContext context, CallArgumentList args)
       throws RSuiteException {
     Date start = new Date();
     try {
+      // TODO: flip back after refactoring
       // if (log.isDebugEnabled()) {
       CallArgumentUtils.logArguments(args, log);
       // }
 
+      // TODO: start using OperationResult
+
       Session session = context.getSession();
       User user = session.getUser();
-      this.superUser = context.getAuthorizationService().getSystemUser();
+      this.systemUser = context.getAuthorizationService().getSystemUser();
 
       // Load the wizard configuration.
       // By loading each time, technically it could change mid-instance.
       ContainerWizardConfUtils confUtils = new ContainerWizardConfUtils();
       String confAlias = args.getFirstString(PARAM_NAME_CONF_ALIAS);
-      ManagedObject confMo =
-          confUtils.getContainerWizardConfMo(user, context.getManagedObjectService(), confAlias);
-      ContainerWizardConf conf = confUtils.getContainerWizardConf(confMo);
+      ContainerWizardConf conf =
+          confUtils.getContainerWizardConf(user, context.getManagedObjectService(), confAlias);
 
-      // Construct or reconstruct an instance of the container wizard
-      ContainerWizard wizard;
-      String serialiazedWizard = args.getFirstString(PARAM_NAME_CONTAINER_WIZARD);
-      if (StringUtils.isBlank(serialiazedWizard)) {
-        wizard = new ContainerWizard();
-      } else {
-        wizard = ContainerWizard.deserialize(serialiazedWizard);
-      }
+      // Re-constitute or get a new container wizard.
+      ContainerWizard wizard = getContainerWizard(args.getFirstString(PARAM_NAME_CONTAINER_WIZARD));
+
+      // Get our page navigation object.
+      PageNavigation pageNav = new PageNavigation(conf, confUtils, args, log);
 
       // Handle cancel link, need a better indication from form submission
-      if (args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0) == null) {
+      if (pageNav.wasPageDismissed()) {
         return getNotificationResult(context, "Create product is canceled.", "Create Product");
       }
 
       // Retain values provided by the user.
-      retainUserInput(context.getSearchService(), user, wizard, args);
-      log.info(wizard.getInfo());
+      retainUserInput(context.getSearchService(), user, wizard, args,
+          pageNav.getCurrentSubPageIdx());
+      log.info(wizard.getInfo()); // TODO: when to stop this?
 
-      // Is there another page to display?
-      RestResult restResult;
-      Integer pageIdx = args.getFirstInteger(PARAM_NAME_NEXT_PAGE_IDX, -1);
-      boolean reachedLastSubPage = args.getFirstBoolean(PARAM_NAME_REACHED_LAST_SUB_PAGE, false);
-
-      // Find the end of the wizard form
-      Integer configuredSubPageSize = 0;
-      for (Object o : conf.getPrimaryContainer().getContainerConfOrXmlMoConf()) {
-        if (o instanceof XmlMoConf)
-          configuredSubPageSize++;
-      }
-      reachedLastSubPage = (args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0)
-          + args.getFirstInteger(PARAM_NAME_SECTION_TYPE_IDX, 0)) >= configuredSubPageSize;
-
-      if (pageIdx >= 0) {
-        // Bump the page index up by one if we've processed the last sub page.
-        if (reachedLastSubPage) {
-          pageIdx++;
-        }
-
-        List<Page> pageList = conf.getPages().getPage();
-        if (pageIdx >= pageList.size()) {
-          return getErrorResult("The wizard configuration defines " + pageList.size()
-              + " pages. Unable to process page " + (pageIdx + 1) + ".");
-        }
-
-        Page page = pageList.get(pageIdx);
-        log.info("page is null ?= " + (page == null));
-        boolean pageHasSubPages = page.isSubPages();
-        Integer subPageIdx = args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0);
-        log.info("reachedLastSubPage: " + reachedLastSubPage);
-
-        restResult = new RestResult();
-
-        log.info("form id: " + page.getFormId());
-        log.info("action id: " + page.getActionId());
-
-        // Set up page advancement for next web service invocation.
-        Integer nextPageIdx = -1;
-        boolean setNextPageIdx = false;
-        boolean setNextSubPageIdx = false;
-        if (!reachedLastSubPage && (pageHasSubPages || subPageIdx > 0)) {
-          // Stay on the same page.
-          nextPageIdx = pageIdx;
-          // Only tell the form. Form needs to provide to the web service.
-          setNextSubPageIdx = true;
-        } else if (pageList.size() > pageIdx + 1) {
-          nextPageIdx = pageIdx + 1;
-        }
-        // Only set the page index param if there is a next page.
-        if (nextPageIdx >= 0) {
-          setNextPageIdx = true;
-        }
-
-        if (StringUtils.isNotBlank(page.getFormId())) {
-
-          log.info("Requesting a form...");
-
-          InvokeWebServiceAction serviceAction =
-              new InvokeWebServiceAction(args.getFirstString(PARAM_NAME_API_NAME));
-          serviceAction.setFormId(page.getFormId());
-
-          serviceAction.addServiceParameter(PARAM_NAME_CONF_ALIAS, confAlias);
-          serviceAction.addServiceParameter(PARAM_NAME_CONTAINER_WIZARD, wizard.serialize());
-
-          if (setNextPageIdx) {
-            log.info("Setting next page index to " + nextPageIdx);
-            serviceAction.addServiceParameter(PARAM_NAME_NEXT_PAGE_IDX,
-                String.valueOf(nextPageIdx));
-          }
-          if (setNextSubPageIdx) {
-            log.info("Setting next sub page index to " + subPageIdx);
-            serviceAction.addFormParameter(PARAM_NAME_NEXT_SUB_PAGE_IDX,
-                String.valueOf(subPageIdx));
-          }
-
-          // Make the web service string params also available to the form.
-          for (CallArgument arg : serviceAction.getServiceParameters().values()) {
-            if (StringUtils.isNotBlank(arg.getValue())) {
-              serviceAction.addFormParameter(arg.getName(), arg.getValue());
-            }
-          }
-
-          restResult.addAction(serviceAction);
-        } else if (StringUtils.isNotBlank(page.getActionId())) {
-
-          log.info("Requesting an action");
-
-          RestResult result = new RestResult();
-          UserInterfaceAction wizardPage = new UserInterfaceAction(page.getActionId());
-
-          // TODO: use constants
-          wizardPage.addProperty(PARAM_NAME_CONF_ALIAS, args.getFirstString(PARAM_NAME_CONF_ALIAS));
-          wizardPage.addProperty("remoteApiName", args.getFirstString(PARAM_NAME_API_NAME));
-          wizardPage.addProperty(PARAM_NAME_CONTAINER_WIZARD, wizard.serialize());
-
-          // if (setNextPageIdx) {
-          // log.info("Setting nextPageIdx on form");
-          // wizardPage.addProperty(PARAM_NAME_NEXT_PAGE_IDX, String.valueOf(nextPageIdx));
-          // }
-
-          if (setNextPageIdx) {
-            log.info("Setting next page index to " + nextPageIdx);
-            wizardPage.addProperty(PARAM_NAME_NEXT_PAGE_IDX, nextPageIdx);
-          }
-
-          // TODO: use setNextSubPageIdx?
-          if (page.isSubPages()) {
-            Integer nextSubPageIdx = args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0);
-
-            Integer nextSubPageOffset = args.getFirstInteger("sectionTypeIdx", 0);
-            nextSubPageIdx += nextSubPageOffset;
-
-            log.info("Setting next sub page index to " + nextSubPageIdx + " (offset was "
-                + nextSubPageOffset + ")");
-            wizardPage.addProperty(PARAM_NAME_NEXT_SUB_PAGE_IDX, nextSubPageIdx);
-          }
-
-          result.addAction(wizardPage);
-          return result;
-        } else {
-          // Configuration error (no form or action).
-          return getErrorResult("Page does not declare a form or an action.");
-        }
-
-
+      if (pageNav.isPageRequested()) {
+        return pageNav.getRestResult(wizard, confAlias);
       } else {
-        // Create the container
+        // Time to create the container!
         String parentId = context.getContentAssemblyService().getRootFolder(user).getId();
         ContentAssembly ca =
             createPrimaryContainer(context, context.getSession(), conf, wizard, parentId);
-
-        RestResult rr = getNotificationResult(context,
-            "Created '" + ca.getDisplayName() + "' (ID: " + ca.getId() + ")", "Create Product");
-        UserInterfaceAction action = new UserInterfaceAction("rsuite:refreshManagedObjects");
-        action.addProperty("objects", parentId);
-        action.addProperty("children", false);
-        rr.addAction(action);
-        return rr;
+        return getContainerCreatedRestResult(context, ca, parentId);
       }
-
-      return restResult;
 
     } catch (Exception e) {
       log.warn("Unable to complete request", e);
@@ -257,12 +123,38 @@ public class InvokeContainerWizardWebService extends BaseWebService
     }
   }
 
-  protected Integer getCurrentSubPageIdx(CallArgumentList args) {
-    return args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0) - 1;
+  /**
+   * Construct or reconstruct (deserialize) an instance of ContainerWizard.
+   * 
+   * @param serialiazedWizard If not blank, this method will attempt to deserialize the string into
+   *        an instance of ContainerWizard; else, a new instance will be provided.
+   * @return An instance of ContainerWizard.
+   * @throws ClassNotFoundException
+   * @throws IOException
+   */
+  public ContainerWizard getContainerWizard(String serialiazedWizard)
+      throws ClassNotFoundException, IOException {
+    ContainerWizard wizard;
+    if (StringUtils.isBlank(serialiazedWizard)) {
+      wizard = new ContainerWizard();
+    } else {
+      wizard = ContainerWizard.deserialize(serialiazedWizard);
+    }
+    return wizard;
   }
 
+  /**
+   * Retain the latest round of input from the user. Some user input may be validated.
+   * 
+   * @param searchService
+   * @param user
+   * @param wizard
+   * @param args
+   * @param currentSubPageIdx
+   * @throws RSuiteException
+   */
   public void retainUserInput(SearchService searchService, User user, ContainerWizard wizard,
-      CallArgumentList args) throws RSuiteException {
+      CallArgumentList args, Integer currentSubPageIdx) throws RSuiteException {
 
     /*
      * TODO: implement a better way to inject business validation logic.
@@ -294,13 +186,12 @@ public class InvokeContainerWizardWebService extends BaseWebService
     }
 
     // Check for the configuration of future MOs.
-    Integer subPageIdx = getCurrentSubPageIdx(args);
-    if (subPageIdx >= 0) {
+    if (currentSubPageIdx >= 0) {
       String[] templateMoIds = args.getValuesArray(PARAM_NAME_XML_TEMPLATE_MO_ID);
       if (templateMoIds != null) {
         FutureManagedObject fmo;
         List<FutureManagedObject> futureMoList =
-            wizard.getFutureManagedObjectListByKey(String.valueOf(subPageIdx));
+            wizard.getFutureManagedObjectListByKey(String.valueOf(currentSubPageIdx));
         String[] titles = args.getValuesArray(PARAM_NAME_SECTION_TITLE);
         for (int i = 0; i < templateMoIds.length; i++) {
           String templateMoId = templateMoIds[i];
@@ -389,7 +280,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
 
     // Construct AclMap using new container's ID, and create new roles.
     AclMap aclMap = new AclMap(context.getSecurityService(), conf, primaryContainer.getId());
-    aclMap.createUndefinedRoles(superUser, context.getAuthorizationService().getRoleManager());
+    aclMap.createUndefinedRoles(systemUser, context.getAuthorizationService().getRoleManager());
 
     // Grant roles to current user, reconstruct user instance, and set the container's ACL.
     user = grantRoles(context.getAuthorizationService(), user, aclMap);
@@ -485,7 +376,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
       ObjectAttachOptions options = new ObjectAttachOptions();
       for (FutureManagedObject fmo : fmoList) {
         // Make sure user can get the template.
-        templateMo = moService.getManagedObject(superUser, fmo.getTemplateMoId());
+        templateMo = moService.getManagedObject(systemUser, fmo.getTemplateMoId());
 
         elem = templateMo.getElement();
 
@@ -519,6 +410,26 @@ public class InvokeContainerWizardWebService extends BaseWebService
     }
 
     return moList;
+  }
+
+  /**
+   * Get the web service result applicable when the container has been created.
+   * 
+   * @param context
+   * @param ca
+   * @param parentId
+   * @return Web service result for when the container has been created.
+   */
+  public RestResult getContainerCreatedRestResult(ExecutionContext context, ContentAssembly ca,
+      String parentId) {
+    RestResult rr = getNotificationResult(context,
+        "Created '" + ca.getDisplayName() + "' (ID: " + ca.getId() + ")", "Create Product");
+    UserInterfaceAction action = new UserInterfaceAction("rsuite:refreshManagedObjects");
+    action.addProperty("objects", parentId);
+    action.addProperty("children", false);
+    rr.addAction(action);
+    return rr;
+
   }
 
 }
