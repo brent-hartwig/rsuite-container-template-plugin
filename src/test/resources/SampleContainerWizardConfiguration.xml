@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<container-wizard-conf 
+    xmlns="http://www.rsicms.com/rsuite/ns/conf/container-wizard" 
+    xmlns:r="http://www.rsuitecms.com/rsuite/ns/metadata" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.rsicms.com/rsuite/ns/conf/container-wizard containerWizardConf.xsd"
+    name="Sample Container Wizard Configuration">
+    
+    <pages>
+        
+        <page form-id="gao-newblue-form-select-product-type" sub-pages="0" api-name="gao.newblue.webservice.CreateProductByType"/>
+        <page form-id="gao-newblue-form-create-product-page-1" sub-pages="0" api-name="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
+        <!--<page form-id="sample.contents.page" sub-pages="0"/>-->
+        <page action-id="rsuite-container-wizard-plugin:wizardPage" sub-pages="1" api-name="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
+        <page form-id="gao-newblue-form-create-product-page-3" sub-pages="0" api-name="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
+        
+    </pages>
+    
+    <primary-container type="product" acl-id="non-feedback-containers" default-acl-id="master-sections">
+        
+        <container-conf type="feedback" name="Reviewer Feedback" acl-id="feedback-container"/>
+        
+        <xml-mo-conf name="Cover" template-lmd-value="SampleCover" required="1" multiple="0"/>
+        <xml-mo-conf name="Abbreviations" template-lmd-value="SampleAbbreviations" required="0" multiple="0"/>
+        <xml-mo-conf name="Introduction" template-lmd-value="SampleIntroduction" required="1" multiple="0"/>
+        <xml-mo-conf name="Background" template-lmd-value="SampleBackground" required="1" multiple="0"/>
+        <xml-mo-conf name="Finding" template-lmd-value="SampleFinding" required="1" multiple="1"/>
+        <xml-mo-conf name="Conclusions" template-lmd-value="SampleConclusions" required="0" multiple="0"/>
+        <xml-mo-conf name="Recommendations" template-lmd-value="SampleRecommendations" required="0" multiple="0"/>
+        <xml-mo-conf name="Comments" template-lmd-value="SampleAgencyComments" required="1" multiple="1"/>
+        <xml-mo-conf name="Closing" template-lmd-value="SampleClosing" required="0" multiple="0"/>
+        <xml-mo-conf name="Appendix" template-lmd-value="SampleAppendix" required="0" multiple="1"/>
+        <!--<xml-mo-conf name="Related Product" template-lmd-value="SampleRelatedProduct" required="0" multiple="1"/>-->
+        
+        <container-conf type="folder" name="images" acl-id="non-feedback-containers"/>
+        
+    </primary-container>
+    
+    <acls>
+        <acl id="non-feedback-containers">
+            <ace project-role="Authors" content-permissions="list, view, edit"/>
+            <ace project-role="Reviewers" content-permissions="list, view"/>
+            <ace project-role="Referencers" content-permissions="list, view"/>
+        </acl>
+        <acl id="feedback-container">
+            <ace project-role="Authors" content-permissions="list, view"/>
+            <ace project-role="Reviewers" content-permissions="list, view, edit"/>
+            <ace project-role="Referencers" content-permissions=""/>
+        </acl>
+        <acl id="master-sections">
+            <ace project-role="Authors" content-permissions="list, view, edit, delete"/>
+            <ace project-role="Reviewers" content-permissions="list, view"/>
+            <ace project-role="Referencers" content-permissions="list, view"/>
+        </acl>
+    </acls>
+    
+</container-wizard-conf>

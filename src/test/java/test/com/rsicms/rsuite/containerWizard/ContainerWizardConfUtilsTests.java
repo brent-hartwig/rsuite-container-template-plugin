@@ -207,14 +207,14 @@ public class ContainerWizardConfUtilsTests {
     // will re-visit to add more nodes
     Element elem = doc.createElementNS("http://www.rsicms.com/rsuite/ns/conf/container-wizard",
         "container-wizard-conf");
-    elem.setAttribute("name", "Audit Report Product Configuration");
+    elem.setAttribute("name", "Sample Container Wizard Configuration");
 
     ManagedObject mo = Mockito.mock(ManagedObject.class);
     Mockito.when(mo.getElement()).thenReturn(elem);
     ContainerWizardConf conf = new ContainerWizardConfUtils().getContainerWizardConf(mo);
 
     assertNotNull(conf);
-    assertEquals(conf.getName(), "Audit Report Product Configuration");
+    assertEquals(conf.getName(), "Sample Container Wizard Configuration");
   }
 
   /**
