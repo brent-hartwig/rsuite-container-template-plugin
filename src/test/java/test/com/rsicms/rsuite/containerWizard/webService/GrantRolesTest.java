@@ -19,82 +19,83 @@ import com.rsicms.rsuite.containerWizard.AclMap;
 import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService;
 
 public class GrantRolesTest {
-  
+
   /**
    * Grant role if it is an administrator.
    */
   @Test
   public void grantRoleForAdministrator() throws RSuiteException {
-    
+
     User user = Mockito.mock(User.class);
     AuthorizationService authService = Mockito.mock(AuthorizationService.class);
-    
-    // user is an administrator 
+
+    // user is an administrator
     Mockito.when(authService.isAdministrator(user)).thenReturn(true);
     AclMap aclMap = Mockito.mock(AclMap.class);
-    
+
     InvokeContainerWizardWebService invokeService = new InvokeContainerWizardWebService();
     User grantedUser = invokeService.grantRoles(authService, user, aclMap);
-    
+
     assertNotNull(grantedUser);
-    
-    
+
+
   }
-  
+
   /**
    * Grant role if it is a local user.
    */
   @Test
   public void grantRoleForLocalUser() throws RSuiteException {
-    
+
     User user = Mockito.mock(User.class);
-    
+
     // user is a local user
     Mockito.when(user.getUserType()).thenReturn(UserType.LOCAL);
-    
+
     LocalUserManager localUserManager = Mockito.mock(LocalUserManager.class);
-    Mockito.doNothing().when(localUserManager).updateUser(Mockito.anyString(), 
-        Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+    Mockito.doNothing().when(localUserManager).updateUser(Mockito.anyString(), Mockito.anyString(),
+        Mockito.anyString(), Mockito.anyString());
     Mockito.doNothing().when(localUserManager).reload();
     Mockito.when(localUserManager.getUser(Mockito.anyString())).thenReturn(user);
-        
+
     AuthorizationService authService = Mockito.mock(AuthorizationService.class);
-    
+
     // user is not an administrator
     Mockito.when(authService.isAdministrator(user)).thenReturn(false);
     Mockito.when(authService.getLocalUserManager()).thenReturn(localUserManager);
-        
+
     AclMap aclMap = Mockito.mock(AclMap.class);
     Mockito.when(aclMap.getRoleNames(user)).thenReturn(Arrays.asList("Authors", "Reviewers"));
-    
+
     InvokeContainerWizardWebService invokeService = new InvokeContainerWizardWebService();
     User grantedUser = invokeService.grantRoles(authService, user, aclMap);
-    
+
     assertNotNull(grantedUser);
-    
+
   }
-  
+
   /**
    * Throw exception if it is not administrator nor a local user.
-   * @throws RSuiteException 
+   * 
+   * @throws RSuiteException
    */
   @Test
-  public void throwExceptionForNoneAdministratorNoneLocalUser() throws RSuiteException {
-    
+  public void throwExceptionForNonAdministratorNonLocalUser() throws RSuiteException {
+
     User user = Mockito.mock(User.class);
-    
+
     // user is not a local user
     Mockito.when(user.getUserType()).thenReturn(UserType.LDAP);
-    
+
     AuthorizationService authService = Mockito.mock(AuthorizationService.class);
-    
+
     // user is not an administrator
     Mockito.when(authService.isAdministrator(user)).thenReturn(false);
-    
+
     AclMap aclMap = Mockito.mock(AclMap.class);
-    
+
     InvokeContainerWizardWebService invokeService = new InvokeContainerWizardWebService();
-    
+
     try {
       invokeService.grantRoles(authService, user, aclMap);
     } catch (RSuiteException e) {
@@ -102,9 +103,9 @@ public class GrantRolesTest {
           e.getMessage(), containsString("This feature does not yet support non-local users"));
       return;
     }
-    
+
     fail("No or other exception is thrown.");
-    
+
   }
 
 }

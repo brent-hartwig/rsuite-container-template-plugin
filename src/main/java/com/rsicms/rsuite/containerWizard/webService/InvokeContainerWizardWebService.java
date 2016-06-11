@@ -23,6 +23,7 @@ import com.reallysi.rsuite.api.UserType;
 import com.reallysi.rsuite.api.control.ContentAssemblyCreateOptions;
 import com.reallysi.rsuite.api.control.ManagedObjectAdvisor;
 import com.reallysi.rsuite.api.control.ObjectAttachOptions;
+import com.reallysi.rsuite.api.control.ObjectSource;
 import com.reallysi.rsuite.api.extensions.ExecutionContext;
 import com.reallysi.rsuite.api.remoteapi.CallArgument;
 import com.reallysi.rsuite.api.remoteapi.CallArgumentList;
@@ -260,7 +261,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
         jobCode.trim(), null, 1);
   }
 
-  protected ContentAssembly createPrimaryContainer(ExecutionContext context, Session session,
+  public ContentAssembly createPrimaryContainer(ExecutionContext context, Session session,
       ContainerWizardConf conf, ContainerWizard wizard, String parentId)
       throws RSuiteException, IOException, TransformerException {
 
@@ -268,7 +269,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
     PrimaryContainer pcConf = conf.getPrimaryContainer();
     SecurityService securityService = context.getSecurityService();
     String defaultAclId = pcConf.getDefaultAclId();
-    XPathEvaluator eval = XPathUtils.getXPathEvaluator(context, RSuiteNamespaces.MetaDataNS);
+    XPathEvaluator eval = getXPathEvaluator(context);
 
     // Create primary container; hold back on ACL until ID is known.
     ContentAssemblyCreateOptions pcOptions = new ContentAssemblyCreateOptions();
@@ -340,7 +341,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
         "This feature does not yet support non-local users.");
   }
 
-  protected String addContainer(ContentAssemblyService caService, User user,
+  public String addContainer(ContentAssemblyService caService, User user,
       ContentAssembly primaryContainer, ContainerConf conf, AclMap aclMap, String defaultAclId)
       throws RSuiteException {
     ContentAssemblyCreateOptions options = new ContentAssemblyCreateOptions();
@@ -349,7 +350,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
     return caService.createCANode(user, primaryContainer.getId(), conf.getName(), options).getId();
   }
 
-  protected List<ManagedObject> addManagedObjects(ExecutionContext context, User user,
+  public List<ManagedObject> addManagedObjects(ExecutionContext context, User user,
       XPathEvaluator eval, ContentAssembly primaryContainer, XmlMoConf conf,
       List<FutureManagedObject> fmoList, AclMap aclMap, String defaultAclId)
       throws RSuiteException, IOException, TransformerException {
@@ -397,11 +398,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
 
         // Load MO
         filename = context.getIDGenerator().allocateId().concat(".xml");
-        mo = MOUtils.load(context, user, filename,
-            MOUtils.getObjectSource(context, filename,
-                DomUtils.serializeToString(context, elem, true, true, DEFAULT_CHARACTER_ENCODING),
-                DEFAULT_CHARACTER_ENCODING),
-            advisor);
+        mo = loadMo(elem, context, user, filename, advisor);
         moList.add(mo);
 
         // Create reference
@@ -430,6 +427,55 @@ public class InvokeContainerWizardWebService extends BaseWebService
     rr.addAction(action);
     return rr;
 
+  }
+  
+  /** A wrapper around a utility method to get Managed Object
+   * gedObject
+   * @param elem
+   * @param context
+   * @param user
+   * @param filename
+   * @param moAdvisor
+   * @return ManagedObject
+   * @throws RSuiteException
+   * @throws IOException
+   * @throws TransformerException
+   */
+  public ManagedObject loadMo(Element elem, ExecutionContext context, User user, 
+        String filename, ManagedObjectAdvisor moAdvisor)
+        throws RSuiteException, IOException, TransformerException {
+        return MOUtils.load(context, user, filename,
+            getObjectSource(elem, context, filename),
+            moAdvisor);
+  }
+
+  /**
+   * A wrapper around a utility method to get ObjectSource
+   * 
+   * @param elem
+   * @param context
+   * @param filename
+   * @return ObjectSource
+   * @throws IOException
+   * @throws RSuiteException
+   * @throws TransformerException
+   */
+  public ObjectSource getObjectSource(Element elem, ExecutionContext context, String filename)
+      throws IOException, RSuiteException, TransformerException {
+    return MOUtils.getObjectSource(context, filename,
+        DomUtils.serializeToString(context, elem, true, true, DEFAULT_CHARACTER_ENCODING),
+        DEFAULT_CHARACTER_ENCODING);
+  }
+
+  /**
+   * A wrapper around a static utility method to get XPathEvaluator
+   * 
+   * @param context
+   * @return XPathEvaluator
+   * @throws RSuiteException
+   */
+  public XPathEvaluator getXPathEvaluator(ExecutionContext context) throws RSuiteException {
+    return XPathUtils.getXPathEvaluator(context, RSuiteNamespaces.MetaDataNS);
   }
 
 }
