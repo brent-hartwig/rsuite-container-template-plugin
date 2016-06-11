@@ -43,6 +43,9 @@ import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebServ
 
 public class CreatePrimaryContainerTest {
 
+  /**
+   * Verify a CA node is added.
+   */
   @Test
   public void addContainer() throws RSuiteException {
 
@@ -71,6 +74,9 @@ public class CreatePrimaryContainerTest {
 
   }
 
+  /**
+   * Verify a list of managed objects are added.
+   */
   @Test
   public void addManagedObjects() throws RSuiteException, IOException, TransformerException {
 
@@ -130,6 +136,9 @@ public class CreatePrimaryContainerTest {
 
   }
 
+  /**
+   * Verify a primary container is created.
+   */
   @Test
   public void createPrimaryContainer() throws RSuiteException, IOException, TransformerException {
 
