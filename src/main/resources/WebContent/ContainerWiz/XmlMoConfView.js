@@ -209,6 +209,7 @@ ContainerWiz.XmlMoConfView = Ember.ContainerView.extend(RSuite.view.Dialog, {
 		Ember.ContainerView.extend({
 			classNames: [ 'ui-buttonset', 'ui-dialog-buttonset' ],
 			childViews: [
+			    /* disable Back button until it functions fully.
 				Ember.ContainerView.extend({
 					tagName: 'button',
 					isVisible: function () {
@@ -232,6 +233,7 @@ ContainerWiz.XmlMoConfView = Ember.ContainerView.extend(RSuite.view.Dialog, {
 						this.get('parentView.parentView').resolve({ changePage: -1 });
 					}
 				}),
+				*/
 				Ember.ContainerView.extend({
 					tagName: 'button',
 					isVisible: function () {
