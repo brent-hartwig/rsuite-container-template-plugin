@@ -1,5 +1,6 @@
 package test.com.rsicms.rsuite.containerWizard;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -33,7 +34,8 @@ public class PageNavigationTests implements ContainerWizardConstants {
   private static int numberOfSubPages = 10;
 
   /*
-   * Test PageNavigation.hasReachedSubPage()
+   * Test PageNavigation's constructor with various combinations of parameter values that test what
+   * hasReachedLastSubPage() returns.
    */
   @Test
   public void reachedLastSubPage() throws SAXException, IOException, ParserConfigurationException,
@@ -78,5 +80,76 @@ public class PageNavigationTests implements ContainerWizardConstants {
         }
       }
     }
+  }
+
+  /*
+   * Verify default page index value.
+   */
+  @Test
+  public void defaultPageIndex() throws SAXException, IOException, ParserConfigurationException,
+      RSuiteException, JAXBException {
+    // Set up parameters for PageNavigation
+    ContainerWizardConf containerWizardConf =
+        new ContainerWizardTestUtils().newContainerWizardConfForTests();
+    ContainerWizardConfUtils confUtils = new ContainerWizardConfUtils();
+    Log log = null;
+
+    // Test default web service parameters
+    List<CallArgument> argList = new ArrayList<CallArgument>();
+    CallArgumentList args = new CallArgumentList(argList);
+    PageNavigation pageNav = new PageNavigation(containerWizardConf, confUtils, args, log);
+    Integer expected = -1;
+    assertEquals(new StringBuilder("Expected ").append(expected)
+        .append(" for default page index but received ").append(pageNav.getPageIdx()).toString(),
+        expected, pageNav.getPageIdx());
+  }
+
+  /*
+   * Verify page index is not adjusted unexpectedly.
+   */
+  @Test
+  public void adjustedPageIndex() throws SAXException, IOException, ParserConfigurationException,
+      RSuiteException, JAXBException {
+    // Set up parameters for PageNavigation
+    ContainerWizardConf containerWizardConf =
+        new ContainerWizardTestUtils().newContainerWizardConfForTests();
+    ContainerWizardConfUtils confUtils = new ContainerWizardConfUtils();
+    Log log = null;
+
+    List<CallArgument> argList;
+    CallArgumentList args;
+    PageNavigation pageNav;
+
+    // Expecting whatever we send in.
+    int numberOfPages = containerWizardConf.getPages().getPage().size();
+    for (int pageIdx = -1; pageIdx <= numberOfPages + 1; pageIdx++) {
+      argList = new ArrayList<CallArgument>();
+      argList.add(new CallArgument(PARAM_NAME_NEXT_PAGE_IDX, Integer.toString(pageIdx)));
+      args = new CallArgumentList(argList);
+      pageNav = new PageNavigation(containerWizardConf, confUtils, args, log);
+      assertEquals(new StringBuilder("Expected ").append(pageIdx)
+          .append(" for the page index but received ").append(pageNav.getPageIdx()).toString(),
+          (Object) pageIdx, pageNav.getPageIdx());
+    }
+  }
+
+  @Test
+  public void unadjustedPageIndex() throws SAXException, IOException, ParserConfigurationException,
+      RSuiteException, JAXBException {
+    // Set up parameters for PageNavigation
+    ContainerWizardConf containerWizardConf =
+        new ContainerWizardTestUtils().newContainerWizardConfForTests();
+    ContainerWizardConfUtils confUtils = new ContainerWizardConfUtils();
+    Log log = null;
+
+    int expected = 4;
+    List<CallArgument> argList = new ArrayList<CallArgument>();
+    argList.add(new CallArgument(PARAM_NAME_NEXT_PAGE_IDX, Integer.toString(expected - 1)));
+    argList.add(new CallArgument(PARAM_NAME_NEXT_SUB_PAGE_IDX, Integer.toString(numberOfSubPages)));
+    CallArgumentList args = new CallArgumentList(argList);
+    PageNavigation pageNav = new PageNavigation(containerWizardConf, confUtils, args, log);
+    assertEquals(new StringBuilder("Expected ").append(expected)
+        .append(" for the page index but received ").append(pageNav.getPageIdx()).toString(),
+        (Object) expected, pageNav.getPageIdx());
   }
 }

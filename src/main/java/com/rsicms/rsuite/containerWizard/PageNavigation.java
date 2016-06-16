@@ -90,7 +90,7 @@ public class PageNavigation implements ContainerWizardConstants {
 
     // Bump the page index up by one when a page is being requested and we've processed the last sub
     // page.
-    if (isPageRequested() && reachedLastSubPage) {
+    if (isPageRequested() && hasReachedLastSubPage()) {
       pageIdx++;
     }
 
