@@ -133,7 +133,7 @@ public class AclMap extends HashMap<String, ACL> {
       while (aceIt.hasNext()) {
         ace = aceIt.next();
         name = ace.getRole().getName();
-        if (!names.contains(name)) {
+        if (name.contains("AIC_AD") && !names.contains(name)) {
           names.add(name);
         }
       }
