@@ -33,6 +33,7 @@ public class AclMap extends HashMap<String, ACL> {
   private static final Log log = LogFactory.getLog(AclMap.class);
 
   protected static final String UNDERSCORE = "_";
+  protected static final String AICAD = "AIC_AD";
 
   public AclMap(SecurityService securityService, ContainerWizardConf conf,
       String projectRoleNamePrefix) throws RSuiteException {
@@ -133,7 +134,7 @@ public class AclMap extends HashMap<String, ACL> {
       while (aceIt.hasNext()) {
         ace = aceIt.next();
         name = ace.getRole().getName();
-        if (name.contains("AIC_AD") && !names.contains(name)) {
+        if (name.contains(AICAD) && !names.contains(name)) {
           names.add(name);
         }
       }
