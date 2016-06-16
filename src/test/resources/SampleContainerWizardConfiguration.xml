@@ -39,16 +39,19 @@
     <acls>
         <acl id="non-feedback-containers">
             <ace project-role="AIC_AD" content-permissions="list, view, edit"/>
+            <ace project-role="Authors" content-permissions="list, view, edit"/>
             <ace project-role="Reviewers" content-permissions="list, view"/>
             <ace project-role="Referencers" content-permissions="list, view"/>
         </acl>
         <acl id="feedback-container">
             <ace project-role="AIC_AD" content-permissions="list, view"/>
+            <ace project-role="Authors" content-permissions="list, view"/>
             <ace project-role="Reviewers" content-permissions="list, view, edit"/>
             <ace project-role="Referencers" content-permissions=""/>
         </acl>
         <acl id="master-sections">
             <ace project-role="AIC_AD" content-permissions="list, view, edit, delete"/>
+            <ace project-role="Authors" content-permissions="list, view, edit, delete"/>
             <ace project-role="Reviewers" content-permissions="list, view"/>
             <ace project-role="Referencers" content-permissions="list, view"/>
         </acl>
