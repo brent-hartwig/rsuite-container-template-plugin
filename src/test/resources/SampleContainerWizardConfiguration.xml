@@ -8,11 +8,11 @@
     
     <pages>
         
-        <page form-id="gao-newblue-form-select-product-type" sub-pages="0" api-name="gao.newblue.webservice.CreateProductByType"/>
-        <page form-id="gao-newblue-form-create-product-page-1" sub-pages="0" api-name="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
+        <page form-id="acme-form-select-product-type" sub-pages="0" api-name="acme.webservice.CreateProductByType"/>
+        <page form-id="acme-form-create-product-page-1" sub-pages="0" api-name="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
         <!--<page form-id="sample.contents.page" sub-pages="0"/>-->
         <page action-id="rsuite-container-wizard-plugin:wizardPage" sub-pages="1" api-name="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
-        <page form-id="gao-newblue-form-create-product-page-3" sub-pages="0" api-name="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
+        <page form-id="acme-form-create-product-page-3" sub-pages="0" api-name="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
         
     </pages>
     
@@ -27,7 +27,7 @@
         <xml-mo-conf name="Finding" template-lmd-value="SampleFinding" required="1" multiple="1"/>
         <xml-mo-conf name="Conclusions" template-lmd-value="SampleConclusions" required="0" multiple="0"/>
         <xml-mo-conf name="Recommendations" template-lmd-value="SampleRecommendations" required="0" multiple="0"/>
-        <xml-mo-conf name="Comments" template-lmd-value="SampleAgencyComments" required="1" multiple="1"/>
+        <xml-mo-conf name="Comments" template-lmd-value="SampleDivisionComments" required="1" multiple="1"/>
         <xml-mo-conf name="Closing" template-lmd-value="SampleClosing" required="0" multiple="0"/>
         <xml-mo-conf name="Appendix" template-lmd-value="SampleAppendix" required="0" multiple="1"/>
         <!--<xml-mo-conf name="Related Product" template-lmd-value="SampleRelatedProduct" required="0" multiple="1"/>-->

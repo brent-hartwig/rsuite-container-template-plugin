@@ -59,7 +59,7 @@ public class CreatePrimaryContainerTest {
     ContentAssemblyNodeContainer caNode = Mockito.mock(ContentAssemblyNodeContainer.class);
 
     Mockito.when(caNode.getId()).thenReturn(expectedId);
-    Mockito.when(conf.getName()).thenReturn("Audit Product");
+    Mockito.when(conf.getName()).thenReturn("Journal");
     Mockito.when(primaryContainer.getId()).thenReturn(expectedId);
     Mockito
         .when(caService.createCANode(Mockito.any(User.class), Mockito.anyString(),
@@ -154,7 +154,7 @@ public class CreatePrimaryContainerTest {
     Mockito.when(conf.getPrimaryContainer()).thenReturn(pcConf);
 
     ContainerWizard wizard = Mockito.mock(ContainerWizard.class);
-    Mockito.when(wizard.getContainerName()).thenReturn("Audit Product");
+    Mockito.when(wizard.getContainerName()).thenReturn("Journal");
 
     ContentAssembly primaryContainer = Mockito.mock(ContentAssembly.class);
 
