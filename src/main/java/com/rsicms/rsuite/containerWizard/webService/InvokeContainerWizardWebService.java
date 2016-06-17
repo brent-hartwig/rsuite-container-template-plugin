@@ -423,12 +423,15 @@ public class InvokeContainerWizardWebService extends BaseWebService
           new StringBuilder(RSuiteNamespaces.MetaDataNS.getPrefix()).append(":rsuiteId").toString();
       String nodesWithRSuiteIdAttXPath =
           new StringBuilder("//*[@").append(rsuiteIdAttName).append("]").toString();
-      String idAttXPath = "//*/@id";
+      String idAttName = "id";
 
       ManagedObject templateMo;
+      Element templateElem;
       Element elem;
       Node[] nodeArr;
       NamedNodeMap atts;
+      Node att;
+      String id;
       String filename;
       ManagedObject mo;
       ObjectAttachOptions options = new ObjectAttachOptions();
@@ -437,33 +440,40 @@ public class InvokeContainerWizardWebService extends BaseWebService
         // Make sure user can get the template.
         templateMo = moService.getManagedObject(systemUser, fmo.getTemplateMoId());
 
-        elem = templateMo.getElement();
+        templateElem = templateMo.getElement();
 
         // Remove all RSuite IDs.
-        nodeArr = eval.executeXPathToNodeArray(nodesWithRSuiteIdAttXPath, elem);
+        nodeArr = eval.executeXPathToNodeArray(nodesWithRSuiteIdAttXPath, templateElem);
         for (Node node : nodeArr) {
           atts = node.getAttributes();
           atts.removeNamedItem(rsuiteIdAttName);
         }
 
-        // Make all existing ID attributes unique within the container.
-        nodeArr = eval.executeXPathToNodeArray(idAttXPath, elem);
+        // Set a container-unique ID on every element. May need to make this configurable.
+        nodeArr = eval.executeXPathToNodeArray("//*", templateElem);
         for (Node node : nodeArr) {
-          node.setNodeValue(new StringBuilder("id-").append(Integer.toString(xmlMoConfIdx))
-              .append("-").append(Integer.toString(++idAttCnt)).toString());
+          id = new StringBuilder("id-").append(Integer.toString(xmlMoConfIdx)).append("-")
+              .append(Integer.toString(++idAttCnt)).toString();
+          atts = node.getAttributes();
+          att = atts.getNamedItem(idAttName);
+          if (att == null) {
+            ((Element) node).setAttribute(idAttName, id);
+          } else {
+            att.setNodeValue(id);
+          }
         }
 
         // TODO: figure out how to make this configurable
         if (StringUtils.isNotBlank(fmo.getTitle())) {
-          Node titleNode = eval.executeXPathToNode("body/product_title", elem);
+          Node titleNode = eval.executeXPathToNode("body/product_title", templateElem);
           if (titleNode == null)
-            titleNode = eval.executeXPathToNode("title", elem);
+            titleNode = eval.executeXPathToNode("title", templateElem);
           titleNode.setTextContent(fmo.getTitle());
         }
 
         // Load MO
         filename = context.getIDGenerator().allocateId().concat(".xml");
-        mo = loadMo(elem, context, user, filename, advisor);
+        mo = loadMo(templateElem, context, user, filename, advisor);
         moList.add(mo);
 
         // Create reference

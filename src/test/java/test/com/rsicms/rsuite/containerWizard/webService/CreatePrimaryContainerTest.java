@@ -13,7 +13,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
 
 import com.reallysi.rsuite.api.ContentAssembly;
 import com.reallysi.rsuite.api.ManagedObject;
@@ -102,12 +101,12 @@ public class CreatePrimaryContainerTest {
 
     User user = Mockito.mock(User.class);
     XPathEvaluator eval = Mockito.mock(XPathEvaluator.class);
-    Node node = Mockito.mock(Node.class);
-    Node[] nodeArr = {node};
+    Element elem = Mockito.mock(Element.class);
+    Element[] elemArr = {elem};
     NamedNodeMap atts = Mockito.mock(NamedNodeMap.class);
-    Mockito.when(node.getAttributes()).thenReturn(atts);
+    Mockito.when(elem.getAttributes()).thenReturn(atts);
     Mockito.when(eval.executeXPathToNodeArray(Mockito.anyString(), Mockito.any(Object.class)))
-        .thenReturn(nodeArr);
+        .thenReturn(elemArr);
 
     ContentAssembly primaryContainer = Mockito.mock(ContentAssembly.class);
     XmlMoConf conf = Mockito.mock(XmlMoConf.class);
