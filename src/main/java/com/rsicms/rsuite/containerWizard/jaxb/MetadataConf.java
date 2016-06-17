@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
@@ -27,10 +26,9 @@ import javax.xml.bind.annotation.XmlType;
  * &lt;complexType&gt;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
- *       &lt;sequence maxOccurs="unbounded"&gt;
- *         &lt;element ref="{http://www.rsicms.com/rsuite/ns/conf/container-wizard}page"/&gt;
+ *       &lt;sequence maxOccurs="unbounded" minOccurs="0"&gt;
+ *         &lt;element ref="{http://www.rsicms.com/rsuite/ns/conf/container-wizard}name-value-pair"/&gt;
  *       &lt;/sequence&gt;
- *       &lt;attribute ref="{http://www.rsuitecms.com/rsuite/ns/metadata}rsuiteId"/&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
@@ -40,67 +38,41 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "page"
+    "nameValuePair"
 })
-@XmlRootElement(name = "pages")
-public class Pages {
+@XmlRootElement(name = "metadata-conf")
+public class MetadataConf {
 
-    @XmlElement(required = true)
-    protected List<Page> page;
-    @XmlAttribute(name = "rsuiteId", namespace = "http://www.rsuitecms.com/rsuite/ns/metadata")
-    protected String rsuiteId;
+    @XmlElement(name = "name-value-pair")
+    protected List<NameValuePair> nameValuePair;
 
     /**
-     * Gets the value of the page property.
+     * Gets the value of the nameValuePair property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the page property.
+     * This is why there is not a <CODE>set</CODE> method for the nameValuePair property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getPage().add(newItem);
+     *    getNameValuePair().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link Page }
+     * {@link NameValuePair }
      * 
      * 
      */
-    public List<Page> getPage() {
-        if (page == null) {
-            page = new ArrayList<Page>();
+    public List<NameValuePair> getNameValuePair() {
+        if (nameValuePair == null) {
+            nameValuePair = new ArrayList<NameValuePair>();
         }
-        return this.page;
-    }
-
-    /**
-     * Gets the value of the rsuiteId property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getRsuiteId() {
-        return rsuiteId;
-    }
-
-    /**
-     * Sets the value of the rsuiteId property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setRsuiteId(String value) {
-        this.rsuiteId = value;
+        return this.nameValuePair;
     }
 
 }

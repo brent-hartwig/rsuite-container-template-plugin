@@ -26,4 +26,11 @@ public interface ContainerWizardConstants {
   String DATA_TYPE_NAME_CLOSE_AND_CONTINUE = "rsuite-container-wizard-plugin-dt-close-and-continue";
   String DATA_TYPE_NAME_CLOSE_ONLY = "rsuite-container-wizard-plugin-dt-close";
 
+  /**
+   * The suffix of the container role name to grant to the user that creates the container.
+   * 
+   * TODO: make configurable
+   */
+  String CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT = "AIC_AD";
+
 }

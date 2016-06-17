@@ -16,9 +16,10 @@ import com.reallysi.rsuite.api.UserType;
 import com.reallysi.rsuite.api.security.LocalUserManager;
 import com.reallysi.rsuite.service.AuthorizationService;
 import com.rsicms.rsuite.containerWizard.AclMap;
+import com.rsicms.rsuite.containerWizard.ContainerWizardConstants;
 import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService;
 
-public class GrantRolesTest {
+public class GrantRolesTest implements ContainerWizardConstants {
 
   /**
    * Grant role if it is an administrator.
@@ -34,8 +35,13 @@ public class GrantRolesTest {
     AclMap aclMap = Mockito.mock(AclMap.class);
 
     InvokeContainerWizardWebService invokeService = new InvokeContainerWizardWebService();
-    User grantedUser = invokeService.grantRoles(authService, user, aclMap);
+    User grantedUser =
+        invokeService.grantRoles(authService, user, aclMap, CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT);
 
+    /*
+     * TODO: Is this test only making sure an exception isn't thrown for admin users? Why aren't we
+     * testing getRoleNames() to verify no roles are added or removed when user is an admin?
+     */
     assertNotNull(grantedUser);
 
 
@@ -65,11 +71,17 @@ public class GrantRolesTest {
     Mockito.when(authService.getLocalUserManager()).thenReturn(localUserManager);
 
     AclMap aclMap = Mockito.mock(AclMap.class);
-    Mockito.when(aclMap.getRoleNames(user)).thenReturn(Arrays.asList("Authors", "Reviewers"));
+    Mockito.when(aclMap.getRoleNames(user, CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT))
+        .thenReturn(Arrays.asList("Authors", "Reviewers"));
 
     InvokeContainerWizardWebService invokeService = new InvokeContainerWizardWebService();
-    User grantedUser = invokeService.grantRoles(authService, user, aclMap);
+    User grantedUser =
+        invokeService.grantRoles(authService, user, aclMap, CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT);
 
+    /*
+     * TODO: Is this test only making sure an exception isn't thrown for local users? Why aren't we
+     * testing getRoleNames() to verify which role(s) is added, and that none are removed?
+     */
     assertNotNull(grantedUser);
 
   }
@@ -97,7 +109,7 @@ public class GrantRolesTest {
     InvokeContainerWizardWebService invokeService = new InvokeContainerWizardWebService();
 
     try {
-      invokeService.grantRoles(authService, user, aclMap);
+      invokeService.grantRoles(authService, user, aclMap, CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT);
     } catch (RSuiteException e) {
       assertThat("Error message should indicate This feature does not yet support non-local users.",
           e.getMessage(), containsString("This feature does not yet support non-local users"));

@@ -16,6 +16,7 @@ import org.w3c.dom.Node;
 
 import com.reallysi.rsuite.api.ContentAssembly;
 import com.reallysi.rsuite.api.ManagedObject;
+import com.reallysi.rsuite.api.MetaDataItem;
 import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.Session;
 import com.reallysi.rsuite.api.User;
@@ -48,6 +49,8 @@ import com.rsicms.rsuite.containerWizard.PageNavigation;
 import com.rsicms.rsuite.containerWizard.advisors.mo.LocalManagedObjectAdvisor;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerConf;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
+import com.rsicms.rsuite.containerWizard.jaxb.MetadataConf;
+import com.rsicms.rsuite.containerWizard.jaxb.NameValuePair;
 import com.rsicms.rsuite.containerWizard.jaxb.PrimaryContainer;
 import com.rsicms.rsuite.containerWizard.jaxb.XmlMoConf;
 import com.rsicms.rsuite.utils.mo.MOUtils;
@@ -261,6 +264,28 @@ public class InvokeContainerWizardWebService extends BaseWebService
         jobCode.trim(), null, 1);
   }
 
+  /**
+   * Convert the given metadata configuration into a list, including any metadata included in the
+   * second param.
+   * 
+   * @param metadataElem
+   * @param starterList Null is okay.
+   * @return A combined metadata list from the provided metadata configuration and starter list.
+   */
+  public static List<MetaDataItem> getMetadataList(MetadataConf metadataConf,
+      List<MetaDataItem> starterList) {
+    List<MetaDataItem> combinedList = new ArrayList<MetaDataItem>();
+    if (starterList != null) {
+      combinedList.addAll(starterList);
+    }
+    if (metadataConf != null) {
+      for (NameValuePair nvp : metadataConf.getNameValuePair()) {
+        combinedList.add(new MetaDataItem(nvp.getName(), nvp.getValue()));
+      }
+    }
+    return combinedList;
+  }
+
   public ContentAssembly createPrimaryContainer(ExecutionContext context, Session session,
       ContainerWizardConf conf, ContainerWizard wizard, String parentId)
       throws RSuiteException, IOException, TransformerException {
@@ -273,7 +298,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
 
     // Create primary container; hold back on ACL until ID is known.
     ContentAssemblyCreateOptions pcOptions = new ContentAssemblyCreateOptions();
-    pcOptions.setMetaDataItems(wizard.getContainerMetadataAsList());
+    pcOptions.setMetaDataItems(
+        getMetadataList(pcConf.getMetadataConf(), wizard.getContainerMetadataAsList()));
     pcOptions.setType(pcConf.getType());
     ContentAssembly primaryContainer = context.getContentAssemblyService()
         .createContentAssembly(user, parentId, wizard.getContainerName(), pcOptions);
@@ -281,10 +307,16 @@ public class InvokeContainerWizardWebService extends BaseWebService
 
     // Construct AclMap using new container's ID, and create new roles.
     AclMap aclMap = new AclMap(context.getSecurityService(), conf, primaryContainer.getId());
-    aclMap.createUndefinedRoles(systemUser, context.getAuthorizationService().getRoleManager());
+    aclMap.createUndefinedContainerRoles(systemUser,
+        context.getAuthorizationService().getRoleManager());
 
-    // Grant roles to current user, reconstruct user instance, and set the container's ACL.
-    user = grantRoles(context.getAuthorizationService(), user, aclMap);
+    /*
+     * Grant roles to current user, reconstruct user instance, and set the container's ACL. When the
+     * time comes, this is where we'll use configuration to decide which are the allowed role name
+     * suffixes.
+     */
+    user = grantRoles(context.getAuthorizationService(), user, aclMap,
+        CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT);
     session.setUser(user); // enables CMS UI user to access the new container.
     securityService.setACL(user, primaryContainer.getId(), aclMap.get(pcConf.getAclId()));
 
@@ -296,8 +328,9 @@ public class InvokeContainerWizardWebService extends BaseWebService
             aclMap, defaultAclId);
       } else if (o instanceof XmlMoConf) {
         // Process all future MOs associated with this XML MO conf.
-        addManagedObjects(context, user, eval, primaryContainer, (XmlMoConf) o,
-            wizard.getFutureManagedObjectListByKey(String.valueOf(++xmlMoConfIdx)), aclMap,
+        xmlMoConfIdx++;
+        addManagedObjects(context, user, eval, primaryContainer, xmlMoConfIdx, (XmlMoConf) o,
+            wizard.getFutureManagedObjectListByKey(String.valueOf(xmlMoConfIdx)), aclMap,
             defaultAclId);
       } else {
         log.warn("Skipped unexpected object with class " + o.getClass().getSimpleName());
@@ -316,11 +349,14 @@ public class InvokeContainerWizardWebService extends BaseWebService
    * @param roleManager
    * @param user
    * @param aclMap
+   * @param allowedRoleNameSuffixes Use to restrict which roles configured in the AclMap are
+   *        included in the return. Values are matched on the suffix of the role name. If no
+   *        suffixes are provided, all from the AclMap are included.
    * @return The user provided, but possibly an updated instance thereof (inclusive of new roles).
    * @throws RSuiteException
    */
-  public User grantRoles(AuthorizationService authService, User user, AclMap aclMap)
-      throws RSuiteException {
+  public User grantRoles(AuthorizationService authService, User user, AclMap aclMap,
+      String... allowedRoleNameSuffixes) throws RSuiteException {
 
     if (authService.isAdministrator(user)) {
       return user;
@@ -328,7 +364,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
       LocalUserManager localUserManager = authService.getLocalUserManager();
 
       localUserManager.updateUser(user.getUserId(), user.getFullName(), user.getEmail(),
-          StringUtils.join(aclMap.getRoleNames(user), ","));
+          StringUtils.join(aclMap.getRoleNames(user, allowedRoleNameSuffixes), ","));
 
       // Necessary for RSuite to honor recently granted roles.
       log.info("Reloading local user accounts...");
@@ -347,11 +383,31 @@ public class InvokeContainerWizardWebService extends BaseWebService
     ContentAssemblyCreateOptions options = new ContentAssemblyCreateOptions();
     options.setACL(aclMap.get(conf.getAclId() != null ? conf.getAclId() : defaultAclId));
     options.setType(conf.getType());
-    return caService.createCANode(user, primaryContainer.getId(), conf.getName(), options).getId();
+    options.setMetaDataItems(getMetadataList(conf.getMetadataConf(), null));
+    return caService.createContentAssembly(user, primaryContainer.getId(), conf.getName(), options)
+        .getId();
   }
 
+  /**
+   * Copy the templates as new MOs within the primary container.
+   * 
+   * @param context
+   * @param user
+   * @param eval
+   * @param primaryContainer
+   * @param xmlMoConfIdx The XML MO configuratoin index, which is incorporated into ID attribute
+   *        values, for container-level uniqueness.
+   * @param conf
+   * @param fmoList
+   * @param aclMap
+   * @param defaultAclId
+   * @return
+   * @throws RSuiteException
+   * @throws IOException
+   * @throws TransformerException
+   */
   public List<ManagedObject> addManagedObjects(ExecutionContext context, User user,
-      XPathEvaluator eval, ContentAssembly primaryContainer, XmlMoConf conf,
+      XPathEvaluator eval, ContentAssembly primaryContainer, int xmlMoConfIdx, XmlMoConf conf,
       List<FutureManagedObject> fmoList, AclMap aclMap, String defaultAclId)
       throws RSuiteException, IOException, TransformerException {
 
@@ -367,6 +423,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
           new StringBuilder(RSuiteNamespaces.MetaDataNS.getPrefix()).append(":rsuiteId").toString();
       String nodesWithRSuiteIdAttXPath =
           new StringBuilder("//*[@").append(rsuiteIdAttName).append("]").toString();
+      String idAttXPath = "//*/@id";
 
       ManagedObject templateMo;
       Element elem;
@@ -375,6 +432,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
       String filename;
       ManagedObject mo;
       ObjectAttachOptions options = new ObjectAttachOptions();
+      int idAttCnt = 0;
       for (FutureManagedObject fmo : fmoList) {
         // Make sure user can get the template.
         templateMo = moService.getManagedObject(systemUser, fmo.getTemplateMoId());
@@ -386,6 +444,13 @@ public class InvokeContainerWizardWebService extends BaseWebService
         for (Node node : nodeArr) {
           atts = node.getAttributes();
           atts.removeNamedItem(rsuiteIdAttName);
+        }
+
+        // Make all existing ID attributes unique within the container.
+        nodeArr = eval.executeXPathToNodeArray(idAttXPath, elem);
+        for (Node node : nodeArr) {
+          node.setNodeValue(new StringBuilder("id-").append(Integer.toString(xmlMoConfIdx))
+              .append("-").append(Integer.toString(++idAttCnt)).toString());
         }
 
         // TODO: figure out how to make this configurable
@@ -428,9 +493,10 @@ public class InvokeContainerWizardWebService extends BaseWebService
     return rr;
 
   }
-  
-  /** A wrapper around a utility method to get Managed Object
-   * gedObject
+
+  /**
+   * A wrapper around a utility method to get Managed Object gedObject
+   * 
    * @param elem
    * @param context
    * @param user
@@ -441,12 +507,10 @@ public class InvokeContainerWizardWebService extends BaseWebService
    * @throws IOException
    * @throws TransformerException
    */
-  public ManagedObject loadMo(Element elem, ExecutionContext context, User user, 
-        String filename, ManagedObjectAdvisor moAdvisor)
-        throws RSuiteException, IOException, TransformerException {
-        return MOUtils.load(context, user, filename,
-            getObjectSource(elem, context, filename),
-            moAdvisor);
+  public ManagedObject loadMo(Element elem, ExecutionContext context, User user, String filename,
+      ManagedObjectAdvisor moAdvisor) throws RSuiteException, IOException, TransformerException {
+    return MOUtils.load(context, user, filename, getObjectSource(elem, context, filename),
+        moAdvisor);
   }
 
   /**

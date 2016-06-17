@@ -162,7 +162,7 @@ public class AclMapTests {
     aces[0] = ace;
     ACL acl = new ACLImpl(aces);
     
-    String roleName = AclMap.getRoleName(newContainerId, containerAce.getProjectRole());
+    String roleName = AclMap.getContainerRoleName(newContainerId, containerAce.getProjectRole());
     
     SecurityService securityService = Mockito.mock(SecurityService.class);
     Mockito.when(securityService.constructACE(roleName, 
@@ -179,7 +179,7 @@ public class AclMapTests {
     Mockito.doNothing().when(roleManager).createRole(user, roleName, roleName, roleName);
     
     // call createUndefinedRoles with mocked user and roleManager
-    List<String> resultRoleNames = aclMap.createUndefinedRoles(user, roleManager);
+    List<String> resultRoleNames = aclMap.createUndefinedContainerRoles(user, roleManager);
     
     String resultRoleName = resultRoleNames.get(0);
     String expectedRoleName = new StringBuilder(newContainerId).append(DELIM).append(containerAce.getProjectRole()).toString();
@@ -198,7 +198,7 @@ public class AclMapTests {
     String prefix = "1prefix9prefix1234";
     String base = "11base55base77";
 
-    String actualName = AclMap.getRoleName(prefix, base);
+    String actualName = AclMap.getContainerRoleName(prefix, base);
     String expectedName = new StringBuilder(prefix).append(DELIM).append(base).toString();
 
     assertEquals(actualName, expectedName);
@@ -215,7 +215,7 @@ public class AclMapTests {
     String cleanPrefix = prefix.replaceAll("[^\\p{Alnum}]", DELIM);
     String cleanBase = base.replaceAll("[^\\p{Alnum}]", DELIM);
 
-    String actualName = AclMap.getRoleName(prefix, base);
+    String actualName = AclMap.getContainerRoleName(prefix, base);
     String expectedName = new StringBuilder(cleanPrefix).append(DELIM).append(cleanBase).toString();
 
     assertEquals(actualName, expectedName);

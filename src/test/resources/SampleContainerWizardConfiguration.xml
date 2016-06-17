@@ -10,13 +10,17 @@
         
         <page form-id="acme-form-select-product-type" sub-pages="0" api-name="acme.webservice.CreateProductByType"/>
         <page form-id="acme-form-create-product-page-1" sub-pages="0" api-name="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
-        <!--<page form-id="sample.contents.page" sub-pages="0"/>-->
         <page action-id="rsuite-container-wizard-plugin:wizardPage" sub-pages="1" api-name="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
         <page form-id="acme-form-create-product-page-3" sub-pages="0" api-name="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
         
     </pages>
     
     <primary-container type="product" acl-id="non-feedback-containers" default-acl-id="master-sections">
+    
+        <metadata-conf>
+            <name-value-pair name="Hello" value="World"/>
+            <name-value-pair name="Status" value="New"/>
+        </metadata-conf>
         
         <container-conf type="feedback" name="Reviewer Feedback" acl-id="feedback-container"/>
         

@@ -33,10 +33,9 @@ public class AclMap extends HashMap<String, ACL> {
   private static final Log log = LogFactory.getLog(AclMap.class);
 
   protected static final String UNDERSCORE = "_";
-  protected static final String AICAD = "AIC_AD";
 
   public AclMap(SecurityService securityService, ContainerWizardConf conf,
-      String projectRoleNamePrefix) throws RSuiteException {
+      String containerRoleNamePrefix) throws RSuiteException {
     super();
 
     if (conf != null && conf.getAcls() != null && conf.getAcls().getAcl() != null) {
@@ -46,16 +45,17 @@ public class AclMap extends HashMap<String, ACL> {
         Ace ace;
         for (int i = 0; i < acl.getAce().size(); i++) {
           ace = acl.getAce().get(i);
-          rsuiteAceArr[i] =
-              securityService.constructACE(getRoleName(projectRoleNamePrefix, ace.getProjectRole()),
-                  ace.getContentPermissions().replaceAll(StringUtils.SPACE, StringUtils.EMPTY));
+          rsuiteAceArr[i] = securityService.constructACE(
+              getContainerRoleName(containerRoleNamePrefix, ace.getProjectRole()),
+              ace.getContentPermissions().replaceAll(StringUtils.SPACE, StringUtils.EMPTY));
         }
         put(acl.getId(), securityService.constructACL(rsuiteAceArr));
       }
     }
   }
 
-  public List<String> createUndefinedRoles(User user, RoleManager roleManager) throws RSuiteException {
+  public List<String> createUndefinedContainerRoles(User user, RoleManager roleManager)
+      throws RSuiteException {
     // Create list of roles associated to this map.
     List<String> roleNames = new ArrayList<String>();
     List<String> resultRoleNames = new ArrayList<String>();
@@ -104,13 +104,21 @@ public class AclMap extends HashMap<String, ACL> {
   /**
    * Get a list of distinct role names from this AclMap, plus those of the included user.
    * <p>
+   * Expecting this is only called for non-admins, although no check is performed herein.
+   * <p>
+   * The second parameter may be used to restrict which roles from the AclMap are included in the
+   * response.
+   * <p>
    * This could be made into a utility method by passing the map or its collection in.
    * 
    * @param user When a local user, the local user's roles are also included in the return. If not
    *        desired, pass in null (or use the signature that does).
-   * @return A list of role names associated with this AclMap.
+   * @param allowedRoleNameSuffixes Use to restrict which roles configured in the AclMap are
+   *        included in the return. Values are matched on the suffix of the role name. If no
+   *        suffixes are provided, all from the AclMap are included.
+   * @return The user's current roles plus all qualifying ones from the AclMap.
    */
-  public List<String> getRoleNames(User user) {
+  public List<String> getRoleNames(User user, String... allowedRoleNameSuffixes) {
     List<String> names = new ArrayList<String>();
 
     // Conditionally add the given user's roles.
@@ -122,20 +130,36 @@ public class AclMap extends HashMap<String, ACL> {
       }
     }
 
-    // Add the roles in this map.
+    // Iterate through the AclMap's ACLs, only adding roles that the user doesn't
+    // already have, and that match the specified role name suffixes.
     Iterator<ACL> aclIt = values().iterator();
     Iterator<ACE> aceIt;
     ACL acl;
     ACE ace;
     String name;
+    boolean add;
     while (aclIt.hasNext()) {
       acl = aclIt.next();
       aceIt = acl.iterator();
       while (aceIt.hasNext()) {
+        add = false;
         ace = aceIt.next();
         name = ace.getRole().getName();
-        if (name.contains(AICAD) && !names.contains(name)) {
-          names.add(name);
+        if (!names.contains(name)) {
+          if (allowedRoleNameSuffixes == null || allowedRoleNameSuffixes.length == 0) {
+            add = true;
+          } else {
+            for (String suffix : allowedRoleNameSuffixes) {
+              if (name.endsWith(suffix)) {
+                add = true;
+                break;
+              }
+            }
+          }
+
+          if (add) {
+            names.add(name);
+          }
         }
       }
     }
@@ -143,8 +167,8 @@ public class AclMap extends HashMap<String, ACL> {
     return names;
   }
 
-  public static String getRoleName(String projectRoleNamePrefix, String baseRoleName) {
-    return new StringBuilder(projectRoleNamePrefix).append(UNDERSCORE).append(baseRoleName)
+  public static String getContainerRoleName(String containerRoleNamePrefix, String baseRoleName) {
+    return new StringBuilder(containerRoleNamePrefix).append(UNDERSCORE).append(baseRoleName)
         .toString().replaceAll("[^\\p{Alnum}]", UNDERSCORE);
   }
 

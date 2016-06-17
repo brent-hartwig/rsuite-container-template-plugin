@@ -31,18 +31,37 @@
   </xs:element>
   <xs:element name="primary-container">
     <xs:complexType>
-      <xs:choice maxOccurs="unbounded">
-        <xs:element ref="c:container-conf"/>
-        <xs:element ref="c:xml-mo-conf"/>
-      </xs:choice>
+      <xs:sequence>
+        <xs:element ref="c:metadata-conf" minOccurs="0"/>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element ref="c:container-conf"/>
+          <xs:element ref="c:xml-mo-conf"/>
+        </xs:choice>
+      </xs:sequence>
       <xs:attribute name="type" use="required" type="xs:string"/>
       <xs:attribute name="acl-id" use="required" type="xs:string"/>
       <xs:attribute name="default-acl-id" use="required" type="xs:string"/>
       <xs:attribute ref="r:rsuiteId" use="optional"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="metadata-conf">
+    <xs:complexType>
+      <xs:sequence minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="c:name-value-pair"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="name-value-pair">
+    <xs:complexType>
+      <xs:attribute name="name" use="required" type="xs:string"/>
+      <xs:attribute name="value" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="container-conf">
     <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="c:metadata-conf" minOccurs="0"/>
+      </xs:sequence>
       <xs:attribute name="acl-id" use="optional" type="xs:string"/>
       <xs:attribute name="name" use="required"/>
       <xs:attribute name="type" use="required" type="xs:string"/>

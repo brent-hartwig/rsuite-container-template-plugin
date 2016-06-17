@@ -30,7 +30,7 @@ Sample:
 At present, forms always submit to this project's invoke container wizard web service; this may need to change in the future.  We're also looking to fully implement back functionality as well as an end-of-wizard confirmation prompt.
 
 ### Container Contents Configuration
-Within the `primary-container` element, one may configure zero or more child containers and XML MOs, in any order.
+Within the `primary-container` element, one may configure static metadata name-value pairs and zero or more child containers and XML MOs, in any order.
 
 For each child container, one may specify the name, type, and ACL.
 
@@ -41,6 +41,11 @@ Sample:
 ```
 <primary-container type="publication" acl-id="non-support-containers" default-acl-id="mo">
     
+    <metadata-conf>
+        <name-value-pair name="Hello" value="World"/>
+        <name-value-pair name="Status" value="New"/>
+    </metadata-conf>
+
     <xml-mo-conf name="Cover Page" template-lmd-value="DitaCoverPage" required="1" multiple="0"/>
     <xml-mo-conf name="Introduction" template-lmd-value="DitaIntroduction" required="1" multiple="0"/>
     <xml-mo-conf name="Background" template-lmd-value="DitaBackground" required="1" multiple="0"/>
@@ -86,11 +91,16 @@ Each time the wizard's main web service is consumed, it retains expected user-in
 The new container name should be specified by a parameter named "containerName".
 
 ### Container Layered Metadata
+
+#### Dynamic Values and Optional Validation
 Layered metadata values may be specified by parameters whose names begin with "lmd".  That prefix is stripped off before the metadata is set.  For instance, a parameter named "lmdMyName" with a value of "My Value" instructs the wizard to set the "MyName" layered metadata to "My Value" on the new container.
 
 At this time, this metadata is only applied to the main container created by the plugin, as opposed to any other object created by the wizard.
 
 It's possible to validate some parameter values.  Our plan is to make the validation logic configurable.  We're not there yet.  There's one hard-coded test against "lmdJobCode".  There's also a second yet generic test.  If the parameter being tested is accompanied by a second with the same name plus "-Verify", the wizard will throw an exception if the two values do not match.  This is a way to ask the user to enter a value twice, and only proceed if the values match.  For the verification arguments, do not include the "lmd" parameter name prefix.  For example, to add a verified piece of layered metadata named "JobCode", configure a form (wizard page) to include parameters named "lmdJobCode" and "JobCode-Verify". 
+
+#### Static Values
+As discussed above, the primary container contents configuration may include metadata configuration.  This is a way for the container wizard configuration file to instruct the wizard to add static name-value pairs of layered metadata to the primary container.  The same configuration (metadata-conf) is supported within non-primary container configuration nodes too (container-conf).
 
 ### Managed Objects
 The wizard also looks for parameters named "templateId".  For each one it finds, the wizard keeps track of the page it was specified on, the template ID, and the value of the "title" parameter (optional).  Later this information is used to create new managed objects.  A future version of this wizard may also be able to use this information to support "back" and confirmation features.
@@ -123,7 +133,7 @@ JUnit tests were selected for this project, so as not to impose TestNG on others
 
 Unit tests are to be within the `test.com.rsicms.rsuite.containerWizard` package.
 
-Version 0.9.1 includes a Hello World sample.  The sample was introduced to prove a client project is able to execute this community plugin's tests from within its test harness.  Below is a sample TestNG configuration file, incorporating the unit tests of community projects it uses (Only one at the time.).
+Version 0.9.3 includes 33 tests, that begin to provide coverage for the wizard's code base.  These are being successfully executed by a client project, from within that project's test harness.  Below is a sample TestNG configuration file, incorporating the unit tests of community projects it uses (Only one at the time.).  Your project may do the equivalent.  This project produces two JAR files, one for the runtime wizard, and one for its tests.
 
 ```
 <suite name="Java Community Unit Tests" verbose="1">

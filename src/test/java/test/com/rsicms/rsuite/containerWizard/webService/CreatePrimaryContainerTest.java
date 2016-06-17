@@ -16,7 +16,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import com.reallysi.rsuite.api.ContentAssembly;
-import com.reallysi.rsuite.api.ContentAssemblyNodeContainer;
 import com.reallysi.rsuite.api.ManagedObject;
 import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.Session;
@@ -56,13 +55,13 @@ public class CreatePrimaryContainerTest {
     ContentAssembly primaryContainer = Mockito.mock(ContentAssembly.class);
     ContainerConf conf = Mockito.mock(ContainerConf.class);
     AclMap aclMap = Mockito.mock(AclMap.class);
-    ContentAssemblyNodeContainer caNode = Mockito.mock(ContentAssemblyNodeContainer.class);
+    ContentAssembly caNode = Mockito.mock(ContentAssembly.class);
 
     Mockito.when(caNode.getId()).thenReturn(expectedId);
     Mockito.when(conf.getName()).thenReturn("Journal");
     Mockito.when(primaryContainer.getId()).thenReturn(expectedId);
     Mockito
-        .when(caService.createCANode(Mockito.any(User.class), Mockito.anyString(),
+        .when(caService.createContentAssembly(Mockito.any(User.class), Mockito.anyString(),
             Mockito.anyString(), Mockito.any(ContentAssemblyCreateOptions.class)))
         .thenReturn(caNode);
 
@@ -127,10 +126,10 @@ public class CreatePrimaryContainerTest {
     Mockito.when(invokeService.getObjectSource(Mockito.any(Element.class),
         Mockito.any(ExecutionContext.class), Mockito.anyString())).thenReturn(null);
     Mockito.doCallRealMethod().when(invokeService).addManagedObjects(context, user, eval,
-        primaryContainer, conf, fmoList, aclMap, expectedId);
+        primaryContainer, 1, conf, fmoList, aclMap, expectedId);
 
     List<ManagedObject> resultMoList = invokeService.addManagedObjects(context, user, eval,
-        primaryContainer, conf, fmoList, aclMap, expectedId);
+        primaryContainer, 1, conf, fmoList, aclMap, expectedId);
 
     assertEquals(resultMoList.size(), expectedSize);
 
@@ -184,6 +183,10 @@ public class CreatePrimaryContainerTest {
     ContentAssembly resultContentAssembly =
         invokeService.createPrimaryContainer(context, session, conf, wizard, parentId);
 
+    /*
+     * FIXME: Incomplete test or set of tests. There's so much more that createPrimaryContainer() is
+     * responsible for.
+     */
     assertNotNull("Created primary container is null.", resultContentAssembly);
 
   }
