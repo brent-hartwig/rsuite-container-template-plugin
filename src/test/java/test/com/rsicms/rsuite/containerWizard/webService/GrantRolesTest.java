@@ -1,25 +1,119 @@
 package test.com.rsicms.rsuite.containerWizard.webService;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.User;
 import com.reallysi.rsuite.api.UserType;
+import com.reallysi.rsuite.api.security.ExecPermission;
 import com.reallysi.rsuite.api.security.LocalUserManager;
+import com.reallysi.rsuite.api.security.Role;
 import com.reallysi.rsuite.service.AuthorizationService;
 import com.rsicms.rsuite.containerWizard.AclMap;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConstants;
 import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService;
 
 public class GrantRolesTest implements ContainerWizardConstants {
+  
+  // Stub Role to enable changes by localUserManager
+  class RoleImpl implements Role {
+    String name = null;
+    public void setName(String name) {
+      this.name = name;
+    }
+    @Override
+    public String getName() {
+      return name;
+    }
+    @Override
+    public String getDescription() {
+      return null;
+    }
+  };
+  
+  // Stub User to enable changes by localUserManager
+  class UserImpl implements User {
+    List<Role> keptRoles = new ArrayList<Role>(); 
+    public void addRole(Role role) {
+      keptRoles.add(role);
+    }
+    @Override
+    public boolean hasRole(String arg0) {
+      return false;
+    }
+    @Override
+    public boolean hasExecPermission(String arg0) {
+      return false;
+    }
+    @Override
+    public boolean hasExecPermission(ExecPermission arg0) {
+      return false;
+    }
+    @Override
+    public Role[] getRoles() {
+      return (Role[]) keptRoles.toArray(new Role[keptRoles.size()]);
+    }
+    @Override
+    public String getName() {
+      return null;
+    }
+    @Override
+    public ExecPermission[] getExecPermissions() {
+      return null;
+    }
+    @Override
+    public boolean isLocalUser() {
+      return false;
+    }
+    @Override
+    public UserType getUserType() {
+      return null;
+    }
+    @Override
+    public String getUserId() {
+      return null;
+    }
+    @Override
+    public String getUserID() {
+      return null;
+    }
+    @Override
+    public String getUserDN() {
+      return null;
+    }
+    @Override
+    public String getPassword() {
+      return null;
+    }
+    @Override
+    public String[] getGroups() {
+      return null;
+    }
+    @Override
+    public String getFullName() {
+      return null;
+    }
+    @Override
+    public String getEmail() {
+      return null;
+    }
+  };
+  
+  UserImpl createdUser;
+  String productId = "12345";
 
   /**
    * Grant role if it is an administrator.
@@ -84,6 +178,61 @@ public class GrantRolesTest implements ContainerWizardConstants {
      */
     assertNotNull(grantedUser);
 
+  }
+  
+  /**
+   * Grant a local user with AIC_AD role.
+   */
+  @Test
+  public void grantUserWithAicAdRole() throws RSuiteException {
+    
+    String expected = productId + "_" + CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT;
+    
+    User originalUser = Mockito.mock(User.class);
+    Mockito.when(originalUser.getUserType()).thenReturn(UserType.LOCAL);
+    // original user does not have any roles
+    Mockito.when(originalUser.getRoles()).thenReturn(new Role[0]);
+    
+    LocalUserManager localUserManager = Mockito.mock(LocalUserManager.class);
+    // Mock localUserManager.updateUser() to create a User with one Role that has name
+    // with passed product id and group suffix.
+    Mockito.doAnswer(new Answer<User>() {
+      @Override
+      public User answer(InvocationOnMock invocation) throws Throwable {
+        RoleImpl role = new RoleImpl();
+        role.setName(productId + "_" + (String)invocation.getArguments()[3]);
+        createdUser = new UserImpl();
+        createdUser.addRole(role);
+        return createdUser;
+      }
+    }).when(localUserManager).updateUser(Mockito.anyString(), Mockito.anyString(),
+        Mockito.anyString(), Mockito.anyString());
+    Mockito.doNothing().when(localUserManager).reload();
+    //Mock localUserManager.getUser() to return the created user.
+    Mockito.when(localUserManager.getUser(Mockito.anyString())).thenAnswer(new Answer<User>() {
+      @Override
+      public User answer(InvocationOnMock invocation) throws Throwable {
+        return createdUser;
+      }
+    });
+
+    AuthorizationService authService = Mockito.mock(AuthorizationService.class);
+
+    // user is not an administrator
+    Mockito.when(authService.isAdministrator(originalUser)).thenReturn(false);
+    Mockito.when(authService.getLocalUserManager()).thenReturn(localUserManager);
+
+    AclMap aclMap = Mockito.mock(AclMap.class);
+    Mockito.when(aclMap.getRoleNames(originalUser, CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT))
+        .thenReturn(Arrays.asList("AIC_AD"));
+
+    InvokeContainerWizardWebService invokeService = new InvokeContainerWizardWebService();
+    User grantedUser =
+        invokeService.grantRoles(authService, originalUser, aclMap, CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT);
+    
+    assertEquals(originalUser.getRoles().length, 0);
+    assertEquals(grantedUser.getRoles()[0].getName(), expected);
+    
   }
 
   /**
