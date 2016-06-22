@@ -199,10 +199,14 @@ public class GrantRolesTest implements ContainerWizardConstants {
     Mockito.doAnswer(new Answer<User>() {
       @Override
       public User answer(InvocationOnMock invocation) throws Throwable {
-        RoleImpl role = new RoleImpl();
-        role.setName(productId + "_" + (String)invocation.getArguments()[3]);
         createdUser = new UserImpl();
-        createdUser.addRole(role);
+        String inputedSuffixes = (String)invocation.getArguments()[3];
+        String[] suffixes = inputedSuffixes.split(",");
+        for (String suffix : suffixes) {
+          RoleImpl role = new RoleImpl();
+          role.setName(productId + "_" + suffix);
+          createdUser.addRole(role);
+        }
         return createdUser;
       }
     }).when(localUserManager).updateUser(Mockito.anyString(), Mockito.anyString(),
@@ -230,7 +234,11 @@ public class GrantRolesTest implements ContainerWizardConstants {
     User grantedUser =
         invokeService.grantRoles(authService, originalUser, aclMap, CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT);
     
+    // No roles on original user
     assertEquals(originalUser.getRoles().length, 0);
+    // Granted only one role
+    assertEquals(grantedUser.getRoles().length, 1);
+    // Role name is productId_AIC_AD
     assertEquals(grantedUser.getRoles()[0].getName(), expected);
     
   }
