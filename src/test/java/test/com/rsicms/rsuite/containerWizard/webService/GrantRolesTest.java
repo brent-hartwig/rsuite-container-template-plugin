@@ -2,7 +2,6 @@ package test.com.rsicms.rsuite.containerWizard.webService;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -113,7 +112,7 @@ public class GrantRolesTest implements ContainerWizardConstants {
   };
   
   UserImpl createdUser;
-  String productId = "12345";
+  String productNumber = "12345";
 
   /**
    * Grant role if it is an administrator.
@@ -123,6 +122,8 @@ public class GrantRolesTest implements ContainerWizardConstants {
 
     User user = Mockito.mock(User.class);
     AuthorizationService authService = Mockito.mock(AuthorizationService.class);
+    Mockito.when(user.getRoles()).thenReturn(new Role[0]);
+    int originalRoleSize = user.getRoles().length;
 
     // user is an administrator
     Mockito.when(authService.isAdministrator(user)).thenReturn(true);
@@ -132,12 +133,11 @@ public class GrantRolesTest implements ContainerWizardConstants {
     User grantedUser =
         invokeService.grantRoles(authService, user, aclMap, CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT);
 
-    /*
-     * TODO: Is this test only making sure an exception isn't thrown for admin users? Why aren't we
-     * testing getRoleNames() to verify no roles are added or removed when user is an admin?
-     */
-    assertNotNull(grantedUser);
+    // The same Admin user should be returned 
+    assertEquals(user == grantedUser, true);
 
+    // No new roles are added
+    assertEquals(grantedUser.getRoles().length, originalRoleSize);
 
   }
 
@@ -146,37 +146,64 @@ public class GrantRolesTest implements ContainerWizardConstants {
    */
   @Test
   public void grantRoleForLocalUser() throws RSuiteException {
+    
+    String expectedName1 = productNumber + "_" + "Authors";
+    String expectedName2 = productNumber + "_" + "Reviewers";
 
-    User user = Mockito.mock(User.class);
+    User originalUser = Mockito.mock(User.class);
 
     // user is a local user
-    Mockito.when(user.getUserType()).thenReturn(UserType.LOCAL);
+    Mockito.when(originalUser.getUserType()).thenReturn(UserType.LOCAL);
+    Mockito.when(originalUser.getRoles()).thenReturn(new Role[0]);
+    int originalRoleSize = originalUser.getRoles().length;
 
     LocalUserManager localUserManager = Mockito.mock(LocalUserManager.class);
-    Mockito.doNothing().when(localUserManager).updateUser(Mockito.anyString(), Mockito.anyString(),
+    // Mock localUserManager.updateUser() to create a User with Roles that have names
+    // with passed product number and group suffixes.
+    Mockito.doAnswer(new Answer<User>() {
+      @Override
+      public User answer(InvocationOnMock invocation) throws Throwable {
+        createdUser = new UserImpl();
+        String inputedSuffixes = (String)invocation.getArguments()[3];
+        String[] suffixes = inputedSuffixes.split(",");
+        for (String suffix : suffixes) {
+          RoleImpl role = new RoleImpl();
+          role.setName(productNumber + "_" + suffix);
+          createdUser.addRole(role);
+        }
+        return createdUser;
+      }
+    }).when(localUserManager).updateUser(Mockito.anyString(), Mockito.anyString(),
         Mockito.anyString(), Mockito.anyString());
     Mockito.doNothing().when(localUserManager).reload();
-    Mockito.when(localUserManager.getUser(Mockito.anyString())).thenReturn(user);
+    //Mock localUserManager.getUser() to return the created user.
+    Mockito.when(localUserManager.getUser(Mockito.anyString())).thenAnswer(new Answer<User>() {
+      @Override
+      public User answer(InvocationOnMock invocation) throws Throwable {
+        return createdUser;
+      }
+    });
 
     AuthorizationService authService = Mockito.mock(AuthorizationService.class);
 
     // user is not an administrator
-    Mockito.when(authService.isAdministrator(user)).thenReturn(false);
+    Mockito.when(authService.isAdministrator(originalUser)).thenReturn(false);
     Mockito.when(authService.getLocalUserManager()).thenReturn(localUserManager);
 
     AclMap aclMap = Mockito.mock(AclMap.class);
-    Mockito.when(aclMap.getRoleNames(user, CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT))
+    Mockito.when(aclMap.getRoleNames(originalUser, "Authors", "Reviewers"))
         .thenReturn(Arrays.asList("Authors", "Reviewers"));
 
     InvokeContainerWizardWebService invokeService = new InvokeContainerWizardWebService();
     User grantedUser =
-        invokeService.grantRoles(authService, user, aclMap, CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT);
+        invokeService.grantRoles(authService, originalUser, aclMap, "Authors", "Reviewers");
 
-    /*
-     * TODO: Is this test only making sure an exception isn't thrown for local users? Why aren't we
-     * testing getRoleNames() to verify which role(s) is added, and that none are removed?
-     */
-    assertNotNull(grantedUser);
+    // Granted two roles
+    assertEquals(grantedUser.getRoles().length, originalRoleSize + 2);
+    // Role name is productNumber_Authors
+    assertEquals(grantedUser.getRoles()[0].getName(), expectedName1);
+    // Role name is productNumber_Reviewers
+    assertEquals(grantedUser.getRoles()[1].getName(), expectedName2);
 
   }
   
@@ -186,16 +213,17 @@ public class GrantRolesTest implements ContainerWizardConstants {
   @Test
   public void grantUserWithAicAdRole() throws RSuiteException {
     
-    String expected = productId + "_" + CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT;
+    String expected = productNumber + "_" + CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT;
     
     User originalUser = Mockito.mock(User.class);
     Mockito.when(originalUser.getUserType()).thenReturn(UserType.LOCAL);
     // original user does not have any roles
     Mockito.when(originalUser.getRoles()).thenReturn(new Role[0]);
+    int originalRoleSize = originalUser.getRoles().length;
     
     LocalUserManager localUserManager = Mockito.mock(LocalUserManager.class);
     // Mock localUserManager.updateUser() to create a User with one Role that has name
-    // with passed product id and group suffix.
+    // with passed product number and group suffix.
     Mockito.doAnswer(new Answer<User>() {
       @Override
       public User answer(InvocationOnMock invocation) throws Throwable {
@@ -204,7 +232,7 @@ public class GrantRolesTest implements ContainerWizardConstants {
         String[] suffixes = inputedSuffixes.split(",");
         for (String suffix : suffixes) {
           RoleImpl role = new RoleImpl();
-          role.setName(productId + "_" + suffix);
+          role.setName(productNumber + "_" + suffix);
           createdUser.addRole(role);
         }
         return createdUser;
@@ -237,8 +265,8 @@ public class GrantRolesTest implements ContainerWizardConstants {
     // No roles on original user
     assertEquals(originalUser.getRoles().length, 0);
     // Granted only one role
-    assertEquals(grantedUser.getRoles().length, 1);
-    // Role name is productId_AIC_AD
+    assertEquals(grantedUser.getRoles().length, originalRoleSize + 1);
+    // Role name is productNumber_AIC_AD
     assertEquals(grantedUser.getRoles()[0].getName(), expected);
     
   }
