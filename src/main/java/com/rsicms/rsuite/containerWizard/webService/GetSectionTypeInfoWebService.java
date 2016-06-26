@@ -71,7 +71,7 @@ public class GetSectionTypeInfoWebService extends BaseWebService
 
       for (XmlMoConf xmlMoConf : xmlMoConfList) {
         Map<String, String> map = new HashMap<String, String>();
-        map.put("name", xmlMoConf.getName());
+        map.put("name", xmlMoConf.getDisplayName());
         map.put("xmlTemplateType", xmlMoConf.getTemplateLmdValue());
         map.put("isRequired", String.valueOf(xmlMoConf.isRequired()));
         map.put("mayRepeat", String.valueOf(xmlMoConf.isMultiple()));

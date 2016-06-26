@@ -8,56 +8,46 @@
     
     <pages>
         
-        <page form-id="acme-form-select-product-type" sub-pages="0" api-name="acme.webservice.CreateProductByType"/>
-        <page form-id="acme-form-create-product-page-1" sub-pages="0" api-name="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
-        <page action-id="rsuite-container-wizard-plugin:wizardPage" sub-pages="1" api-name="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
-        <page form-id="acme-form-create-product-page-3" sub-pages="0" api-name="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
+        <page form-id="acme-form-create-product-page-1" sub-pages="0"/>
+        <page action-id="rsuite-container-wizard-plugin:wizardPage" sub-pages="1"/>
+        <page form-id="acme-form-create-product-page-3" sub-pages="0"/>
         
     </pages>
     
-    <primary-container type="product" acl-id="non-feedback-containers" default-acl-id="master-sections">
-    
+    <primary-container type="publication" acl-id="non-support-containers" default-acl-id="mo">
+        
         <metadata-conf>
             <name-value-pair name="Hello" value="World"/>
             <name-value-pair name="Status" value="New"/>
         </metadata-conf>
+
+        <xml-mo-conf display-name="Cover Page" local-name="cover_page" template-lmd-value="DitaCoverPage" required="1" multiple="0"/>
+        <xml-mo-conf display-name="Introduction" local-name="intro" template-lmd-value="DitaIntroduction" required="1" multiple="0"/>
+        <xml-mo-conf display-name="Background" local-name="background" template-lmd-value="DitaBackground" required="1" multiple="0"/>
+        <xml-mo-conf display-name="Discovery" local-name="discovery" template-lmd-value="DitaDiscovery" required="1" multiple="1"/>
+        <xml-mo-conf display-name="Conclusions" local-name="conclusions" template-lmd-value="DitaConclusions" required="0" multiple="0"/>
+        <xml-mo-conf display-name="Supplementary" local-name="supplementary" template-lmd-value="DitaSupplementary" required="0" multiple="1"/>
         
-        <container-conf type="feedback" name="Reviewer Feedback" acl-id="feedback-container"/>
-        
-        <xml-mo-conf name="Cover" template-lmd-value="SampleCover" required="1" multiple="0"/>
-        <xml-mo-conf name="Abbreviations" template-lmd-value="SampleAbbreviations" required="0" multiple="0"/>
-        <xml-mo-conf name="Introduction" template-lmd-value="SampleIntroduction" required="1" multiple="0"/>
-        <xml-mo-conf name="Background" template-lmd-value="SampleBackground" required="1" multiple="0"/>
-        <xml-mo-conf name="Finding" template-lmd-value="SampleFinding" required="1" multiple="1"/>
-        <xml-mo-conf name="Conclusions" template-lmd-value="SampleConclusions" required="0" multiple="0"/>
-        <xml-mo-conf name="Recommendations" template-lmd-value="SampleRecommendations" required="0" multiple="0"/>
-        <xml-mo-conf name="Comments" template-lmd-value="SampleDivisionComments" required="1" multiple="1"/>
-        <xml-mo-conf name="Closing" template-lmd-value="SampleClosing" required="0" multiple="0"/>
-        <xml-mo-conf name="Appendix" template-lmd-value="SampleAppendix" required="0" multiple="1"/>
-        <!--<xml-mo-conf name="Related Product" template-lmd-value="SampleRelatedProduct" required="0" multiple="1"/>-->
-        
-        <container-conf type="folder" name="images" acl-id="non-feedback-containers"/>
+        <container-conf type="support" display-name="Supporting Documentation" acl-id="support-container"/>
+        <container-conf type="folder" display-name="Images" acl-id="non-support-containers"/>
         
     </primary-container>
     
     <acls>
-        <acl id="non-feedback-containers">
-            <ace project-role="AIC_AD" content-permissions="list, view, edit"/>
-            <ace project-role="Authors" content-permissions="list, view, edit"/>
+        <acl id="non-support-containers">
+            <ace project-role="SMEs" content-permissions="list, view, edit"/>
             <ace project-role="Reviewers" content-permissions="list, view"/>
-            <ace project-role="Referencers" content-permissions="list, view"/>
+            <ace project-role="Managers" content-permissions="list, view, edit, delete"/>
         </acl>
-        <acl id="feedback-container">
-            <ace project-role="AIC_AD" content-permissions="list, view"/>
-            <ace project-role="Authors" content-permissions="list, view"/>
+        <acl id="support-container">
+            <ace project-role="SMEs" content-permissions="list, view, edit"/>
             <ace project-role="Reviewers" content-permissions="list, view, edit"/>
-            <ace project-role="Referencers" content-permissions=""/>
+            <ace project-role="Managers" content-permissions="list, view, edit, delete"/>
         </acl>
-        <acl id="master-sections">
-            <ace project-role="AIC_AD" content-permissions="list, view, edit, delete"/>
-            <ace project-role="Authors" content-permissions="list, view, edit, delete"/>
-            <ace project-role="Reviewers" content-permissions="list, view"/>
-            <ace project-role="Referencers" content-permissions="list, view"/>
+        <acl id="mo">
+            <ace project-role="SMEs" content-permissions="list, view, edit, delete"/>
+            <ace project-role="Reviewers" content-permissions="list, view, edit"/>
+            <ace project-role="Managers" content-permissions="list, view, edit, delete"/>
         </acl>
     </acls>
     

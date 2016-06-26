@@ -384,7 +384,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
     options.setACL(aclMap.get(conf.getAclId() != null ? conf.getAclId() : defaultAclId));
     options.setType(conf.getType());
     options.setMetaDataItems(getMetadataList(conf.getMetadataConf(), null));
-    return caService.createContentAssembly(user, primaryContainer.getId(), conf.getName(), options)
+    return caService
+        .createContentAssembly(user, primaryContainer.getId(), conf.getDisplayName(), options)
         .getId();
   }
 

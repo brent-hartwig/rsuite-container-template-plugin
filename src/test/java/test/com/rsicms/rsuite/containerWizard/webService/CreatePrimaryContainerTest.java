@@ -57,7 +57,7 @@ public class CreatePrimaryContainerTest {
     ContentAssembly caNode = Mockito.mock(ContentAssembly.class);
 
     Mockito.when(caNode.getId()).thenReturn(expectedId);
-    Mockito.when(conf.getName()).thenReturn("Journal");
+    Mockito.when(conf.getDisplayName()).thenReturn("Journal");
     Mockito.when(primaryContainer.getId()).thenReturn(expectedId);
     Mockito
         .when(caService.createContentAssembly(Mockito.any(User.class), Mockito.anyString(),

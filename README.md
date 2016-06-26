@@ -32,9 +32,11 @@ At present, forms always submit to this project's invoke container wizard web se
 ### Container Contents Configuration
 Within the `primary-container` element, one may configure static metadata name-value pairs and zero or more child containers and XML MOs, in any order.
 
-For each child container, one may specify the name, type, and ACL.
+For each child container, one may specify the display name, type, and ACL.
 
-For each MO, one may specify a display name, the template's layered metadata value (used to find the templates), whether it is required, and whether more than one is allowed.
+For each MO, one may specify a display name, local (element) name, the template's layered metadata value (used to find the templates), whether it is required, and whether more than one is allowed.
+
+Please review the schema for more details.
 
 Sample:
 
@@ -46,15 +48,15 @@ Sample:
         <name-value-pair name="Status" value="New"/>
     </metadata-conf>
 
-    <xml-mo-conf name="Cover Page" template-lmd-value="DitaCoverPage" required="1" multiple="0"/>
-    <xml-mo-conf name="Introduction" template-lmd-value="DitaIntroduction" required="1" multiple="0"/>
-    <xml-mo-conf name="Background" template-lmd-value="DitaBackground" required="1" multiple="0"/>
-    <xml-mo-conf name="Discovery" template-lmd-value="DitaDiscovery" required="1" multiple="1"/>
-    <xml-mo-conf name="Conclusions" template-lmd-value="DitaConslusions" required="0" multiple="0"/>
-    <xml-mo-conf name="Supplementary" template-lmd-value="DitaSupplementary" required="0" multiple="1"/>
+    <xml-mo-conf display-name="Cover Page" local-name="cover_page" template-lmd-value="DitaCoverPage" required="1" multiple="0"/>
+    <xml-mo-conf display-name="Introduction" local-name="intro" template-lmd-value="DitaIntroduction" required="1" multiple="0"/>
+    <xml-mo-conf display-name="Background" local-name="background" template-lmd-value="DitaBackground" required="1" multiple="0"/>
+    <xml-mo-conf display-name="Discovery" local-name="discovery" template-lmd-value="DitaDiscovery" required="1" multiple="1"/>
+    <xml-mo-conf display-name="Conclusions" local-name="conclusions" template-lmd-value="DitaConclusions" required="0" multiple="0"/>
+    <xml-mo-conf display-name="Supplementary" local-name="supplementary" template-lmd-value="DitaSupplementary" required="0" multiple="1"/>
     
-    <container-conf type="support" name="Supporting Documentation" acl-id="support-container"/>
-    <container-conf type="folder" name="Images" acl-id="non-support-containers"/>
+    <container-conf type="support" display-name="Supporting Documentation" acl-id="support-container"/>
+    <container-conf type="folder" display-name="Images" acl-id="non-support-containers"/>
     
 </primary-container>
 ```

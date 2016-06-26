@@ -63,7 +63,7 @@
         <xs:element ref="c:metadata-conf" minOccurs="0"/>
       </xs:sequence>
       <xs:attribute name="acl-id" use="optional" type="xs:string"/>
-      <xs:attribute name="name" use="required"/>
+      <xs:attribute name="display-name" use="required"/>
       <xs:attribute name="type" use="required" type="xs:string"/>
     </xs:complexType>
   </xs:element>
@@ -72,7 +72,8 @@
       <xs:attribute name="acl-id" use="optional" type="xs:string"/>
       <xs:attribute name="required" use="optional" type="xs:boolean"/>
       <xs:attribute name="multiple" use="optional" type="xs:boolean"/>
-      <xs:attribute name="name" use="required"/>
+      <xs:attribute name="display-name" use="required"/>
+      <xs:attribute name="local-name" use="required" type="xs:string"/>
       <xs:attribute name="template-lmd-value" use="required" type="xs:string"/>
     </xs:complexType>
   </xs:element>

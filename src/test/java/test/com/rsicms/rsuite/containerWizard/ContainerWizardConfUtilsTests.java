@@ -239,7 +239,7 @@ public class ContainerWizardConfUtilsTests {
 
     Element xmlMoConf =
         doc.createElementNS("http://www.rsicms.com/rsuite/ns/conf/container-wizard", "xml-mo-conf");
-    xmlMoConf.setAttribute("name", expectedXmlMoConfName);
+    xmlMoConf.setAttribute("display-name", expectedXmlMoConfName);
 
     primaryContainer.appendChild(xmlMoConf);
     containerWizardConf.appendChild(primaryContainer);
@@ -251,7 +251,7 @@ public class ContainerWizardConfUtilsTests {
 
     List<XmlMoConf> resultXmlMoConfs = confUtils.getXmlMoConfList(conf);
 
-    assertEquals(resultXmlMoConfs.get(0).getName(), expectedXmlMoConfName);
+    assertEquals(resultXmlMoConfs.get(0).getDisplayName(), expectedXmlMoConfName);
 
   }
 

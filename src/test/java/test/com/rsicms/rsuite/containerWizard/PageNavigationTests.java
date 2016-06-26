@@ -31,7 +31,7 @@ public class PageNavigationTests implements ContainerWizardConstants {
    * Number of sub-pages in the sample container wizard configuration instance. This value may need
    * to be updated when the sample is updated.
    */
-  private static int numberOfSubPages = 10;
+  private static int numberOfSubPages = 6;
 
   /*
    * Test PageNavigation's constructor with various combinations of parameter values that test what
