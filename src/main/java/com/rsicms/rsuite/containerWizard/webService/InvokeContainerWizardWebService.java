@@ -44,6 +44,7 @@ import com.rsicms.rsuite.containerWizard.AclMap;
 import com.rsicms.rsuite.containerWizard.ContainerWizard;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConfUtils;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConstants;
+import com.rsicms.rsuite.containerWizard.ExecutionMode;
 import com.rsicms.rsuite.containerWizard.FutureManagedObject;
 import com.rsicms.rsuite.containerWizard.PageNavigation;
 import com.rsicms.rsuite.containerWizard.advisors.mo.LocalManagedObjectAdvisor;
@@ -83,6 +84,10 @@ public class InvokeContainerWizardWebService extends BaseWebService
       User user = session.getUser();
       this.systemUser = context.getAuthorizationService().getSystemUser();
 
+      // Determine the execution mode (e.g., create container or add XML MO) and the
+      // insertion position, which is only applicable to one mode.
+      ExecutionMode mode = ExecutionMode.get(args.getFirstString(PARAM_NAME_EXECUTION_MODE));
+
       // Load the wizard configuration.
       // By loading each time, technically it could change mid-instance.
       ContainerWizardConfUtils confUtils = new ContainerWizardConfUtils();
@@ -94,7 +99,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
       ContainerWizard wizard = getContainerWizard(args.getFirstString(PARAM_NAME_CONTAINER_WIZARD));
 
       // Get our page navigation object.
-      PageNavigation pageNav = new PageNavigation(conf, confUtils, args, log);
+      PageNavigation pageNav = new PageNavigation(context, user, mode, conf, confUtils, args, log);
 
       // Handle cancel link, need a better indication from form submission
       if (pageNav.wasPageDismissed()) {

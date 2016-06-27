@@ -6,6 +6,9 @@ public interface ContainerWizardConstants {
 
   String PARAM_NAME_PREFIX_LMD = "lmd";
 
+  String PARAM_NAME_EXECUTION_MODE = "executionMode";
+  String PARAM_NAME_INSERTION_POSITION = "insertionPosition";
+  String PARAM_NAME_RSUITE_ID = "rsuiteId";
   String PARAM_NAME_CONTAINER_NAME = "containerName";
   String PARAM_NAME_API_NAME = "apiName";
   String PARAM_NAME_CONF_ALIAS = "confAlias";

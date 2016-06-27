@@ -101,4 +101,50 @@ public class ContainerWizardConfUtils {
     return XmlMoConfList;
   }
 
+  /**
+   * Given a couple local element names and a container wizard's configuration, determine the first
+   * allowed XML MO configuration index.
+   * 
+   * @param conf
+   * @param localNameBefore The element name that comes before the insertion point. May be null.
+   * @param localNameAfter The element name that comes after the insertion point. May be null.
+   * @return The XML MO configuration index allowed between the two local names. If -1, nothing is
+   *         allowed.
+   */
+  public int getFirstAllowedXmlMoConfIndex(ContainerWizardConf conf, String localNameBefore,
+      String localNameAfter) {
+
+    List<XmlMoConf> xmlMoConfList = getXmlMoConfList(conf);
+    XmlMoConf xmlMoConf;
+
+    for (int i = 0; i < xmlMoConfList.size(); i++) {
+      xmlMoConf = xmlMoConfList.get(i);
+
+      if (xmlMoConf.getLocalName().equals(localNameBefore)) {
+        if (xmlMoConf.isMultiple()) {
+          return i;
+        } else if (i + 1 < xmlMoConfList.size()) {
+          xmlMoConf = xmlMoConfList.get(i + 1);
+          if (xmlMoConf.isMultiple() || !xmlMoConf.getLocalName().equals(localNameAfter)) {
+            return i + 1;
+          }
+        }
+        return -1;
+      } else if (xmlMoConf.getLocalName().equals(localNameAfter)) {
+        int candidate = xmlMoConf.isMultiple() ? i : -1;
+        for (int t = i - 1; t >= 0; t--) {
+          xmlMoConf = xmlMoConfList.get(t);
+          if (xmlMoConf.isRequired()) {
+            return t;
+          }
+          candidate = t;
+        }
+        return candidate;
+      }
+    }
+
+    return -1;
+
+  }
+
 }

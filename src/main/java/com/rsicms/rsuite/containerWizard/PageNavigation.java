@@ -7,7 +7,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.reallysi.rsuite.api.ContentAssemblyNodeContainer;
+import com.reallysi.rsuite.api.ManagedObject;
 import com.reallysi.rsuite.api.RSuiteException;
+import com.reallysi.rsuite.api.User;
+import com.reallysi.rsuite.api.content.ContentDisplayObject;
+import com.reallysi.rsuite.api.content.ContentObjectPath;
+import com.reallysi.rsuite.api.extensions.ExecutionContext;
 import com.reallysi.rsuite.api.remoteapi.CallArgument;
 import com.reallysi.rsuite.api.remoteapi.CallArgumentList;
 import com.reallysi.rsuite.api.remoteapi.result.InvokeWebServiceAction;
@@ -16,11 +22,16 @@ import com.reallysi.rsuite.api.remoteapi.result.UserInterfaceAction;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 import com.rsicms.rsuite.containerWizard.jaxb.Page;
 import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService;
+import com.rsicms.rsuite.utils.container.ContainerUtils;
+import com.rsicms.rsuite.utils.mo.MOUtils;
 
 public class PageNavigation implements ContainerWizardConstants {
 
   private static Log defaultLog = LogFactory.getLog(InvokeContainerWizardWebService.class);
 
+  private ExecutionContext context;
+  private User user;
+  private ExecutionMode mode;
   private ContainerWizardConf conf;
   private ContainerWizardConfUtils confUtils;
   private CallArgumentList args;
@@ -32,12 +43,20 @@ public class PageNavigation implements ContainerWizardConstants {
   private boolean shouldSetNextPageIdx;
   private boolean shouldSetNextSubPageIdx;
 
-  public PageNavigation(ContainerWizardConf conf, ContainerWizardConfUtils confUtils,
-      CallArgumentList args, Log log) {
+  public PageNavigation(ExecutionContext context, User user, ExecutionMode mode,
+      ContainerWizardConf conf, ContainerWizardConfUtils confUtils, CallArgumentList args, Log log)
+      throws RSuiteException {
+    this.context = context;
+    this.user = user;
+    this.mode = mode;
     this.conf = conf;
     this.confUtils = confUtils;
     this.args = args;
     this.log = log == null ? defaultLog : log;
+
+    if (ExecutionMode.ADD_XML_MO == mode) {
+      adjustArgsForAddXmlMoMode();
+    }
 
     determineReachedLastSubPage(); // *before* determining page index
 
@@ -62,6 +81,83 @@ public class PageNavigation implements ContainerWizardConstants {
         shouldSetNextPageIdx = true;
       }
     }
+  }
+
+  private void adjustArgsForAddXmlMoMode() throws RSuiteException {
+
+    // If in this mode but there's no sub page index, the form is being requested.
+    // Determine and add the required parameters.
+    if (StringUtils.isBlank(args.getFirstString(PARAM_NAME_NEXT_SUB_PAGE_IDX))) {
+      String id = args.getFirstString(PARAM_NAME_RSUITE_ID);
+      if (StringUtils.isBlank(id)) {
+        throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
+            "The ID of the object to insert before or after was not provided.");
+      }
+
+      ManagedObject mo = context.getManagedObjectService().getManagedObject(user, id);
+      String localName = mo.getLocalName();
+
+      // Determine the container.
+      ContentAssemblyNodeContainer container;
+      ContentObjectPath cop = args.getFirstContentObjectPath(user);
+      List<ContentDisplayObject> cdoList = cop.getPathObjects();
+      if (cdoList.size() >= 2) {
+        container = context.getContentAssemblyService().getContentAssemblyNodeContainer(user,
+            cdoList.get(cdoList.size() - 2).getManagedObject().getTargetId());
+        log.info("container: '" + container.getDisplayName() + "' (ID: " + container.getId() + ")");
+      } else {
+        throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
+            "Unable to determine the container.");
+      }
+
+      // Get sibling MO to narrow down available choices.
+      InsertionPosition ip =
+          InsertionPosition.get(args.getFirstString(PARAM_NAME_INSERTION_POSITION));
+      ManagedObject siblingMo = ContainerUtils.getSiblingManagedObject(context, user, container,
+          mo.getId(), ip == InsertionPosition.ABOVE);
+
+      String localNameBefore = null;
+      if (ip == InsertionPosition.ABOVE && siblingMo != null) {
+        localNameBefore = siblingMo.getLocalName();
+      } else if (ip == InsertionPosition.BELOW) {
+        localNameBefore = localName;
+      }
+
+      String localNameAfter = null;
+      if (ip == InsertionPosition.BELOW && siblingMo != null) {
+        localNameAfter = siblingMo.getLocalName();
+      } else if (ip == InsertionPosition.ABOVE) {
+        localNameAfter = localName;
+      }
+
+      int xmlMoConfIdx =
+          confUtils.getFirstAllowedXmlMoConfIndex(conf, localNameBefore, localNameAfter);
+
+      if (xmlMoConfIdx < 0) {
+        throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
+            "No additional content is allowed " + ip.name().toLowerCase()
+                + " the specified content.");
+      }
+
+      StringBuilder sb = new StringBuilder("XML MO Conf Index: ").append(xmlMoConfIdx);
+      sb.append(".  Local name before: ").append(localNameBefore);
+      sb.append(".  Local name after: ").append(localNameAfter);
+      if (siblingMo == null) {
+        sb.append(".  No MO is ").append(ip.name());
+      } else {
+        sb.append(".  '").append(MOUtils.getDisplayNameQuietly(siblingMo)).append("' (ID: ")
+            .append(siblingMo.getId()).append(") is ").append(ip.name());
+      }
+      throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID, sb.toString());
+
+    }
+
+    /*
+     * this.reachedLastSubPage = (args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0) +
+     * args.getFirstInteger(PARAM_NAME_SECTION_TYPE_IDX, 0)) >= configuredSubPageSize;
+     * 
+     */
+
   }
 
   /**

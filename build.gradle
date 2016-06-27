@@ -27,6 +27,9 @@ dependencies {
 	compile ('rsi:rsuite-api:4.1.14') {
 		transitive=false
 	}
+	compile ('rsuite-community:rsuite-container-utils-lib:0.0.1') {
+		transitive=false
+	}
 	compile ('rsuite-community:rsuite-message-props-lib:0.0.1') {
 		transitive=false
 	}
@@ -70,6 +73,9 @@ dependencies {
 	}
 	
 	includeInJar ('rsuite-community:rsuite-conf-utils-lib:0.0.1') {
+		transitive=false
+	}
+	includeInJar ('rsuite-community:rsuite-container-utils-lib:0.0.1') {
 		transitive=false
 	}
 	includeInJar ('rsuite-community:rsuite-message-props-lib:0.0.1') {
