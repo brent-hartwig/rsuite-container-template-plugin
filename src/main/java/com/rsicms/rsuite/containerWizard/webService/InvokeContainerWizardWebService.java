@@ -378,7 +378,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
     RestResult rr = getNotificationResult(context, sb.toString(), opName);
     UserInterfaceAction action = new UserInterfaceAction("rsuite:refreshManagedObjects");
     action.addProperty("objects", containerId);
-    action.addProperty("children", false);
+    action.addProperty("children", true);
     rr.addAction(action);
     return rr;
   }
