@@ -12,7 +12,7 @@ public class ContainerWizardSearchUtils implements ContainerWizardConstants {
 
   public static List<ManagedObject> getXmlTemplates(User user, SearchService searchService,
       String xmlTemplateType) throws RSuiteException {
-    String query = new StringBuilder("/*").append(
+    String query = new StringBuilder(SearchUtils.XPATH_ANY_ELEMENT).append(
         SearchUtils.getLayeredMetadataXPathPredicate(LMD_NAME_XML_TEMPLATE_TYPE, xmlTemplateType))
         .toString();
     return SearchUtils.searchForObjects(user, searchService, query, -1);

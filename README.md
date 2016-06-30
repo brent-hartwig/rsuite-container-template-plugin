@@ -86,6 +86,42 @@ Sample:
 </acls>
 ```
 
+## Execution Mode
+The default execution mode is to create a new container, referencing containers and MOs.  There is also an execution mode to add MOs to an existing container.  The execution mode may be specified by the "executionMode" web service parameter.  Supported values are "CREATE\_CONTAINER" (default) and "ADD\_XML\_MO".
+
+Below are example context menu items for adding MOs to an existing container.  Notes
+
+1. The "operationName" parameter may be used to configure the operation's display name (both modes).
+2. The "insertionPosition" parameter is only applicable to the ADD\_XML\_MO mode.  "BEFORE" and "AFTER" (default) are the supported values.
+3. The "nextPageIdx" parameter value should align with a page configured to the "rsuite-container-wizard-plugin:wizardPage" action.
+
+```
+<menuItem id="acme:addSectionAbove">
+    <type>action</type>
+    <actionName>rsuite:invokeWebservice</actionName>
+    <label>Add section above</label>
+    <property name="remoteApiName" value="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
+    <property name="serviceParams.confAlias" value="Sample Product Configuration" />
+    <property name="serviceParams.operationName" value="Add Section" />
+    <property name="serviceParams.executionMode" value="ADD_XML_MO" />
+    <property name="serviceParams.insertionPosition" value="BEFORE" />
+    <property name="serviceParams.nextPageIdx" value="2" />
+    <property name="rsuite:icon" value="add" />
+</menuItem>
+<menuItem id="acme:addSectionAbove">
+    <type>action</type>
+    <actionName>rsuite:invokeWebservice</actionName>
+    <label>Add section below</label>
+    <property name="remoteApiName" value="rsuite-container-wizard-plugin-ws-invoke-wizard"/>
+    <property name="serviceParams.confAlias" value="Sample Product Configuration" />
+    <property name="serviceParams.operationName" value="Add Section" />
+    <property name="serviceParams.executionMode" value="ADD_XML_MO" />
+    <property name="serviceParams.insertionPosition" value="AFTER" />
+    <property name="serviceParams.nextPageIdx" value="2" />
+    <property name="rsuite:icon" value="add" />
+</menuItem>
+``` 
+
 ## Retaining User Input
 Each time the wizard's main web service is consumed, it retains expected user-input.  The following documents what the web service looks for.
 

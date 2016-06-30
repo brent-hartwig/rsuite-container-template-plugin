@@ -4,8 +4,11 @@ public interface ContainerWizardConstants {
 
   String DEFAULT_CHARACTER_ENCODING = "UTF-8";
 
+  String DEFAULT_OPERATION_NAME = "Create Product";
+
   String PARAM_NAME_PREFIX_LMD = "lmd";
 
+  String PARAM_NAME_OPERATION_NAME = "operationName";
   String PARAM_NAME_EXECUTION_MODE = "executionMode";
   String PARAM_NAME_INSERTION_POSITION = "insertionPosition";
   String PARAM_NAME_RSUITE_ID = "rsuiteId";

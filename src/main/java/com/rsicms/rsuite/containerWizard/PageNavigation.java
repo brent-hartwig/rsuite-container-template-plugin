@@ -7,13 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.reallysi.rsuite.api.ContentAssemblyNodeContainer;
-import com.reallysi.rsuite.api.ManagedObject;
 import com.reallysi.rsuite.api.RSuiteException;
-import com.reallysi.rsuite.api.User;
-import com.reallysi.rsuite.api.content.ContentDisplayObject;
-import com.reallysi.rsuite.api.content.ContentObjectPath;
-import com.reallysi.rsuite.api.extensions.ExecutionContext;
 import com.reallysi.rsuite.api.remoteapi.CallArgument;
 import com.reallysi.rsuite.api.remoteapi.CallArgumentList;
 import com.reallysi.rsuite.api.remoteapi.result.InvokeWebServiceAction;
@@ -22,16 +16,12 @@ import com.reallysi.rsuite.api.remoteapi.result.UserInterfaceAction;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 import com.rsicms.rsuite.containerWizard.jaxb.Page;
 import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService;
-import com.rsicms.rsuite.utils.container.ContainerUtils;
-import com.rsicms.rsuite.utils.mo.MOUtils;
 
 public class PageNavigation implements ContainerWizardConstants {
 
   private static Log defaultLog = LogFactory.getLog(InvokeContainerWizardWebService.class);
 
-  private ExecutionContext context;
-  private User user;
-  private ExecutionMode mode;
+  private ContainerWizard wizard;
   private ContainerWizardConf conf;
   private ContainerWizardConfUtils confUtils;
   private CallArgumentList args;
@@ -43,20 +33,13 @@ public class PageNavigation implements ContainerWizardConstants {
   private boolean shouldSetNextPageIdx;
   private boolean shouldSetNextSubPageIdx;
 
-  public PageNavigation(ExecutionContext context, User user, ExecutionMode mode,
-      ContainerWizardConf conf, ContainerWizardConfUtils confUtils, CallArgumentList args, Log log)
-      throws RSuiteException {
-    this.context = context;
-    this.user = user;
-    this.mode = mode;
+  public PageNavigation(ContainerWizard wizard, ContainerWizardConf conf,
+      ContainerWizardConfUtils confUtils, CallArgumentList args, Log log) throws RSuiteException {
+    this.wizard = wizard;
     this.conf = conf;
     this.confUtils = confUtils;
     this.args = args;
     this.log = log == null ? defaultLog : log;
-
-    if (ExecutionMode.ADD_XML_MO == mode) {
-      adjustArgsForAddXmlMoMode();
-    }
 
     determineReachedLastSubPage(); // *before* determining page index
 
@@ -83,81 +66,28 @@ public class PageNavigation implements ContainerWizardConstants {
     }
   }
 
-  private void adjustArgsForAddXmlMoMode() throws RSuiteException {
-
-    // If in this mode but there's no sub page index, the form is being requested.
-    // Determine and add the required parameters.
-    if (StringUtils.isBlank(args.getFirstString(PARAM_NAME_NEXT_SUB_PAGE_IDX))) {
-      String id = args.getFirstString(PARAM_NAME_RSUITE_ID);
-      if (StringUtils.isBlank(id)) {
-        throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
-            "The ID of the object to insert before or after was not provided.");
+  /**
+   * Get the int value from a call argument. In RSuite 4.1.15,
+   * CallArgumentList#getFirstInteger(String) would throw a NPE when the argument value was not a
+   * number (e.g., "NaN").
+   * 
+   * @param arg
+   * @param defaultValue
+   * @return An int value of the given call argument; when not set or unable to convert to an int,
+   *         the provided default value is returned.
+   */
+  public int getIntValue(CallArgument arg, int defaultValue) {
+    if (arg != null) {
+      String val = arg.getValue();
+      if (StringUtils.isNotBlank(val)) {
+        try {
+          return Integer.parseInt(val);
+        } catch (NumberFormatException e) {
+          // allow to pass through
+        }
       }
-
-      ManagedObject mo = context.getManagedObjectService().getManagedObject(user, id);
-      String localName = mo.getLocalName();
-
-      // Determine the container.
-      ContentAssemblyNodeContainer container;
-      ContentObjectPath cop = args.getFirstContentObjectPath(user);
-      List<ContentDisplayObject> cdoList = cop.getPathObjects();
-      if (cdoList.size() >= 2) {
-        container = context.getContentAssemblyService().getContentAssemblyNodeContainer(user,
-            cdoList.get(cdoList.size() - 2).getManagedObject().getTargetId());
-        log.info("container: '" + container.getDisplayName() + "' (ID: " + container.getId() + ")");
-      } else {
-        throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
-            "Unable to determine the container.");
-      }
-
-      // Get sibling MO to narrow down available choices.
-      InsertionPosition ip =
-          InsertionPosition.get(args.getFirstString(PARAM_NAME_INSERTION_POSITION));
-      ManagedObject siblingMo = ContainerUtils.getSiblingManagedObject(context, user, container,
-          mo.getId(), ip == InsertionPosition.ABOVE);
-
-      String localNameBefore = null;
-      if (ip == InsertionPosition.ABOVE && siblingMo != null) {
-        localNameBefore = siblingMo.getLocalName();
-      } else if (ip == InsertionPosition.BELOW) {
-        localNameBefore = localName;
-      }
-
-      String localNameAfter = null;
-      if (ip == InsertionPosition.BELOW && siblingMo != null) {
-        localNameAfter = siblingMo.getLocalName();
-      } else if (ip == InsertionPosition.ABOVE) {
-        localNameAfter = localName;
-      }
-
-      int xmlMoConfIdx =
-          confUtils.getFirstAllowedXmlMoConfIndex(conf, localNameBefore, localNameAfter);
-
-      if (xmlMoConfIdx < 0) {
-        throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
-            "No additional content is allowed " + ip.name().toLowerCase()
-                + " the specified content.");
-      }
-
-      StringBuilder sb = new StringBuilder("XML MO Conf Index: ").append(xmlMoConfIdx);
-      sb.append(".  Local name before: ").append(localNameBefore);
-      sb.append(".  Local name after: ").append(localNameAfter);
-      if (siblingMo == null) {
-        sb.append(".  No MO is ").append(ip.name());
-      } else {
-        sb.append(".  '").append(MOUtils.getDisplayNameQuietly(siblingMo)).append("' (ID: ")
-            .append(siblingMo.getId()).append(") is ").append(ip.name());
-      }
-      throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID, sb.toString());
-
     }
-
-    /*
-     * this.reachedLastSubPage = (args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0) +
-     * args.getFirstInteger(PARAM_NAME_SECTION_TYPE_IDX, 0)) >= configuredSubPageSize;
-     * 
-     */
-
+    return defaultValue;
   }
 
   /**
@@ -166,8 +96,8 @@ public class PageNavigation implements ContainerWizardConstants {
   private void determineReachedLastSubPage() {
     // Assumes there's only one page with sub-pages.
     Integer configuredSubPageSize = Integer.valueOf(confUtils.getXmlMoConfCount(conf));
-    this.reachedLastSubPage = (args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0)
-        + args.getFirstInteger(PARAM_NAME_SECTION_TYPE_IDX, 0)) >= configuredSubPageSize;
+    this.reachedLastSubPage = (getIntValue(args.getFirst(PARAM_NAME_NEXT_SUB_PAGE_IDX), 0)
+        + getIntValue(args.getFirst(PARAM_NAME_SECTION_TYPE_IDX), 0)) >= configuredSubPageSize;
   }
 
   /**
@@ -182,7 +112,7 @@ public class PageNavigation implements ContainerWizardConstants {
 
   private void determinePageIdx() {
 
-    pageIdx = args.getFirstInteger(PARAM_NAME_NEXT_PAGE_IDX, -1);
+    pageIdx = getIntValue(args.getFirst(PARAM_NAME_NEXT_PAGE_IDX), -1);
 
     // Bump the page index up by one when a page is being requested and we've processed the last sub
     // page.
@@ -209,6 +139,12 @@ public class PageNavigation implements ContainerWizardConstants {
    * @return True if a page is being requested.
    */
   public boolean isPageRequested() {
+
+    // If we're in add XML MO mode and have at least one future MO, a new page is not desired.
+    if (wizard.isInAddXmlMoMode() && wizard.hasFutureManagedObjects()) {
+      return false;
+    }
+
     return getPageIdx() >= 0;
   }
 
@@ -249,7 +185,7 @@ public class PageNavigation implements ContainerWizardConstants {
    * @return The sub page index.
    */
   public Integer getNextSubPageIdx() {
-    return args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0);
+    return getIntValue(args.getFirst(PARAM_NAME_NEXT_SUB_PAGE_IDX), 0);
   }
 
   /**
@@ -264,14 +200,12 @@ public class PageNavigation implements ContainerWizardConstants {
   /**
    * Get the REST result for this page navigation.
    * 
-   * @param wizard
    * @param confAlias
    * @return The rest result for this page navigation.
    * @throws RSuiteException
    * @throws IOException
    */
-  public RestResult getRestResult(ContainerWizard wizard, String confAlias)
-      throws RSuiteException, IOException {
+  public RestResult getRestResult(String confAlias) throws RSuiteException, IOException {
     if (!hasRequestedPage()) {
       throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
           "The requested page does not exist.");
@@ -279,9 +213,9 @@ public class PageNavigation implements ContainerWizardConstants {
 
     Page page = getRequestedPageConf();
     if (StringUtils.isNotBlank(page.getFormId())) {
-      return constructFormRequest(wizard, confAlias, page);
+      return constructFormRequest(confAlias, page);
     } else if (StringUtils.isNotBlank(page.getActionId())) {
-      return constructActionRequest(wizard, confAlias, page);
+      return constructActionRequest(confAlias, page);
     } else {
       // Configuration error (no form or action).
       throw new RSuiteException(RSuiteException.ERROR_CONFIGURATION_PROBLEM,
@@ -293,14 +227,12 @@ public class PageNavigation implements ContainerWizardConstants {
   /**
    * Construct a REST result that'll request a form.
    * 
-   * @param wizard
    * @param confAlias
    * @param page
    * @return a REST result that'll request a form.
    * @throws IOException
    */
-  public RestResult constructFormRequest(ContainerWizard wizard, String confAlias, Page page)
-      throws IOException {
+  public RestResult constructFormRequest(String confAlias, Page page) throws IOException {
     log.info("Constructing a form request...");
 
     InvokeWebServiceAction serviceAction =
@@ -335,14 +267,12 @@ public class PageNavigation implements ContainerWizardConstants {
   /**
    * Construct a REST result that'll request a CMS UI action.
    * 
-   * @param wizard
    * @param confAlias
    * @param page
    * @return a REST result that'll request a CMS UI action.
    * @throws IOException
    */
-  public RestResult constructActionRequest(ContainerWizard wizard, String confAlias, Page page)
-      throws IOException {
+  public RestResult constructActionRequest(String confAlias, Page page) throws IOException {
     log.info("Constructing an action request...");
 
     UserInterfaceAction wizardPage = new UserInterfaceAction(page.getActionId());
@@ -350,6 +280,7 @@ public class PageNavigation implements ContainerWizardConstants {
     wizardPage.addProperty(PARAM_NAME_CONF_ALIAS, confAlias);
     wizardPage.addProperty(PARAM_NAME_API_NAME, args.getFirstString(PARAM_NAME_API_NAME));
     wizardPage.addProperty(PARAM_NAME_CONTAINER_WIZARD, wizard.serialize());
+    wizardPage.addProperty(PARAM_NAME_OPERATION_NAME, wizard.getOperationName());
 
     if (shouldSetNextPageIdx) {
       log.info("Setting next page index to " + nextPageIdx);
@@ -358,11 +289,9 @@ public class PageNavigation implements ContainerWizardConstants {
 
     // TODO: use shouldSetNextSubPageIdx?
     if (page.isSubPages()) {
-      Integer nextSubPageIdx = getNextSubPageIdx();
-
-      Integer nextSubPageOffset = args.getFirstInteger("sectionTypeIdx", 0);
-      nextSubPageIdx += nextSubPageOffset;
-
+      Integer nextSubPageOffset = getIntValue(args.getFirst(PARAM_NAME_SECTION_TYPE_IDX), 0);
+      Integer nextSubPageIdx = wizard.isInAddXmlMoMode()
+          ? wizard.getAddXmlMoContext().getXmlMoConfIdx() : getNextSubPageIdx() + nextSubPageOffset;
       log.info("Setting next sub page index to " + nextSubPageIdx + " (offset was "
           + nextSubPageOffset + ")");
       wizardPage.addProperty(PARAM_NAME_NEXT_SUB_PAGE_IDX, nextSubPageIdx);

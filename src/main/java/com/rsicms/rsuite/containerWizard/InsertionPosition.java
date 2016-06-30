@@ -5,7 +5,7 @@ package com.rsicms.rsuite.containerWizard;
  */
 public enum InsertionPosition {
 
-  ABOVE(), BELOW();
+  BEFORE(), AFTER();
 
   /**
    * Get one of this enum's values from a string. Defaults to BELOW.
@@ -19,7 +19,7 @@ public enum InsertionPosition {
         return ip;
       }
     }
-    return BELOW;
+    return AFTER;
   }
 
 }

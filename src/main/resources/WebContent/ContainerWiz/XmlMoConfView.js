@@ -28,7 +28,7 @@ ContainerWiz.XmlMoConfView = Ember.ContainerView.extend(RSuite.view.Dialog, {
 	index: 0,
 	classNames: ['xml-mo-conf-view'],
 	title: function () {
-		return "Create Product Wizard";
+		return "Wizard"; // TODO: add "operationName" property value from web service
 	}.property('subPageIndex'),
 	icon: 'createFromTemplate',
 	sectionType: function (name, value) {
@@ -72,7 +72,6 @@ ContainerWiz.XmlMoConfView = Ember.ContainerView.extend(RSuite.view.Dialog, {
 	prepareResponse: function (context) {
 		context = context || {};
 		Ember.set(context, 'data', [
-			{ name: "passThruTest", value: this.get('passThruTest') },
 			{ name: "confAlias", value: this.get('sectionTypes.confAlias') },
 			{ name: "containerWizard", value: this.get('containerWizard') },
 			{ name: "nextPageIdx", value: this.get('nextPageIdx') },
@@ -300,7 +299,6 @@ RSuite.Action({
 			nextPageIdx = Ember.get(context, 'nextPageIdx'),
 			submitTo = Ember.get(context, 'apiName')
 			subPage = Ember.get(context, 'nextSubPageIdx'),
-			passThruTest = Ember.get(context, 'passThruTest'),
 			containerWizard = Ember.get(context, 'containerWizard'),
 			model = ContainerWiz.SectionType.getCached(sectionConfig + ":" + subPage);
 		if (!values.length) {
@@ -311,7 +309,6 @@ RSuite.Action({
 				sectionTypes: model,
 				nextPageIdx: nextPageIdx,
 				subPageIndex: subPage,
-				passThruTest: passThruTest,
 				containerWizard: containerWizard,
 				values: values
 			}).create();

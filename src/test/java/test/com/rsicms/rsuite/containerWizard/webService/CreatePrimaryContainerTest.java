@@ -15,6 +15,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 
 import com.reallysi.rsuite.api.ContentAssembly;
+import com.reallysi.rsuite.api.ContentAssemblyNodeContainer;
 import com.reallysi.rsuite.api.ManagedObject;
 import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.Session;
@@ -23,6 +24,7 @@ import com.reallysi.rsuite.api.control.ContentAssemblyCreateOptions;
 import com.reallysi.rsuite.api.control.ManagedObjectAdvisor;
 import com.reallysi.rsuite.api.control.ObjectAttachOptions;
 import com.reallysi.rsuite.api.extensions.ExecutionContext;
+import com.reallysi.rsuite.api.security.ACL;
 import com.reallysi.rsuite.api.security.RoleManager;
 import com.reallysi.rsuite.api.xml.XPathEvaluator;
 import com.reallysi.rsuite.service.AuthorizationService;
@@ -36,7 +38,6 @@ import com.rsicms.rsuite.containerWizard.FutureManagedObject;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerConf;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 import com.rsicms.rsuite.containerWizard.jaxb.PrimaryContainer;
-import com.rsicms.rsuite.containerWizard.jaxb.XmlMoConf;
 import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService;
 
 public class CreatePrimaryContainerTest {
@@ -108,13 +109,12 @@ public class CreatePrimaryContainerTest {
     Mockito.when(eval.executeXPathToNodeArray(Mockito.anyString(), Mockito.any(Object.class)))
         .thenReturn(elemArr);
 
-    ContentAssembly primaryContainer = Mockito.mock(ContentAssembly.class);
-    XmlMoConf conf = Mockito.mock(XmlMoConf.class);
+    String containerId = "1234";
     FutureManagedObject fmo = Mockito.mock(FutureManagedObject.class);
 
     List<FutureManagedObject> fmoList = new ArrayList<FutureManagedObject>();
     fmoList.add(fmo);
-    AclMap aclMap = Mockito.mock(AclMap.class);
+    ACL acl = Mockito.mock(ACL.class);
 
     InvokeContainerWizardWebService invokeService =
         Mockito.mock(InvokeContainerWizardWebService.class);
@@ -125,10 +125,10 @@ public class CreatePrimaryContainerTest {
     Mockito.when(invokeService.getObjectSource(Mockito.any(Element.class),
         Mockito.any(ExecutionContext.class), Mockito.anyString())).thenReturn(null);
     Mockito.doCallRealMethod().when(invokeService).addManagedObjects(context, user, eval,
-        primaryContainer, 1, conf, fmoList, aclMap, expectedId);
+        containerId, fmoList, acl);
 
-    List<ManagedObject> resultMoList = invokeService.addManagedObjects(context, user, eval,
-        primaryContainer, 1, conf, fmoList, aclMap, expectedId);
+    List<ManagedObject> resultMoList =
+        invokeService.addManagedObjects(context, user, eval, containerId, fmoList, acl);
 
     assertEquals(resultMoList.size(), expectedSize);
 
@@ -179,7 +179,7 @@ public class CreatePrimaryContainerTest {
     Mockito.doCallRealMethod().when(invokeService).createPrimaryContainer(context, session, conf,
         wizard, parentId);
 
-    ContentAssembly resultContentAssembly =
+    ContentAssemblyNodeContainer resultContentAssembly =
         invokeService.createPrimaryContainer(context, session, conf, wizard, parentId);
 
     /*

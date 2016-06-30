@@ -14,6 +14,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.reallysi.rsuite.api.MetaDataItem;
+import com.reallysi.rsuite.api.RSuiteException;
 
 import biz.source_code.base64Coder.Base64Coder;
 
@@ -26,6 +27,8 @@ public class ContainerWizard implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  private String operationName;
+
   private String containerName;
 
   private Map<String, List<String>> containerMetadata = new HashMap<String, List<String>>();
@@ -33,8 +36,18 @@ public class ContainerWizard implements Serializable {
   private SortedMap<String, List<FutureManagedObject>> futureMoList =
       new TreeMap<String, List<FutureManagedObject>>();
 
+  private AddXmlMoContext addXmlMoContext;
+
   public ContainerWizard() {
 
+  }
+
+  public String getOperationName() {
+    return operationName;
+  }
+
+  public void setOperationName(String opName) {
+    this.operationName = opName;
   }
 
   public String getContainerName() {
@@ -122,8 +135,49 @@ public class ContainerWizard implements Serializable {
     return null;
   }
 
+  /**
+   * @return True if there is at least one future managed object.
+   */
+  public boolean hasFutureManagedObjects() {
+    for (Map.Entry<String, List<FutureManagedObject>> entry : futureMoList.entrySet()) {
+      if (entry.getValue().size() > 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Get the first list of future MOs. This is intended to be used when there is only one. In fact,
+   * if there is more than one and this is called, an exception is thrown.
+   * 
+   * @return The first list of future MOs or null when there are none.
+   * @throws RSuiteException Thrown when there is more than one list of future MOs.
+   */
+  public List<FutureManagedObject> getFirstAndOnlyFutureManagedObjectList() throws RSuiteException {
+    if (futureMoList.size() == 1) {
+      return futureMoList.get(futureMoList.firstKey());
+    } else if (futureMoList.size() > 1) {
+      throw new RSuiteException(RSuiteException.ERROR_INTERNAL_ERROR,
+          "More than one lists exists when only one is expected.");
+    }
+    return null;
+  }
+
   public SortedMap<String, List<FutureManagedObject>> getFutureManagedObjectLists() {
     return futureMoList;
+  }
+
+  public boolean isInAddXmlMoMode() {
+    return addXmlMoContext != null;
+  }
+
+  public AddXmlMoContext getAddXmlMoContext() {
+    return addXmlMoContext;
+  }
+
+  public void setAddXmlMoContext(AddXmlMoContext addXmlMoContext) {
+    this.addXmlMoContext = addXmlMoContext;
   }
 
   // Credit to http://stackoverflow.com/revisions/134918/9 but dropped base64 encoding
