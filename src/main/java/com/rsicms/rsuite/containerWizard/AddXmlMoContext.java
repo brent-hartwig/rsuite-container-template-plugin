@@ -12,6 +12,7 @@ import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.User;
 import com.reallysi.rsuite.api.extensions.ExecutionContext;
 import com.reallysi.rsuite.api.remoteapi.CallArgumentList;
+import com.reallysi.rsuite.service.AuthorizationService;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 import com.rsicms.rsuite.utils.container.ContainerUtils;
 import com.rsicms.rsuite.utils.container.visitor.ChildrenInfoContainerVisitor;
@@ -54,6 +55,9 @@ public class AddXmlMoContext implements Serializable, ContainerWizardConstants {
           "Unable to determine the container.");
     }
     this.containerId = container.getId();
+
+    // With the container, we can perform the optional security check.
+    throwIfNotAuthorized(context.getAuthorizationService(), user, container, args);
 
     // Visit container in order to answer some questions we have.
     ChildrenInfoContainerVisitor visitor = new ChildrenInfoContainerVisitor(context, user);
@@ -103,6 +107,72 @@ public class AddXmlMoContext implements Serializable, ContainerWizardConstants {
       throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
           "No additional content is allowed " + (insertBefore ? "before" : "after")
               + " the specified content.");
+    }
+  }
+
+  /**
+   * Determine if this user is authorized to add content to this container.
+   * 
+   * @param authService
+   * @param user
+   * @param container
+   * @param args
+   * @return True if authorized; false if not.
+   * @throws RSuiteException
+   */
+  public boolean isAuthorized(AuthorizationService authService, User user,
+      ContentAssemblyNodeContainer container, CallArgumentList args) throws RSuiteException {
+    // Admins pass this test.
+    if (authService.isAdministrator(user)) {
+      return true;
+    }
+
+    // Only perform this check if at least one role was passed in.
+    String names = args.getFirstString(PARAM_NAME_ALLOWED_CONTAINER_ROLES);
+    if (StringUtils.isNotBlank(names)) {
+      String[] arr = names.split(",");
+      String prefix = AclMap.getContainerRoleNamePrefix(container);
+      for (String basename : arr) {
+        if (user.hasRole(AclMap.getContainerRoleName(prefix, basename))) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Determine if this user is not authorized to add content within the provided container.
+   * 
+   * @param authService
+   * @param user
+   * @param container
+   * @param args
+   * @return True if unauthorized; false if authorized.
+   * @throws RSuiteException
+   */
+  public boolean isNotAuthorized(AuthorizationService authService, User user,
+      ContentAssemblyNodeContainer container, CallArgumentList args) throws RSuiteException {
+    return !isAuthorized(authService, user, container, args);
+  }
+
+  /**
+   * Throw exception when user is not authorized to add content with the provided container.
+   * 
+   * @param authService
+   * @param user
+   * @param container
+   * @param args
+   * @throws RSuiteException Thrown when user is not authorized, or when the RSuite API throws an
+   *         exception.
+   */
+  public void throwIfNotAuthorized(AuthorizationService authService, User user,
+      ContentAssemblyNodeContainer container, CallArgumentList args) throws RSuiteException {
+    if (isNotAuthorized(authService, user, container, args)) {
+      throw new RSuiteException("The user account with ID '" + user.getUserId()
+          + "' is not authorized to add content within '" + container.getDisplayName() + "' (ID: "
+          + container.getId() + ").");
     }
   }
 

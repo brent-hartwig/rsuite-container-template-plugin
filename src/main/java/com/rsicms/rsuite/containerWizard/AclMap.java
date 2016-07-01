@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.reallysi.rsuite.api.ContentAssemblyNodeContainer;
 import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.User;
 import com.reallysi.rsuite.api.UserType;
@@ -167,8 +168,16 @@ public class AclMap extends HashMap<String, ACL> {
     return names;
   }
 
+  /**
+   * @param container
+   * @return The prefix to use for container roles.
+   */
+  public static String getContainerRoleNamePrefix(ContentAssemblyNodeContainer container) {
+    return container.getId();
+  }
+
   public static String getContainerRoleName(String containerRoleNamePrefix, String baseRoleName) {
-    return new StringBuilder(containerRoleNamePrefix).append(UNDERSCORE).append(baseRoleName)
+    return new StringBuilder(containerRoleNamePrefix).append(UNDERSCORE).append(baseRoleName.trim())
         .toString().replaceAll("[^\\p{Alnum}]", UNDERSCORE);
   }
 

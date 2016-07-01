@@ -89,11 +89,12 @@ Sample:
 ## Execution Mode
 The default execution mode is to create a new container, referencing containers and MOs.  There is also an execution mode to add MOs to an existing container.  The execution mode may be specified by the "executionMode" web service parameter.  Supported values are "CREATE\_CONTAINER" (default) and "ADD\_XML\_MO".
 
-Below are example context menu items for adding MOs to an existing container.  Notes
+Below are example context menu items for adding MOs to an existing container.  Notes:
 
 1. The "operationName" parameter may be used to configure the operation's display name (both modes).
-2. The "insertionPosition" parameter is only applicable to the ADD\_XML\_MO mode.  "BEFORE" and "AFTER" (default) are the supported values.
-3. The "nextPageIdx" parameter value should align with a page configured to the "rsuite-container-wizard-plugin:wizardPage" action.
+2. The "allowedContainerRoles" parameter is only applicable to the ADD\_XML\_MO mode, and configures an optional security test.  When set, the user has to have the RSuiteAdministrator role or at least one of the specified roles.  The wizard will add the container's ID and an underscore in front of each specified role before checking to see if the user has it. 
+3. The "insertionPosition" parameter is only applicable to the ADD\_XML\_MO mode.  "BEFORE" and "AFTER" (default) are the supported values.
+4. The "nextPageIdx" parameter value should align with a page configured to the "rsuite-container-wizard-plugin:wizardPage" action.
 
 ```
 <menuItem id="acme:addSectionAbove">
@@ -104,6 +105,7 @@ Below are example context menu items for adding MOs to an existing container.  N
     <property name="serviceParams.confAlias" value="Sample Product Configuration" />
     <property name="serviceParams.operationName" value="Add Section" />
     <property name="serviceParams.executionMode" value="ADD_XML_MO" />
+    <property name="serviceParams.allowedContainerRoles" value="SMEs, Managers" />
     <property name="serviceParams.insertionPosition" value="BEFORE" />
     <property name="serviceParams.nextPageIdx" value="2" />
     <property name="rsuite:icon" value="add" />
@@ -116,6 +118,7 @@ Below are example context menu items for adding MOs to an existing container.  N
     <property name="serviceParams.confAlias" value="Sample Product Configuration" />
     <property name="serviceParams.operationName" value="Add Section" />
     <property name="serviceParams.executionMode" value="ADD_XML_MO" />
+    <property name="serviceParams.allowedContainerRoles" value="SMEs, Managers" />
     <property name="serviceParams.insertionPosition" value="AFTER" />
     <property name="serviceParams.nextPageIdx" value="2" />
     <property name="rsuite:icon" value="add" />

@@ -10,6 +10,7 @@ public interface ContainerWizardConstants {
 
   String PARAM_NAME_OPERATION_NAME = "operationName";
   String PARAM_NAME_EXECUTION_MODE = "executionMode";
+  String PARAM_NAME_ALLOWED_CONTAINER_ROLES = "allowedContainerRoles";
   String PARAM_NAME_INSERTION_POSITION = "insertionPosition";
   String PARAM_NAME_RSUITE_ID = "rsuiteId";
   String PARAM_NAME_CONTAINER_NAME = "containerName";

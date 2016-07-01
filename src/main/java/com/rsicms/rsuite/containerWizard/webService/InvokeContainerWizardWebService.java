@@ -403,7 +403,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
     log.info("Created primary container with ID " + primaryContainer.getId());
 
     // Construct AclMap using new container's ID, and create new roles.
-    AclMap aclMap = new AclMap(context.getSecurityService(), conf, primaryContainer.getId());
+    AclMap aclMap = new AclMap(context.getSecurityService(), conf,
+        AclMap.getContainerRoleNamePrefix(primaryContainer));
     aclMap.createUndefinedContainerRoles(systemUser,
         context.getAuthorizationService().getRoleManager());
 
