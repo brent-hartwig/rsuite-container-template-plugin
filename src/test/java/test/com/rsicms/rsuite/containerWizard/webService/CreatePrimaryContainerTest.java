@@ -5,18 +5,24 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import javax.xml.bind.JAXBException;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
+import org.xml.sax.SAXException;
 
 import com.reallysi.rsuite.api.ContentAssembly;
 import com.reallysi.rsuite.api.ContentAssemblyNodeContainer;
 import com.reallysi.rsuite.api.ManagedObject;
+import com.reallysi.rsuite.api.MetaDataItem;
 import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.Session;
 import com.reallysi.rsuite.api.User;
@@ -40,7 +46,125 @@ import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 import com.rsicms.rsuite.containerWizard.jaxb.PrimaryContainer;
 import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService;
 
+import test.helpers.ContainerWizardTestUtils;
+
+/**
+ * This class contains unit tests that verify various code sections of createPrimaryContainer()
+ * method.
+ *
+ */
 public class CreatePrimaryContainerTest {
+
+  /**
+   * This unit test verifies that meta data from user input and wizard configuration get passed to
+   * the primary container create options (to be used by ContentAssemblyService)
+   */
+  @Test
+  public void verifyMetaData() throws SAXException, IOException, ParserConfigurationException,
+      RSuiteException, JAXBException {
+
+    /*
+     * Sample Container Wizard Configuration has the following meta data: <metadata-conf>
+     * <name-value-pair name="Hello" value="World"/> <name-value-pair name="Status" value="New"/>
+     * </metadata-conf>
+     */
+    ContainerWizardConf conf = new ContainerWizardTestUtils().newContainerWizardConfForTests();
+    PrimaryContainer pcConf = conf.getPrimaryContainer();
+
+    // user inputs are kept in the wizard of the wizard form
+    ContainerWizard wizard = new ContainerWizard();
+    wizard.setContainerName("Sample Audit Report");
+    // these meta data are from user
+    wizard.addContainerMetadata("JobCode", "111111");
+    wizard.addContainerMetadata("ProductNumber", "1");
+    wizard.addContainerMetadata("ProductTypeId", "StandardAuditReport");
+
+    // Thus, these names should be in the mete data list of CA create options
+    Set<String> nameSet = new HashSet<String>();
+    nameSet.add("Hello");
+    nameSet.add("Status");
+    nameSet.add("JobCode");
+    nameSet.add("ProductNumber");
+    nameSet.add("ProductTypeId");
+
+    // Thus, these values should be in the mete data list of CA create options
+    Set<String> valueSet = new HashSet<String>();
+    valueSet.add("World");
+    valueSet.add("New");
+    valueSet.add("111111");
+    valueSet.add("1");
+    valueSet.add("StandardAuditReport");
+
+    InvokeContainerWizardWebService service = new InvokeContainerWizardWebService();
+    ContentAssemblyCreateOptions resultOptions = service.getCaCreateOptions(pcConf, wizard);
+
+    for (MetaDataItem item : resultOptions.getMetaDataItems()) {
+      // names are indeed in options
+      assertEquals(nameSet.contains(item.getName()), true);
+
+      // values are indeed in options
+      assertEquals(valueSet.contains(item.getValue()), true);
+    }
+
+  }
+
+  /**
+   * This unit test only verifies the primary container is created and the ID can be retrieved.
+   */
+  @Test
+  public void createPrimaryContainer() throws RSuiteException, IOException, TransformerException {
+
+    String parentId = "12345";
+    String expectedId = "22222";
+
+    PrimaryContainer pcConf = Mockito.mock(PrimaryContainer.class);
+    Mockito.when(pcConf.getDefaultAclId()).thenReturn("11111");
+
+    XPathEvaluator eval = Mockito.mock(XPathEvaluator.class);
+
+    Session session = Mockito.mock(Session.class);
+    ContainerWizardConf conf = Mockito.mock(ContainerWizardConf.class);
+    Mockito.when(conf.getPrimaryContainer()).thenReturn(pcConf);
+
+    ContainerWizard wizard = Mockito.mock(ContainerWizard.class);
+    Mockito.when(wizard.getContainerName()).thenReturn("Sample Audit Report");
+
+    ContentAssembly primaryContainer = Mockito.mock(ContentAssembly.class);
+    Mockito.when(primaryContainer.getId()).thenReturn(expectedId);
+
+    SecurityService securityService = Mockito.mock(SecurityService.class);
+
+    RoleManager roleManager = Mockito.mock(RoleManager.class);
+    AuthorizationService authorizationService = Mockito.mock(AuthorizationService.class);
+    Mockito.when(authorizationService.getRoleManager()).thenReturn(roleManager);
+
+    ContentAssemblyService caService = Mockito.mock(ContentAssemblyService.class);
+    Mockito
+        .when(caService.createContentAssembly(Mockito.any(User.class), Mockito.anyString(),
+            Mockito.anyString(), Mockito.any(ContentAssemblyCreateOptions.class)))
+        .thenReturn(primaryContainer);
+
+    ExecutionContext context = Mockito.mock(ExecutionContext.class);
+    Mockito.when(context.getContentAssemblyService()).thenReturn(caService);
+    Mockito.when(context.getAuthorizationService()).thenReturn(authorizationService);
+    Mockito.when(context.getSecurityService()).thenReturn(securityService);
+
+    InvokeContainerWizardWebService invokeService =
+        Mockito.mock(InvokeContainerWizardWebService.class);
+    Mockito.when(invokeService.getXPathEvaluator(context)).thenReturn(eval);
+    Mockito.doCallRealMethod().when(invokeService).createPrimaryContainer(context, session, conf,
+        wizard, parentId);
+
+    ContentAssemblyNodeContainer resultPrimaryContainer =
+        invokeService.createPrimaryContainer(context, session, conf, wizard, parentId);
+
+    // primary container is created
+    assertNotNull("Created primary container is null.", resultPrimaryContainer);
+
+    // primary container ID is expected as 22222
+    assertEquals(resultPrimaryContainer.getId(), expectedId);
+
+  }
 
   /**
    * Verify a CA node is added.
@@ -131,62 +255,6 @@ public class CreatePrimaryContainerTest {
         invokeService.addManagedObjects(context, user, eval, containerId, fmoList, acl);
 
     assertEquals(resultMoList.size(), expectedSize);
-
-  }
-
-  /**
-   * Verify a primary container is created.
-   */
-  @Test
-  public void createPrimaryContainer() throws RSuiteException, IOException, TransformerException {
-
-    String parentId = "12345";
-
-    PrimaryContainer pcConf = Mockito.mock(PrimaryContainer.class);
-    Mockito.when(pcConf.getDefaultAclId()).thenReturn("11111");
-
-    XPathEvaluator eval = Mockito.mock(XPathEvaluator.class);
-
-    Session session = Mockito.mock(Session.class);
-    ContainerWizardConf conf = Mockito.mock(ContainerWizardConf.class);
-    Mockito.when(conf.getPrimaryContainer()).thenReturn(pcConf);
-
-    ContainerWizard wizard = Mockito.mock(ContainerWizard.class);
-    Mockito.when(wizard.getContainerName()).thenReturn("Journal");
-
-    ContentAssembly primaryContainer = Mockito.mock(ContentAssembly.class);
-
-    SecurityService securityService = Mockito.mock(SecurityService.class);
-
-    RoleManager roleManager = Mockito.mock(RoleManager.class);
-    AuthorizationService authorizationService = Mockito.mock(AuthorizationService.class);
-    Mockito.when(authorizationService.getRoleManager()).thenReturn(roleManager);
-
-    ContentAssemblyService caService = Mockito.mock(ContentAssemblyService.class);
-    Mockito
-        .when(caService.createContentAssembly(Mockito.any(User.class), Mockito.anyString(),
-            Mockito.anyString(), Mockito.any(ContentAssemblyCreateOptions.class)))
-        .thenReturn(primaryContainer);
-
-    ExecutionContext context = Mockito.mock(ExecutionContext.class);
-    Mockito.when(context.getContentAssemblyService()).thenReturn(caService);
-    Mockito.when(context.getAuthorizationService()).thenReturn(authorizationService);
-    Mockito.when(context.getSecurityService()).thenReturn(securityService);
-
-    InvokeContainerWizardWebService invokeService =
-        Mockito.mock(InvokeContainerWizardWebService.class);
-    Mockito.when(invokeService.getXPathEvaluator(context)).thenReturn(eval);
-    Mockito.doCallRealMethod().when(invokeService).createPrimaryContainer(context, session, conf,
-        wizard, parentId);
-
-    ContentAssemblyNodeContainer resultContentAssembly =
-        invokeService.createPrimaryContainer(context, session, conf, wizard, parentId);
-
-    /*
-     * FIXME: Incomplete test or set of tests. There's so much more that createPrimaryContainer() is
-     * responsible for.
-     */
-    assertNotNull("Created primary container is null.", resultContentAssembly);
 
   }
 
