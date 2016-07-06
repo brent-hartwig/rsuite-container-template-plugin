@@ -394,10 +394,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
     XPathEvaluator eval = getXPathEvaluator(context);
 
     // Create primary container; hold back on ACL until ID is known.
-    ContentAssemblyCreateOptions pcOptions = new ContentAssemblyCreateOptions();
-    pcOptions.setMetaDataItems(
-        getMetadataList(pcConf.getMetadataConf(), wizard.getContainerMetadataAsList()));
-    pcOptions.setType(pcConf.getType());
+    ContentAssemblyCreateOptions pcOptions = getCaCreateOptions(pcConf, wizard);
     ContentAssemblyNodeContainer primaryContainer = context.getContentAssemblyService()
         .createContentAssembly(user, parentId, wizard.getContainerName(), pcOptions);
     log.info("Created primary container with ID " + primaryContainer.getId());
@@ -649,6 +646,17 @@ public class InvokeContainerWizardWebService extends BaseWebService
    */
   public XPathEvaluator getXPathEvaluator(ExecutionContext context) throws RSuiteException {
     return XPathUtils.getXPathEvaluator(context, RSuiteNamespaces.MetaDataNS);
+  }
+
+  public ContentAssemblyCreateOptions getCaCreateOptions(PrimaryContainer pcConf,
+      ContainerWizard wizard) {
+
+    ContentAssemblyCreateOptions pcOptions = new ContentAssemblyCreateOptions();
+    pcOptions.setMetaDataItems(
+        getMetadataList(pcConf.getMetadataConf(), wizard.getContainerMetadataAsList()));
+    pcOptions.setType(pcConf.getType());
+    return pcOptions;
+
   }
 
 }
