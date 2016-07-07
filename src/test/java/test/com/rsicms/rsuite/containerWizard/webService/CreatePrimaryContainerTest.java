@@ -13,6 +13,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.w3c.dom.Element;
@@ -30,6 +31,7 @@ import com.reallysi.rsuite.api.control.ContentAssemblyCreateOptions;
 import com.reallysi.rsuite.api.control.ManagedObjectAdvisor;
 import com.reallysi.rsuite.api.control.ObjectAttachOptions;
 import com.reallysi.rsuite.api.extensions.ExecutionContext;
+import com.reallysi.rsuite.api.security.ACE;
 import com.reallysi.rsuite.api.security.ACL;
 import com.reallysi.rsuite.api.security.RoleManager;
 import com.reallysi.rsuite.api.xml.XPathEvaluator;
@@ -41,11 +43,14 @@ import com.reallysi.rsuite.service.SecurityService;
 import com.rsicms.rsuite.containerWizard.AclMap;
 import com.rsicms.rsuite.containerWizard.ContainerWizard;
 import com.rsicms.rsuite.containerWizard.FutureManagedObject;
+import com.rsicms.rsuite.containerWizard.jaxb.Ace;
+import com.rsicms.rsuite.containerWizard.jaxb.Acl;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerConf;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 import com.rsicms.rsuite.containerWizard.jaxb.PrimaryContainer;
 import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService;
 
+import test.com.rsicms.rsuite.containerWizard.AclMapTests;
 import test.helpers.ContainerWizardTestUtils;
 
 /**
@@ -109,7 +114,7 @@ public class CreatePrimaryContainerTest {
   }
 
   /**
-   * This unit test only verifies the primary container is created and the ID can be retrieved.
+   * This unit test only verifies the primary container is created and ID can be retrieved.
    */
   @Test
   public void createPrimaryContainer() throws RSuiteException, IOException, TransformerException {
@@ -167,7 +172,78 @@ public class CreatePrimaryContainerTest {
   }
 
   /**
-   * Verify a CA node is added.
+   * After primary container being created and ID being able to be retrieved, product specific roles
+   * could be created since container ID is available. This unit test verifies that AclMap creates
+   * the correct product specific roles, which will be used by SecurityService to set ACL for the
+   * product (container and associated contents).
+   */
+  @Test
+  public void verifyCreateUndefinedContainerRole() throws SAXException, IOException,
+      ParserConfigurationException, RSuiteException, JAXBException {
+
+    // ID of new product container can be retrieved.
+    String newContainerId = "22222";
+
+    ContainerWizardConf conf = new ContainerWizardTestUtils().newContainerWizardConfForTests();
+    AclMapTests aclMapTests = new AclMapTests();
+
+    SecurityService securityService = Mockito.mock(SecurityService.class);
+
+    int index = 0;
+    ACE[][] builtACEs = new ACE[conf.getAcls().getAcl().size()][];
+    ACL[] acls = new ACL[conf.getAcls().getAcl().size()];
+
+    for (Acl aAcl : conf.getAcls().getAcl()) {
+      builtACEs[index] = new ACE[conf.getAcls().getAcl().size()];
+      Ace aAce = null;
+      for (int i = 0; i < aAcl.getAce().size(); i++) {
+        aAce = aAcl.getAce().get(i);
+
+        // Thus, product specific roles will be 22222_SMEs, 22222_Reviewers, 22222_Managers
+        // SMEs, Reviewers and Managers are configured in the sample wizard configuration.
+        String roleName = AclMap.getContainerRoleName(newContainerId, aAce.getProjectRole());
+
+        ACE rACE = aclMapTests.new ACEImpl(aclMapTests.new RoleImpl(roleName));
+
+        Mockito
+            .when(securityService.constructACE(roleName,
+                aAce.getContentPermissions().replace(StringUtils.SPACE, StringUtils.EMPTY)))
+            .thenReturn(rACE);
+
+        builtACEs[index][i] = rACE;
+      }
+
+      acls[index] = aclMapTests.new ACLImpl(builtACEs[index]);
+
+      index++;
+    }
+
+    Mockito.when(securityService.constructACL(Mockito.any(ACE[].class))).thenReturn(acls[0],
+        acls[1], acls[2]);
+
+    AclMap aclMap = new AclMap(securityService, conf, newContainerId);
+
+    User user = Mockito.mock(User.class);
+    RoleManager roleManager = Mockito.mock(RoleManager.class);
+    Mockito.doNothing().when(roleManager).createRole(Mockito.any(User.class), Mockito.anyString(),
+        Mockito.anyString(), Mockito.anyString());
+
+    List<String> resultRoleNamesList = aclMap.createUndefinedContainerRoles(user, roleManager);
+    Set<String> resultRoleNameSet = new HashSet<String>(resultRoleNamesList);
+
+    Set<String> expectedRoleNameSet = new HashSet<String>();
+    expectedRoleNameSet.add("22222_SMEs");
+    expectedRoleNameSet.add("22222_Reviewers");
+    expectedRoleNameSet.add("22222_Managers");
+
+    // Verify that result role names are 22222_SMEs, 22222_Reviewers, 22222_Managers
+    assertEquals(resultRoleNameSet.contains(expectedRoleNameSet),
+        expectedRoleNameSet.contains(resultRoleNameSet));
+
+  }
+
+  /**
+   * Verify a CA node is added as content.
    */
   @Test
   public void addContainer() throws RSuiteException {
@@ -198,7 +274,7 @@ public class CreatePrimaryContainerTest {
   }
 
   /**
-   * Verify a list of managed objects are added.
+   * Verify a list of managed objects are added as content.
    */
   @Test
   public void addManagedObjects() throws RSuiteException, IOException, TransformerException {
