@@ -48,6 +48,7 @@ import com.rsicms.rsuite.containerWizard.jaxb.Acl;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerConf;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 import com.rsicms.rsuite.containerWizard.jaxb.PrimaryContainer;
+import com.rsicms.rsuite.containerWizard.jaxb.XmlMoConf;
 import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService;
 
 import test.com.rsicms.rsuite.containerWizard.AclMapTests;
@@ -243,33 +244,54 @@ public class CreatePrimaryContainerTest {
   }
 
   /**
-   * Verify a CA node is added as content.
+   * Verify a list of ca nodes are added as content.
    */
   @Test
-  public void addContainer() throws RSuiteException {
+  public void addContainer() throws RSuiteException, SAXException, IOException,
+      ParserConfigurationException, JAXBException {
 
-    String expectedId = "11111";
+    String newContainerId = "22222";
+
+    // There are two <container-conf> elements configured in sample wizard configuration.
+    int expectedNumberOfContainers = 2;
+
+    ContainerWizardConf conf = new ContainerWizardTestUtils().newContainerWizardConfForTests();
+    String defaultAclId = conf.getPrimaryContainer().getDefaultAclId();
 
     ContentAssemblyService caService = Mockito.mock(ContentAssemblyService.class);
     User user = Mockito.mock(User.class);
     ContentAssembly primaryContainer = Mockito.mock(ContentAssembly.class);
-    ContainerConf conf = Mockito.mock(ContainerConf.class);
+
     AclMap aclMap = Mockito.mock(AclMap.class);
     ContentAssembly caNode = Mockito.mock(ContentAssembly.class);
 
-    Mockito.when(caNode.getId()).thenReturn(expectedId);
-    Mockito.when(conf.getDisplayName()).thenReturn("Journal");
-    Mockito.when(primaryContainer.getId()).thenReturn(expectedId);
+    Mockito.when(caNode.getId()).thenReturn(defaultAclId);
+
+    Mockito.when(primaryContainer.getId()).thenReturn(newContainerId);
     Mockito
         .when(caService.createContentAssembly(Mockito.any(User.class), Mockito.anyString(),
             Mockito.anyString(), Mockito.any(ContentAssemblyCreateOptions.class)))
         .thenReturn(caNode);
 
-    InvokeContainerWizardWebService invokeService = new InvokeContainerWizardWebService();
-    String resultId =
-        invokeService.addContainer(caService, user, primaryContainer, conf, aclMap, expectedId);
+    InvokeContainerWizardWebService service = new InvokeContainerWizardWebService();
 
-    assertEquals(resultId, expectedId);
+    int resultNumberOfContainers = 0;
+    for (Object o : conf.getPrimaryContainer().getContainerConfOrXmlMoConf()) {
+
+      if (o instanceof ContainerConf) {
+
+        resultNumberOfContainers++;
+        String resultId = service.addContainer(caService, user, primaryContainer, (ContainerConf) o,
+            aclMap, defaultAclId);
+
+        // Container is a managed object
+        assertEquals(resultId, "mo");
+      }
+
+    }
+
+    // Number of containers added is 2
+    assertEquals(resultNumberOfContainers, expectedNumberOfContainers);
 
   }
 
@@ -277,15 +299,18 @@ public class CreatePrimaryContainerTest {
    * Verify a list of managed objects are added as content.
    */
   @Test
-  public void addManagedObjects() throws RSuiteException, IOException, TransformerException {
+  public void addManagedObjects() throws SAXException, IOException, ParserConfigurationException,
+      RSuiteException, JAXBException, TransformerException {
 
-    int expectedSize = 1;
-    String expectedId = "11111";
+    ContainerWizardConf conf = new ContainerWizardTestUtils().newContainerWizardConfForTests();
+
+    // There are six <xml-mo-conf> elements configured in sample wizard configuration.
+    int expectedNumberOfMos = 6;
 
     ManagedObject templateMo = Mockito.mock(ManagedObject.class);
 
     IDGenerator idGenerator = Mockito.mock(IDGenerator.class);
-    Mockito.when(idGenerator.allocateId()).thenReturn(expectedId);
+    Mockito.when(idGenerator.allocateId()).thenReturn("11111");
 
     ManagedObjectService moService = Mockito.mock(ManagedObjectService.class);
     Mockito.when(moService.getManagedObject(Mockito.any(User.class), Mockito.anyString()))
@@ -309,28 +334,39 @@ public class CreatePrimaryContainerTest {
     Mockito.when(eval.executeXPathToNodeArray(Mockito.anyString(), Mockito.any(Object.class)))
         .thenReturn(elemArr);
 
-    String containerId = "1234";
+    String containerId = "22222";
     FutureManagedObject fmo = Mockito.mock(FutureManagedObject.class);
 
     List<FutureManagedObject> fmoList = new ArrayList<FutureManagedObject>();
     fmoList.add(fmo);
     ACL acl = Mockito.mock(ACL.class);
 
-    InvokeContainerWizardWebService invokeService =
-        Mockito.mock(InvokeContainerWizardWebService.class);
+    InvokeContainerWizardWebService service = Mockito.mock(InvokeContainerWizardWebService.class);
     Mockito
-        .when(invokeService.loadMo(Mockito.any(Element.class), Mockito.any(ExecutionContext.class),
+        .when(service.loadMo(Mockito.any(Element.class), Mockito.any(ExecutionContext.class),
             Mockito.any(User.class), Mockito.anyString(), Mockito.any(ManagedObjectAdvisor.class)))
         .thenReturn(templateMo);
-    Mockito.when(invokeService.getObjectSource(Mockito.any(Element.class),
+    Mockito.when(service.getObjectSource(Mockito.any(Element.class),
         Mockito.any(ExecutionContext.class), Mockito.anyString())).thenReturn(null);
-    Mockito.doCallRealMethod().when(invokeService).addManagedObjects(context, user, eval,
-        containerId, fmoList, acl);
+    Mockito.doCallRealMethod().when(service).addManagedObjects(context, user, eval, containerId,
+        fmoList, acl);
 
-    List<ManagedObject> resultMoList =
-        invokeService.addManagedObjects(context, user, eval, containerId, fmoList, acl);
+    List<ManagedObject> totalMos = new ArrayList<ManagedObject>();
+    for (Object o : conf.getPrimaryContainer().getContainerConfOrXmlMoConf()) {
 
-    assertEquals(resultMoList.size(), expectedSize);
+      if (o instanceof XmlMoConf) {
+
+        List<ManagedObject> resultMoList =
+            service.addManagedObjects(context, user, eval, containerId, fmoList, acl);
+
+        totalMos.addAll(resultMoList);
+
+      }
+
+    }
+
+    // Number of MOs added is 6
+    assertEquals(totalMos.size(), expectedNumberOfMos);
 
   }
 
