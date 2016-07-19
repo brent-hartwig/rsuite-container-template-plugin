@@ -1,10 +1,12 @@
 package com.rsicms.rsuite.containerWizard.webService;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -21,9 +23,11 @@ import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.Session;
 import com.reallysi.rsuite.api.User;
 import com.reallysi.rsuite.api.UserType;
+import com.reallysi.rsuite.api.VersionType;
 import com.reallysi.rsuite.api.control.ContentAssemblyCreateOptions;
 import com.reallysi.rsuite.api.control.ManagedObjectAdvisor;
 import com.reallysi.rsuite.api.control.ObjectAttachOptions;
+import com.reallysi.rsuite.api.control.ObjectCheckInOptions;
 import com.reallysi.rsuite.api.control.ObjectReferenceMoveOptions;
 import com.reallysi.rsuite.api.control.ObjectSource;
 import com.reallysi.rsuite.api.extensions.ExecutionContext;
@@ -44,6 +48,7 @@ import com.reallysi.rsuite.service.SearchService;
 import com.reallysi.rsuite.service.SecurityService;
 import com.rsicms.rsuite.containerWizard.AclMap;
 import com.rsicms.rsuite.containerWizard.AddXmlMoContext;
+import com.rsicms.rsuite.containerWizard.AddXmlMoResult;
 import com.rsicms.rsuite.containerWizard.ContainerWizard;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConfUtils;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConstants;
@@ -78,7 +83,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
       throws RSuiteException {
     Date start = new Date();
     try {
-      // TODO: flip back after refactoring
+      // TODO: when to flip back?
       // if (log.isDebugEnabled()) {
       CallArgumentUtils.logArguments(args, log);
       // }
@@ -125,8 +130,11 @@ public class InvokeContainerWizardWebService extends BaseWebService
       if (pageNav.isPageRequested()) {
         return pageNav.getRestResult(confAlias);
       } else if (wizard.isInAddXmlMoMode()) {
-        List<ManagedObject> moList = addXmlMos(context, user, conf, wizard);
-        return getMosAddedRestResult(context, moList, wizard.getAddXmlMoContext().getContainerId());
+        AddXmlMoResult addXmlMoResult = addXmlMos(context, user, conf, wizard);
+        AddXmlMoContext addContext = wizard.getAddXmlMoContext();
+        String refreshId = addContext.shouldCreateAsTopLevelMos() ? addContext.getContainerId()
+            : addContext.getParentMoId();
+        return getMosAddedRestResult(context, addXmlMoResult, refreshId);
       } else {
         // Time to create the container!
         // FIXME: Presumes home container desired.
@@ -317,14 +325,14 @@ public class InvokeContainerWizardWebService extends BaseWebService
    * @param user
    * @param conf
    * @param wizard
-   * @return List of new MOs.
+   * @return An instance of AddXmlMoResult. When top-level MOs are created, it contains a list of
+   *         those MOs. Else, the result only tells you the number of sub-MOs added.
    * @throws RSuiteException
    * @throws TransformerException
    * @throws IOException
    */
-  public List<ManagedObject> addXmlMos(ExecutionContext context, User user,
-      ContainerWizardConf conf, ContainerWizard wizard)
-      throws RSuiteException, IOException, TransformerException {
+  public AddXmlMoResult addXmlMos(ExecutionContext context, User user, ContainerWizardConf conf,
+      ContainerWizard wizard) throws RSuiteException, IOException, TransformerException {
 
     AddXmlMoContext addContext = wizard.getAddXmlMoContext();
 
@@ -332,29 +340,52 @@ public class InvokeContainerWizardWebService extends BaseWebService
     ACL acl = context.getManagedObjectService().getManagedObject(user, addContext.getExistingMoId())
         .getACL();
 
+    // A touch of configuration only required when creating sub-MOs...
+    String adjacentSubMoId = null;
+    boolean insertBefore = false;
+    if (addContext.shouldCreateAsSubMos()) {
+      if (StringUtils.isNotBlank(addContext.getInsertBeforeId())) {
+        adjacentSubMoId = addContext.getInsertBeforeId();
+        insertBefore = true;
+      } else {
+        adjacentSubMoId = addContext.getInsertAfterId();
+        insertBefore = false;
+      }
+    }
+
+    // Create the MOs. When creating top-level MOs, the references will be created in the wrong
+    // spot; this is corrected below.
+    String parentId = addContext.shouldCreateAsTopLevelMos() ? addContext.getContainerId()
+        : addContext.getParentMoId();
+    AddXmlMoResult addXmlMoResult = addManagedObjects(context, user, getXPathEvaluator(context),
+        addContext.shouldCreateAsTopLevelMos(), parentId,
+        wizard.getFirstAndOnlyFutureManagedObjectList(), acl, adjacentSubMoId, insertBefore);
+
     /*
+     * When top-level MOs are created, move the references.
+     * 
      * Because of RCS-4634 (present in RSuite 4.1.15), allow addManagedObjects() to create
      * references to the new MOs at the bottom of the container, the use moveReference to get them
      * to the correct location. Once RCS-4634 is fixed, this could be made more efficient.
      */
-
-    // Create the MOs and attach to the wrong location in the container.
-    List<ManagedObject> moList = addManagedObjects(context, user, getXPathEvaluator(context),
-        addContext.getContainerId(), wizard.getFirstAndOnlyFutureManagedObjectList(), acl);
-
-    // Move the references.
-    ContentAssemblyService caService = context.getContentAssemblyService();
-    ChildrenInfoContainerVisitor visitor = new ChildrenInfoContainerVisitor(context, user);
-    visitor.visitContentAssemblyNodeContainer(
-        caService.getContentAssemblyNodeContainer(user, addContext.getContainerId()));
-    ObjectReferenceMoveOptions options = new ObjectReferenceMoveOptions();
-    options.setBeforeId(addContext.getInsertBeforeId());
-    for (ManagedObject mo : moList) {
-      caService.moveReference(user, visitor.getMoRef(mo.getId()).getId(),
-          addContext.getContainerId(), options);
+    if (addContext.shouldCreateAsTopLevelMos()) {
+      ContentAssemblyService caService = context.getContentAssemblyService();
+      ChildrenInfoContainerVisitor visitor = new ChildrenInfoContainerVisitor(context, user);
+      visitor.visitContentAssemblyNodeContainer(
+          caService.getContentAssemblyNodeContainer(user, parentId));
+      ObjectReferenceMoveOptions options = new ObjectReferenceMoveOptions();
+      options.setBeforeId(visitor.getMoRef(addContext.getInsertBeforeId()).getId());
+      for (ManagedObject mo : addXmlMoResult.getManagedObjects()) {
+        caService.moveReference(user, visitor.getMoRef(mo.getId()).getId(), parentId, options);
+      }
+    } else if (addContext.shouldCheckInParentMo()) {
+      ObjectCheckInOptions options = new ObjectCheckInOptions();
+      options.setVersionType(VersionType.MINOR);
+      options.setVersionNote("Completed '" + opName + "' request.");
+      context.getManagedObjectService().checkIn(user, addContext.getParentMoId(), options);
     }
 
-    return moList;
+    return addXmlMoResult;
   }
 
   /**
@@ -362,16 +393,17 @@ public class InvokeContainerWizardWebService extends BaseWebService
    * mode.
    * 
    * @param context
-   * @param moList
+   * @param addXmlMoResult
    * @param containerId
    * @return REST result for the container wizard after completing execution of the "add XML MO"
    *         mode.
    * @throws RSuiteException
    */
-  public RestResult getMosAddedRestResult(ExecutionContext context, List<ManagedObject> moList,
+  public RestResult getMosAddedRestResult(ExecutionContext context, AddXmlMoResult addXmlMoResult,
       String containerId) throws RSuiteException {
-    StringBuilder sb = new StringBuilder("Created ").append(moList.size()).append(" piece");
-    if (moList.size() != 1) {
+    StringBuilder sb =
+        new StringBuilder("Created ").append(addXmlMoResult.getCount()).append(" piece");
+    if (addXmlMoResult.getCount() != 1) {
       sb.append("s");
     }
     sb.append(" of content.");
@@ -429,8 +461,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
 
         ACL acl = aclMap.get(xmlMoConf.getAclId() != null ? xmlMoConf.getAclId() : defaultAclId);
 
-        addManagedObjects(context, user, eval, primaryContainer.getId(),
-            wizard.getFutureManagedObjectListByKey(String.valueOf(xmlMoConfIdx)), acl);
+        addManagedObjects(context, user, eval, true, primaryContainer.getId(),
+            wizard.getFutureManagedObjectListByKey(String.valueOf(xmlMoConfIdx)), acl, null, false);
       } else {
         log.warn("Skipped unexpected object with class " + o.getClass().getSimpleName());
       }
@@ -440,10 +472,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
   }
 
   /**
-   * Grant the roles in the given AclMap to the specified user.
-   * <p>
-   * TODO: This will need to change after sprint 17 as the user creating this container ought to be
-   * able to specify which users get which roles (associated with this container).
+   * Grant the roles in the given AclMap to the specified user. The wizard does not provide a way to
+   * grant the roles to additional users.
    * 
    * @param roleManager
    * @param user
@@ -494,22 +524,34 @@ public class InvokeContainerWizardWebService extends BaseWebService
    * @param context
    * @param user
    * @param eval
-   * @param containerId The ID of the container to attach the new MOs to. Pass in null to avoid
-   *        creating references to the new MOs.
+   * @param createTopLevelMos Submit true to create top-level MOs, and attach to the container
+   *        identified by the parentId parameter. Submit false to create sub-MOs within the MO
+   *        identified by parentId.
+   * @param parentId The ID of either a container or MO. Use the createTopLevelMos parameter to make
+   *        this distinction.
    * @param fmoList
-   * @param acl
-   * @return
+   * @param acl Only used when creating top-level MOs. When creating sub-MOs, RSuite decides the ACL
+   *        (likely that of the parent MO).
+   * @param adjacentSubMoId Only used when creating sub-MOs. The value needs to be the ID of an
+   *        existing sub-MO within the parent/ancestor that the new MOs are to be added before or
+   *        after.
+   * @param insertBefore Only used when creating sub-MOs. Submit true to add new sub-MOs before the
+   *        node identified by adjacentNodeXPath; else, submit false to inserted after it.
+   * @return An instance of AddXmlMoResult. When top-level MOs are created, it contains a list of
+   *         those MOs. Else, the result only tells you the number of sub-MOs added.
    * @throws RSuiteException
    * @throws IOException
    * @throws TransformerException
    */
-  public List<ManagedObject> addManagedObjects(ExecutionContext context, User user,
-      XPathEvaluator eval, String containerId, List<FutureManagedObject> fmoList, ACL acl)
+  public AddXmlMoResult addManagedObjects(ExecutionContext context, User user, XPathEvaluator eval,
+      boolean createTopLevelMos, String parentId, List<FutureManagedObject> fmoList, ACL acl,
+      String adjacentSubMoId, boolean insertBefore)
       throws RSuiteException, IOException, TransformerException {
 
-    List<ManagedObject> moList = new ArrayList<ManagedObject>();
+    AddXmlMoResult result = new AddXmlMoResult();
     ManagedObjectService moService = context.getManagedObjectService();
     ContentAssemblyService caService = context.getContentAssemblyService();
+    List<Node> newSubMoNodeList = new ArrayList<Node>();
 
     if (fmoList != null && fmoList.size() > 0) {
       ManagedObjectAdvisor advisor = new LocalManagedObjectAdvisor(acl);
@@ -528,7 +570,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
       String id;
       String filename;
       ManagedObject mo;
-      ObjectAttachOptions options = new ObjectAttachOptions();
+      ObjectAttachOptions attachOptions = new ObjectAttachOptions();
       long timestamp = System.currentTimeMillis();
       int idAttCnt = 0;
       for (FutureManagedObject fmo : fmoList) {
@@ -566,19 +608,40 @@ public class InvokeContainerWizardWebService extends BaseWebService
           titleNode.setTextContent(fmo.getTitle());
         }
 
-        // Load MO
-        filename = context.getIDGenerator().allocateId().concat(".xml");
-        mo = loadMo(templateElem, context, user, filename, advisor);
-        moList.add(mo);
+        // Load as new top-level MO or hold for a bit to add as a sub-MO.
+        if (createTopLevelMos) {
+          filename = context.getIDGenerator().allocateId().concat(".xml");
+          mo = loadMo(templateElem, context, user, filename, advisor);
+          result.add(mo);
 
-        // Create reference
-        if (StringUtils.isNotBlank(containerId)) {
-          caService.attach(user, containerId, mo.getId(), options);
+          // Create reference
+          if (StringUtils.isNotBlank(parentId)) {
+            caService.attach(user, parentId, mo.getId(), attachOptions);
+          }
+        } else {
+          newSubMoNodeList.add(templateElem);
+          result.increment();
+        }
+      }
+
+      // When we didn't create top-level MOs, it's time to add the new MOs as sub-MOs.
+      if (!createTopLevelMos && newSubMoNodeList.size() > 0) {
+        String xpath = new StringBuilder("//*[@").append(rsuiteIdAttName).append("='")
+            .append(adjacentSubMoId).append("']").toString();
+        // FIXME: sending one MO to MOUtils.addNodesIntoExistingMo() at a time is an
+        // attempt to temporarily get around an issue where only the last one is added.
+        for (Node node : newSubMoNodeList) {
+          // TODO: Stripping the doctype declaration should be configurable.
+          List<Node> listOfOne = new ArrayList<Node>(1);
+          listOfOne.add(node);
+          MOUtils.addNodesIntoExistingMo(moService, user, parentId, xpath, insertBefore,
+              XPathUtils.getXPathEvaluator(context), listOfOne, true,
+              context.getXmlApiManager().getTransformer((File) null), log);
         }
       }
     }
 
-    return moList;
+    return result;
   }
 
   /**
@@ -632,8 +695,9 @@ public class InvokeContainerWizardWebService extends BaseWebService
    */
   public ObjectSource getObjectSource(Element elem, ExecutionContext context, String filename)
       throws IOException, RSuiteException, TransformerException {
+    Transformer transformer = context.getXmlApiManager().getTransformer((File) null);
     return MOUtils.getObjectSource(context, filename,
-        DomUtils.serializeToString(context, elem, true, true, DEFAULT_CHARACTER_ENCODING),
+        DomUtils.serializeToString(transformer, elem, true, true, DEFAULT_CHARACTER_ENCODING),
         DEFAULT_CHARACTER_ENCODING);
   }
 

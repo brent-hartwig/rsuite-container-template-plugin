@@ -348,25 +348,20 @@ public class CreatePrimaryContainerTest {
         .thenReturn(templateMo);
     Mockito.when(service.getObjectSource(Mockito.any(Element.class),
         Mockito.any(ExecutionContext.class), Mockito.anyString())).thenReturn(null);
-    Mockito.doCallRealMethod().when(service).addManagedObjects(context, user, eval, containerId,
-        fmoList, acl);
+    Mockito.doCallRealMethod().when(service).addManagedObjects(context, user, eval, true,
+        containerId, fmoList, acl, null, false);
 
-    List<ManagedObject> totalMos = new ArrayList<ManagedObject>();
+    int actualNumberOfMos = 0;
     for (Object o : conf.getPrimaryContainer().getContainerConfOrXmlMoConf()) {
-
       if (o instanceof XmlMoConf) {
-
-        List<ManagedObject> resultMoList =
-            service.addManagedObjects(context, user, eval, containerId, fmoList, acl);
-
-        totalMos.addAll(resultMoList);
-
+        actualNumberOfMos += service
+            .addManagedObjects(context, user, eval, true, containerId, fmoList, acl, null, false)
+            .getCount();
       }
-
     }
 
     // Number of MOs added is 6
-    assertEquals(totalMos.size(), expectedNumberOfMos);
+    assertEquals(expectedNumberOfMos, actualNumberOfMos);
 
   }
 
