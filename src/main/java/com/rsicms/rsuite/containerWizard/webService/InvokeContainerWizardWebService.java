@@ -628,16 +628,9 @@ public class InvokeContainerWizardWebService extends BaseWebService
       if (!createTopLevelMos && newSubMoNodeList.size() > 0) {
         String xpath = new StringBuilder("//*[@").append(rsuiteIdAttName).append("='")
             .append(adjacentSubMoId).append("']").toString();
-        // FIXME: sending one MO to MOUtils.addNodesIntoExistingMo() at a time is an
-        // attempt to temporarily get around an issue where only the last one is added.
-        for (Node node : newSubMoNodeList) {
-          // TODO: Stripping the doctype declaration should be configurable.
-          List<Node> listOfOne = new ArrayList<Node>(1);
-          listOfOne.add(node);
-          MOUtils.addNodesIntoExistingMo(moService, user, parentId, xpath, insertBefore,
-              XPathUtils.getXPathEvaluator(context), listOfOne, true,
-              context.getXmlApiManager().getTransformer((File) null), log);
-        }
+        MOUtils.addNodesIntoExistingMo(moService, user, parentId, xpath, insertBefore,
+            XPathUtils.getXPathEvaluator(context), newSubMoNodeList, true,
+            context.getXmlApiManager().getTransformer((File) null), log);
       }
     }
 
