@@ -26,6 +26,8 @@ public class AddXmlMoResult {
   }
 
   /**
+   * The list of new MOs. Will be empty if sub-MOs were added.
+   * 
    * @return The list of new MOs. Will be empty if sub-MOs were added.
    */
   public List<ManagedObject> getManagedObjects() {
@@ -40,8 +42,10 @@ public class AddXmlMoResult {
   }
 
   /**
-   * @return If there are MOs, get the number of MOs; else, return the count maintained by
-   *         {@link #increment()}.
+   * If there are MOs, get the number of MOs; else, return the count maintained by
+   * {@link #increment()}.
+   * 
+   * @return The number of added MOs.
    */
   public int getCount() {
     if (moList != null && moList.size() > 0) {

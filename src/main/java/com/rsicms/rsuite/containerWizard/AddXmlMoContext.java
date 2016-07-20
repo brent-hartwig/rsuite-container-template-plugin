@@ -38,6 +38,17 @@ public class AddXmlMoContext implements Serializable, ContainerWizardConstants {
   private String insertAfterId;
   private int xmlMoConfIdx;
 
+  /**
+   * Construct an instance, inspecting the parameters in order to make all getter methods
+   * immediately ready for use.
+   * 
+   * @param context
+   * @param user
+   * @param conf
+   * @param confUtils
+   * @param args
+   * @throws RSuiteException
+   */
   public AddXmlMoContext(ExecutionContext context, User user, ContainerWizardConf conf,
       ContainerWizardConfUtils confUtils, CallArgumentList args) throws RSuiteException {
 
@@ -212,6 +223,8 @@ public class AddXmlMoContext implements Serializable, ContainerWizardConstants {
   }
 
   /**
+   * The ID of the container to add within, when starting with a top-level MO.
+   * 
    * @return The ID of the container to add within, when starting with a top-level MO.
    */
   public String getContainerId() {
@@ -219,6 +232,8 @@ public class AddXmlMoContext implements Serializable, ContainerWizardConstants {
   }
 
   /**
+   * The ID of the parent MO to add within, when starting with a sub-MO.
+   * 
    * @return The ID of the parent MO to add within, when starting with a sub-MO.
    */
   public String getParentMoId() {
@@ -226,6 +241,8 @@ public class AddXmlMoContext implements Serializable, ContainerWizardConstants {
   }
 
   /**
+   * Find out if the new MOs should be top-level MOs.
+   * 
    * @return True when the new MOs should be created as top-level MOs and attached to the container.
    */
   public boolean shouldCreateAsTopLevelMos() {
@@ -233,6 +250,8 @@ public class AddXmlMoContext implements Serializable, ContainerWizardConstants {
   }
 
   /**
+   * Find out if the new MOs should be sub-MOs.
+   * 
    * @return True when the new MOs should be created as sub-MOs of the parent MO.
    */
   public boolean shouldCreateAsSubMos() {
@@ -240,6 +259,8 @@ public class AddXmlMoContext implements Serializable, ContainerWizardConstants {
   }
 
   /**
+   * Find out if the parent MO should be checked in once the operation is complete.
+   * 
    * @return True if the parent MO should be checked in once the operation is complete.
    */
   public boolean shouldCheckInParentMo() {
@@ -247,6 +268,8 @@ public class AddXmlMoContext implements Serializable, ContainerWizardConstants {
   }
 
   /**
+   * The ID of the existing MO to add before or after.
+   * 
    * @return The ID of the existing MO to add before or after.
    */
   public String getExistingMoId() {
@@ -278,6 +301,8 @@ public class AddXmlMoContext implements Serializable, ContainerWizardConstants {
   }
 
   /**
+   * The container wizard's XML MO configuration index.
+   * 
    * @return The container wizard's XML MO configuration index.
    */
   public int getXmlMoConfIdx() {

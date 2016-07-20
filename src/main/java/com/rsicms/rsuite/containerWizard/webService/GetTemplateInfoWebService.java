@@ -23,7 +23,8 @@ import com.rsicms.rsuite.utils.webService.BaseWebService;
 import com.rsicms.rsuite.utils.webService.CallArgumentUtils;
 
 /**
- * Serves up information on XML templates found by a specified XML template type.
+ * Supporting web service responsible for serving up information on XML templates found by a
+ * specified XML template type.
  */
 public class GetTemplateInfoWebService extends BaseWebService implements ContainerWizardConstants {
 

@@ -26,8 +26,9 @@ import com.rsicms.rsuite.utils.webService.BaseWebService;
 import com.rsicms.rsuite.utils.webService.CallArgumentUtils;
 
 /**
- * Serves up section type information to the container contents form by interpreting the wizard's
- * configuration, starting at a specified XML MO configuration (by index).
+ * Supporting web service responsible for serving up section type information to the container
+ * contents form by interpreting the wizard's configuration, starting at a specified XML MO
+ * configuration (by index).
  */
 public class GetSectionTypeInfoWebService extends BaseWebService
     implements ContainerWizardConstants {

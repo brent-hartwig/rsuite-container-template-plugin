@@ -35,6 +35,15 @@ public class AclMap extends HashMap<String, ACL> {
 
   protected static final String UNDERSCORE = "_";
 
+  /**
+   * Construct and populate an ACL map from the provided container wizard configuration and the
+   * container role name's prefix.
+   * 
+   * @param securityService
+   * @param conf
+   * @param containerRoleNamePrefix
+   * @throws RSuiteException
+   */
   public AclMap(SecurityService securityService, ContainerWizardConf conf,
       String containerRoleNamePrefix) throws RSuiteException {
     super();
@@ -55,6 +64,14 @@ public class AclMap extends HashMap<String, ACL> {
     }
   }
 
+  /**
+   * Create any roles known by this map but not by RSuite.
+   * 
+   * @param user
+   * @param roleManager
+   * @return Names of roles created by this method. May be empty, but not null.
+   * @throws RSuiteException
+   */
   public List<String> createUndefinedContainerRoles(User user, RoleManager roleManager)
       throws RSuiteException {
     // Create list of roles associated to this map.
@@ -176,6 +193,13 @@ public class AclMap extends HashMap<String, ACL> {
     return container.getId();
   }
 
+  /**
+   * Implements the logic of combining the container role name prefix with the base role name.
+   * 
+   * @param containerRoleNamePrefix
+   * @param baseRoleName
+   * @return A container name using the prefix and base name.
+   */
   public static String getContainerRoleName(String containerRoleNamePrefix, String baseRoleName) {
     return new StringBuilder(containerRoleNamePrefix).append(UNDERSCORE).append(baseRoleName.trim())
         .toString().replaceAll("[^\\p{Alnum}]", UNDERSCORE);

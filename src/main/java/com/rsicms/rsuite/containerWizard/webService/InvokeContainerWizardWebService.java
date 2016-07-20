@@ -70,6 +70,48 @@ import com.rsicms.rsuite.utils.webService.CallArgumentUtils;
 import com.rsicms.rsuite.utils.xml.DomUtils;
 import com.rsicms.rsuite.utils.xml.XPathUtils;
 
+/**
+ * The wizard's primary web service, responsible for interpreting the specified container wizard's
+ * configuration, retaining user input, setting up for the next form and web service submission, and
+ * finally processing all of the user's input.
+ * <p>
+ * Parameters:
+ * <ul>
+ * <li>{@value com.rsicms.rsuite.containerWizard.ContainerWizardConstants#PARAM_NAME_EXECUTION_MODE}
+ * : Specify which mode to execute in. See {@link ExecutionMode} for choices.</li>
+ * <li>{@value com.rsicms.rsuite.containerWizard.ContainerWizardConstants#PARAM_NAME_OPERATION_NAME}
+ * : Optionally, set the UI name of the operation performed by this web service. This value can
+ * appear in messages to the user. The value should align with the execution mode, but isn't
+ * dictated by the wizard. Examples include "Add Section" and "Create Product". The default is
+ * {@value com.rsicms.rsuite.containerWizard.ContainerWizardConstants#DEFAULT_OPERATION_NAME}.</li>
+ * <li>{@value com.rsicms.rsuite.containerWizard.ContainerWizardConstants#PARAM_NAME_CONF_ALIAS}:
+ * Specify the RSuite alias of the container wizard configuration MO to use.</li>
+ * <li>{@value com.rsicms.rsuite.containerWizard.ContainerWizardConstants#PARAM_NAME_CONTAINER_NAME}
+ * : The name of the container to create.</li>
+ * <li>Begins with
+ * {@value com.rsicms.rsuite.containerWizard.ContainerWizardConstants#PARAM_NAME_PREFIX_LMD}: Part
+ * of what this wizard container considers user input. Parameters starting with this prefix are
+ * accepted as container layered metadata. Caller may configure these as hidden or visible form
+ * controls.</li>
+ * <li>Ends with
+ * {@value com.rsicms.rsuite.containerWizard.ContainerWizardConstants#PARAM_NAME_SUFFIX_VERIFY}:
+ * When a LMD parameter also has this parameter the wizard will require the two parameter values
+ * match. It's a way to require the user enter the same value twice.</li>
+ * <li>
+ * {@value com.rsicms.rsuite.containerWizard.ContainerWizardConstants#PARAM_NAME_XML_TEMPLATE_MO_ID}:
+ * A repeating parameter that identifies the XML template to copy as a new MO. It is paired with the
+ * {@value com.rsicms.rsuite.containerWizard.ContainerWizardConstants#PARAM_NAME_SECTION_TITLE}.
+ * </li>
+ * <li>{@value com.rsicms.rsuite.containerWizard.ContainerWizardConstants#PARAM_NAME_SECTION_TITLE}:
+ * A repeating parameter that specifies the title of a new MO. It is paired with the
+ * {@value com.rsicms.rsuite.containerWizard.ContainerWizardConstants#PARAM_NAME_XML_TEMPLATE_MO_ID}
+ * parameters.</li>
+ * <li>
+ * {@value com.rsicms.rsuite.containerWizard.ContainerWizardConstants#PARAM_NAME_CONTAINER_WIZARD}: A
+ * serialized instance of {@link ContainerWizard}. This web service sets and maintains this value.
+ * The caller is only responsible for not preventing it from being passed in.</li>
+ * </ul>
+ */
 public class InvokeContainerWizardWebService extends BaseWebService
     implements ContainerWizardConstants {
 
@@ -252,8 +294,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
   public static void performDataReEntryTest(CallArgument arg, CallArgumentList args)
       throws RSuiteException {
     if (arg != null && args != null) {
-      String val2 =
-          args.getFirstString(new StringBuilder(arg.getName()).append("-Verify").toString());
+      String val2 = args.getFirstString(
+          new StringBuilder(arg.getName()).append(PARAM_NAME_SUFFIX_VERIFY).toString());
       if (StringUtils.isNotBlank(val2)) {
         String val1 = arg.getValue().trim();
         val2 = val2.trim();
@@ -299,7 +341,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
    * Convert the given metadata configuration into a list, including any metadata included in the
    * second param.
    * 
-   * @param metadataElem
+   * @param metadataConf
    * @param starterList Null is okay.
    * @return A combined metadata list from the provided metadata configuration and starter list.
    */
@@ -475,7 +517,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
    * Grant the roles in the given AclMap to the specified user. The wizard does not provide a way to
    * grant the roles to additional users.
    * 
-   * @param roleManager
+   * @param authService
    * @param user
    * @param aclMap
    * @param allowedRoleNameSuffixes Use to restrict which roles configured in the AclMap are
