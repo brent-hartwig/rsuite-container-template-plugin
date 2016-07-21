@@ -2,152 +2,160 @@ package test.com.rsicms.rsuite.containerWizard.webService;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
+import com.reallysi.rsuite.api.ContentAssemblyNodeContainer;
 import com.reallysi.rsuite.api.ManagedObject;
 import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.User;
-import com.reallysi.rsuite.api.browse.BrowseInfo;
+import com.reallysi.rsuite.api.control.ManagedObjectAdvisor;
+import com.reallysi.rsuite.api.control.ObjectAttachOptions;
 import com.reallysi.rsuite.api.extensions.ExecutionContext;
-import com.reallysi.rsuite.api.remoteapi.CallArgument;
-import com.reallysi.rsuite.api.remoteapi.CallArgumentList;
-import com.reallysi.rsuite.service.AuthorizationService;
+import com.reallysi.rsuite.api.security.ACL;
+import com.reallysi.rsuite.api.xml.XPathEvaluator;
+import com.reallysi.rsuite.service.ContentAssemblyService;
+import com.reallysi.rsuite.service.IDGenerator;
 import com.reallysi.rsuite.service.ManagedObjectService;
+import com.reallysi.rsuite.service.XmlApiManager;
 import com.rsicms.rsuite.containerWizard.AddXmlMoContext;
 import com.rsicms.rsuite.containerWizard.AddXmlMoResult;
 import com.rsicms.rsuite.containerWizard.ContainerWizard;
-import com.rsicms.rsuite.containerWizard.ContainerWizardConfUtils;
-import com.rsicms.rsuite.containerWizard.ContainerWizardConstants;
+import com.rsicms.rsuite.containerWizard.FutureManagedObject;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService;
 
 import test.helpers.ContainerWizardTestUtils;
 
+
 /**
- * Unit tests to verify adding sections
+ * Unit tests to verify addXmlMos() method.
  *
  */
-public class AddXmlMosTest implements ContainerWizardConstants {
-
-  private static boolean setUpIsDone = false;
-  private static String existingMoId = "12345";
-  private static String parentMoId = "11111";
-  ContainerWizardConf conf = null;
-  ExecutionContext context = null;
-  AuthorizationService auService = null;
-  ManagedObjectService moService = null;
-  ManagedObject existingMo = null;
-  ManagedObject parentMo = null;
-  BrowseInfo browseInfo = null;
-  ContainerWizardConfUtils confUtils = null;
-  User user = null;
-
-  @Before
-  public void setUp() throws SAXException, IOException, ParserConfigurationException,
-      RSuiteException, JAXBException {
-
-    if (setUpIsDone) {
-      return;
-    }
-
-    conf = new ContainerWizardTestUtils().newContainerWizardConfForTests();
-    confUtils = new ContainerWizardConfUtils();
-
-    user = Mockito.mock(User.class);
-    Mockito.when(user.getUserId()).thenReturn("gao");
-
-    existingMo = Mockito.mock(ManagedObject.class);
-    // to add discovery section
-    Mockito.when(existingMo.getLocalName()).thenReturn("discovery");
-    Mockito.when(existingMo.getId()).thenReturn(existingMoId);
-    // allow to add after
-    Mockito.when(existingMo.isLastChild()).thenReturn(false);
-
-    parentMo = Mockito.mock(ManagedObject.class);
-    Mockito.when(parentMo.getId()).thenReturn(parentMoId);
-    Mockito.when(parentMo.getCheckedOutUser()).thenReturn("jerry.aic");
-
-    ManagedObject mo1 = Mockito.mock(ManagedObject.class);
-    Mockito.when(mo1.getId()).thenReturn(existingMoId);
-    // to add discovery section
-    Mockito.when(mo1.getLocalName()).thenReturn("discovery 1");
-    ManagedObject mo2 = Mockito.mock(ManagedObject.class);
-    Mockito.when(mo2.getId()).thenReturn("12347");
-    Mockito.when(mo2.getLocalName()).thenReturn("discovery 2");
-    List<ManagedObject> moList = new ArrayList<ManagedObject>();
-    moList.add(mo1);
-    moList.add(mo2);
-
-    browseInfo = Mockito.mock(BrowseInfo.class);
-    Mockito.when(browseInfo.getTotal()).thenReturn(2L);
-    Mockito.when(browseInfo.getManagedObjects()).thenReturn(moList);
-
-    auService = Mockito.mock(AuthorizationService.class);
-    // user is admin, thus have right to add section
-    Mockito.when(auService.isAdministrator(user)).thenReturn(true);
-
-    moService = Mockito.mock(ManagedObjectService.class);
-    Mockito.when(moService.getManagedObject(user, existingMoId)).thenReturn(existingMo);
-    // sub mo
-    Mockito.when(moService.getRootManagedObjectId(user, existingMoId)).thenReturn(parentMoId);
-    Mockito.when(moService.getParentManagedObject(user, existingMo)).thenReturn(parentMo);
-    Mockito.when(moService.getChildManagedObjects(Mockito.any(User.class), Mockito.anyString(),
-        Mockito.anyInt(), Mockito.anyInt())).thenReturn(browseInfo);
-
-    context = Mockito.mock(ExecutionContext.class);
-    Mockito.when(context.getManagedObjectService()).thenReturn(moService);
-    Mockito.when(context.getAuthorizationService()).thenReturn(auService);
-
-    setUpIsDone = true;
-
-  }
+public class AddXmlMosTest {
 
   /**
-   * Verify AddXmlMoContext is created successfully and XmlMoConfIdx is correct based on sample
-   * configuration for the following conditions: use is admin, thus can add sections section is
-   * discovery use sub mo
+   * Verify a sub mo is added successfully.
    */
   @Test
-  public void createAddXmlMoContext() throws RSuiteException {
-
-    CallArgument arg1 = new CallArgument(PARAM_NAME_RSUITE_ID, existingMoId);
-    List<CallArgument> argList = new ArrayList<CallArgument>();
-    argList.add(arg1);
-    CallArgumentList args = new CallArgumentList(argList);
-
-    AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args);
-
-    // based on sample configuration, section index for discovery is 3
-    int expectedXmlMoConfIdx = 3;
-    assertEquals(addXmlMoContext.getXmlMoConfIdx(), expectedXmlMoConfIdx);
-
-  }
-
-  /**
-   * TODO
-   */
-  @Test
-  public void addXmlMos() throws SAXException, IOException, ParserConfigurationException,
+  public void addAnXmlMo() throws SAXException, IOException, ParserConfigurationException,
       RSuiteException, JAXBException, TransformerException {
 
+    ContainerWizardConf conf = new ContainerWizardTestUtils().newContainerWizardConfForTests();
+
+    String containerId = "22222";
+    String existingMoId = "12345";
+
+    User user = Mockito.mock(User.class);
+
+    // to add one sub mo
+    int expectedNumberOfMos = 1;
+    FutureManagedObject fmo = Mockito.mock(FutureManagedObject.class);
+    List<FutureManagedObject> fmoList = new ArrayList<FutureManagedObject>();
+    fmoList.add(fmo);
+
+    // to mock ACL to be used in addXmlMos() method
+    ACL acl = Mockito.mock(ACL.class);
+    ManagedObject templateMo = Mockito.mock(ManagedObject.class);
+    Mockito.when(templateMo.getACL()).thenReturn(acl);
+
+    ContentAssemblyNodeContainer nodeContainer = Mockito.mock(ContentAssemblyNodeContainer.class);
+
+    IDGenerator idGenerator = Mockito.mock(IDGenerator.class);
+    Mockito.when(idGenerator.allocateId()).thenReturn("11111");
+
+    ManagedObjectService moService = Mockito.mock(ManagedObjectService.class);
+    Mockito.when(moService.getManagedObject(Mockito.any(User.class), Mockito.anyString()))
+        .thenReturn(templateMo);
+    // mo needs to be checked out before inserting in MOUtils
+    Mockito.when(moService.isCheckedOut(Mockito.any(User.class), Mockito.anyString()))
+        .thenReturn(true);
+
+    ContentAssemblyService caService = Mockito.mock(ContentAssemblyService.class);
+    Mockito.when(caService.attach(Mockito.any(User.class), Mockito.anyString(), Mockito.anyString(),
+        Mockito.any(ObjectAttachOptions.class))).thenReturn(templateMo);
+    Mockito.when(caService.getContentAssemblyNodeContainer(user, containerId))
+        .thenReturn(nodeContainer);
+
+    ExecutionContext context = Mockito.mock(ExecutionContext.class);
+    Mockito.when(context.getManagedObjectService()).thenReturn(moService);
+    Mockito.when(context.getIDGenerator()).thenReturn(idGenerator);
+    Mockito.when(context.getContentAssemblyService()).thenReturn(caService);
+
+    // to mock XmlApiManager and Transformer to be used in MOUtils.addNodesIntoExistingMo() method
+    Transformer transformer = Mockito.mock(Transformer.class);
+    // mocking XmlApiManager necessitates saxon9-s9api.jar
+    XmlApiManager xmlManager = Mockito.mock(XmlApiManager.class);
+    Mockito.when(xmlManager.getTransformer((File) null)).thenReturn(transformer);
+    Mockito.when(context.getXmlApiManager()).thenReturn(xmlManager);
+
+    // to mock XPathEvaluator and elements and associated attributes to be
+    // used in addManagedObjects() method, which addXmlMos() uses
+    XPathEvaluator eval = Mockito.mock(XPathEvaluator.class);
+    Element elem = Mockito.mock(Element.class);
+    Element[] elemArr = {elem};
+    NamedNodeMap atts = Mockito.mock(NamedNodeMap.class);
+    Mockito.when(elem.getAttributes()).thenReturn(atts);
+    Mockito.when(eval.executeXPathToNodeArray(Mockito.anyString(), Mockito.any(Object.class)))
+        .thenReturn(elemArr);
+
+    // to mock the document tree of nodes for mo insertion in MOUtils
+    Document doc = Mockito.mock(Document.class);
+    Node adjacentNode = Mockito.mock(Node.class);
+    Node parentNode = Mockito.mock(Node.class);
+    Mockito.when(parentNode.getOwnerDocument()).thenReturn(doc);
+    Mockito.when(adjacentNode.getParentNode()).thenReturn(parentNode);
+    Mockito.when(eval.executeXPathToNode(Mockito.anyString(), Mockito.any(Object.class)))
+        .thenReturn(adjacentNode);
+
+    // to mock AddXmlMoContext to be used in addXmlMos() method
+    AddXmlMoContext addContext = Mockito.mock(AddXmlMoContext.class);
+    Mockito.when(addContext.shouldCreateAsTopLevelMos()).thenReturn(false);
+    Mockito.when(addContext.getContainerId()).thenReturn(containerId);
+    Mockito.when(addContext.getParentMoId()).thenReturn(containerId);
+    Mockito.when(addContext.getExistingMoId()).thenReturn(existingMoId);
+    Mockito.when(addContext.getInsertBeforeId()).thenReturn(existingMoId);
+
     ContainerWizard wizard = Mockito.mock(ContainerWizard.class);
+    Mockito.when(wizard.getAddXmlMoContext()).thenReturn(addContext);
+    Mockito.when(wizard.getFirstAndOnlyFutureManagedObjectList()).thenReturn(fmoList);
 
+    // to mock the web service partially, some mock methods and some real methods
     InvokeContainerWizardWebService service = Mockito.mock(InvokeContainerWizardWebService.class);
-    // Mockito.doCallRealMethod().when(service).addXmlMos(context, user, conf, wizard);
+    Mockito
+        .when(service.loadMo(Mockito.any(Element.class), Mockito.any(ExecutionContext.class),
+            Mockito.any(User.class), Mockito.anyString(), Mockito.any(ManagedObjectAdvisor.class)))
+        .thenReturn(templateMo);
+    Mockito.when(service.getObjectSource(Mockito.any(Element.class),
+        Mockito.any(ExecutionContext.class), Mockito.anyString())).thenReturn(null);
+    Mockito.when(service.getXPathEvaluator(context)).thenReturn(eval);
+    Mockito.doCallRealMethod().when(service).addManagedObjects(context, user, eval, false,
+        containerId, fmoList, acl, null, false);
+    Mockito.doCallRealMethod().when(service).addXmlMos(context, user, conf, wizard);
 
-    @SuppressWarnings("unused")
-    AddXmlMoResult result = service.addXmlMos(context, user, conf, wizard);
+    int actualNumberOfMos = 0;
+
+    AddXmlMoResult addXmlMoResult = service.addXmlMos(context, user, conf, wizard);
+
+    actualNumberOfMos += addXmlMoResult.getCount();
+
+    // Number of MOs added is 1
+    assertEquals(expectedNumberOfMos, actualNumberOfMos);
 
   }
 

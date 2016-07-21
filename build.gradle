@@ -99,6 +99,9 @@ dependencies {
 	includeInJar ('apache:commons-lang:3.3.1') {
 		transitive=false
 	}
+	includeInJar ('saxonica:saxon9-s9api:9.1.0.7') {
+		transitive=false
+	}
 	
 	configurations.compile.extendsFrom(configurations.includeInJar)
 }
