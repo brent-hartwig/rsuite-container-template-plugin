@@ -744,7 +744,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
    * @throws RSuiteException
    */
   public XPathEvaluator getXPathEvaluator(ExecutionContext context) throws RSuiteException {
-    return XPathUtils.getXPathEvaluator(context, RSuiteNamespaces.MetaDataNS);
+    return XPathUtils.getXPathEvaluator(context.getXmlApiManager().getXPathEvaluator(),
+        RSuiteNamespaces.MetaDataNS);
   }
 
   public ContentAssemblyCreateOptions getCaCreateOptions(PrimaryContainer pcConf,
