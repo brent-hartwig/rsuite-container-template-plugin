@@ -143,7 +143,7 @@ public class AddXmlMosTest {
         .thenReturn(templateMo);
     Mockito.when(service.getObjectSource(Mockito.any(Element.class),
         Mockito.any(ExecutionContext.class), Mockito.anyString())).thenReturn(null);
-    Mockito.when(service.getXPathEvaluator(context)).thenReturn(eval);
+    Mockito.when(service.getXPathEvaluator()).thenReturn(eval);
     Mockito.doCallRealMethod().when(service).addManagedObjects(context, user, eval, false,
         containerId, fmoList, acl, null, false);
     Mockito.doCallRealMethod().when(service).addXmlMos(context, user, conf, wizard);

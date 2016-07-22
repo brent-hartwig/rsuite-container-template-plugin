@@ -119,6 +119,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
 
   protected String opName;
   protected User systemUser;
+  protected XPathEvaluator eval;
 
   @Override
   public RemoteApiResult execute(RemoteApiExecutionContext context, CallArgumentList args)
@@ -135,6 +136,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
       Session session = context.getSession();
       User user = session.getUser();
       this.systemUser = context.getAuthorizationService().getSystemUser();
+      this.eval = new XPathUtils().getXPathEvaluator(context.getXmlApiManager(),
+          RSuiteNamespaces.MetaDataNS);
 
       // Determine the execution mode (e.g., create container or add XML MO) and the
       // insertion position, which is only applicable to one mode.
@@ -195,6 +198,16 @@ public class InvokeContainerWizardWebService extends BaseWebService
     } finally {
       log.info("Duration in millis: " + (new Date().getTime() - start.getTime()));
     }
+  }
+
+  /**
+   * Get the XPathEvaluator used by this web service. This is only public to facilitate unit
+   * testing.
+   * 
+   * @return The XPathEvaluator used by this web service.
+   */
+  public XPathEvaluator getXPathEvaluator() {
+    return eval;
   }
 
   /**
@@ -399,7 +412,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
     // spot; this is corrected below.
     String parentId = addContext.shouldCreateAsTopLevelMos() ? addContext.getContainerId()
         : addContext.getParentMoId();
-    AddXmlMoResult addXmlMoResult = addManagedObjects(context, user, getXPathEvaluator(context),
+    AddXmlMoResult addXmlMoResult = addManagedObjects(context, user, getXPathEvaluator(),
         addContext.shouldCreateAsTopLevelMos(), parentId,
         wizard.getFirstAndOnlyFutureManagedObjectList(), acl, adjacentSubMoId, insertBefore);
 
@@ -465,7 +478,6 @@ public class InvokeContainerWizardWebService extends BaseWebService
     PrimaryContainer pcConf = conf.getPrimaryContainer();
     SecurityService securityService = context.getSecurityService();
     String defaultAclId = pcConf.getDefaultAclId();
-    XPathEvaluator eval = getXPathEvaluator(context);
 
     // Create primary container; hold back on ACL until ID is known.
     ContentAssemblyCreateOptions pcOptions = getCaCreateOptions(pcConf, wizard);
@@ -503,7 +515,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
 
         ACL acl = aclMap.get(xmlMoConf.getAclId() != null ? xmlMoConf.getAclId() : defaultAclId);
 
-        addManagedObjects(context, user, eval, true, primaryContainer.getId(),
+        addManagedObjects(context, user, getXPathEvaluator(), true, primaryContainer.getId(),
             wizard.getFutureManagedObjectListByKey(String.valueOf(xmlMoConfIdx)), acl, null, false);
       } else {
         log.warn("Skipped unexpected object with class " + o.getClass().getSimpleName());
@@ -670,9 +682,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
       if (!createTopLevelMos && newSubMoNodeList.size() > 0) {
         String xpath = new StringBuilder("//*[@").append(rsuiteIdAttName).append("='")
             .append(adjacentSubMoId).append("']").toString();
-        MOUtils.addNodesIntoExistingMo(moService, user, parentId, xpath, insertBefore,
-            getXPathEvaluator(context), newSubMoNodeList, true,
-            context.getXmlApiManager().getTransformer((File) null), log);
+        MOUtils.addNodesIntoExistingMo(moService, user, parentId, xpath, insertBefore, eval,
+            newSubMoNodeList, true, context.getXmlApiManager().getTransformer((File) null), log);
       }
     }
 
@@ -734,18 +745,6 @@ public class InvokeContainerWizardWebService extends BaseWebService
     return MOUtils.getObjectSource(context, filename,
         DomUtils.serializeToString(transformer, elem, true, true, DEFAULT_CHARACTER_ENCODING),
         DEFAULT_CHARACTER_ENCODING);
-  }
-
-  /**
-   * A wrapper around a static utility method to get XPathEvaluator
-   * 
-   * @param context
-   * @return XPathEvaluator
-   * @throws RSuiteException
-   */
-  public XPathEvaluator getXPathEvaluator(ExecutionContext context) throws RSuiteException {
-    return XPathUtils.getXPathEvaluator(context.getXmlApiManager().getXPathEvaluator(),
-        RSuiteNamespaces.MetaDataNS);
   }
 
   public ContentAssemblyCreateOptions getCaCreateOptions(PrimaryContainer pcConf,

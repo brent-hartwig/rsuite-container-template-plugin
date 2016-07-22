@@ -157,7 +157,7 @@ public class CreatePrimaryContainerTest {
 
     InvokeContainerWizardWebService invokeService =
         Mockito.mock(InvokeContainerWizardWebService.class);
-    Mockito.when(invokeService.getXPathEvaluator(context)).thenReturn(eval);
+    Mockito.when(invokeService.getXPathEvaluator()).thenReturn(eval);
     Mockito.doCallRealMethod().when(invokeService).createPrimaryContainer(context, session, conf,
         wizard, parentId);
 
