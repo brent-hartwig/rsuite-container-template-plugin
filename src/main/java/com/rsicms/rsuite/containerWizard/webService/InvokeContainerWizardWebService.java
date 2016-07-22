@@ -683,7 +683,7 @@ public class InvokeContainerWizardWebService extends BaseWebService
         String xpath = new StringBuilder("//*[@").append(rsuiteIdAttName).append("='")
             .append(adjacentSubMoId).append("']").toString();
         MOUtils.addNodesIntoExistingMo(moService, user, parentId, xpath, insertBefore, eval,
-            newSubMoNodeList, true, context.getXmlApiManager().getTransformer((File) null), log);
+            newSubMoNodeList, true, context.getXmlApiManager().getTransformer((File) null));
       }
     }
 
