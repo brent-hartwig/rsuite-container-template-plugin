@@ -449,13 +449,13 @@ public class InvokeContainerWizardWebService extends BaseWebService
    * 
    * @param context
    * @param addXmlMoResult
-   * @param containerId
+   * @param refreshIds Zero or more IDs to refresh, and the children thereof.
    * @return REST result for the container wizard after completing execution of the "add XML MO"
    *         mode.
    * @throws RSuiteException
    */
   public RestResult getMosAddedRestResult(ExecutionContext context, AddXmlMoResult addXmlMoResult,
-      String containerId) throws RSuiteException {
+      String... refreshIds) throws RSuiteException {
     StringBuilder sb =
         new StringBuilder("Created ").append(addXmlMoResult.getCount()).append(" piece");
     if (addXmlMoResult.getCount() != 1) {
@@ -463,10 +463,12 @@ public class InvokeContainerWizardWebService extends BaseWebService
     }
     sb.append(" of content.");
     RestResult rr = getNotificationResult(context, sb.toString(), opName);
-    UserInterfaceAction action = new UserInterfaceAction("rsuite:refreshManagedObjects");
-    action.addProperty("objects", containerId);
-    action.addProperty("children", true);
-    rr.addAction(action);
+    if (refreshIds != null && refreshIds.length > 0) {
+      UserInterfaceAction action = new UserInterfaceAction("rsuite:refreshManagedObjects");
+      action.addProperty("objects", StringUtils.join(refreshIds, ","));
+      action.addProperty("children", true);
+      rr.addAction(action);
+    }
     return rr;
   }
 

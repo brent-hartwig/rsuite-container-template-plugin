@@ -33,7 +33,7 @@ dependencies {
 	compile ('rsuite-community:rsuite-message-props-lib:0.0.1') {
 		transitive=false
 	}
-	compile ('rsuite-community:rsuite-mo-utils-lib:0.0.1') {
+	compile ('rsuite-community:rsuite-mo-utils-lib:1.0.0') {
 		transitive=false
 	}
 	compile ('rsuite-community:rsuite-operation-lib:0.0.1') {
@@ -45,7 +45,7 @@ dependencies {
 	compile ('rsuite-community:rsuite-web-services-lib:0.0.1') {
 		transitive=false
 	}
-	compile ('rsuite-community:rsuite-xml-utils-lib:0.0.1') {
+	compile ('rsuite-community:rsuite-xml-utils-lib:1.0.0') {
 		transitive=false
 	}
 	compile ('apache:commons-io:1.4') {
@@ -81,7 +81,7 @@ dependencies {
 	includeInJar ('rsuite-community:rsuite-message-props-lib:0.0.1') {
 		transitive=false
 	}
-	includeInJar ('rsuite-community:rsuite-mo-utils-lib:0.0.1') {
+	includeInJar ('rsuite-community:rsuite-mo-utils-lib:1.0.0') {
 		transitive=false
 	}
 	includeInJar ('rsuite-community:rsuite-operation-lib:0.0.1') {
@@ -93,7 +93,7 @@ dependencies {
 	includeInJar ('rsuite-community:rsuite-web-services-lib:0.0.1') {
 		transitive=false
 	}
-	includeInJar ('rsuite-community:rsuite-xml-utils-lib:0.0.1') {
+	includeInJar ('rsuite-community:rsuite-xml-utils-lib:1.0.0') {
 		transitive=false
 	}
 	includeInJar ('apache:commons-lang:3.3.1') {
