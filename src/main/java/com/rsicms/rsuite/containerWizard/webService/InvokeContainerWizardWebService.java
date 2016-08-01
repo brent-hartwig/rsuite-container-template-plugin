@@ -112,7 +112,8 @@ import com.rsicms.rsuite.utils.xml.XPathUtils;
  * The caller is only responsible for not preventing it from being passed in.</li>
  * </ul>
  */
-public class InvokeContainerWizardWebService extends BaseWebService
+public class InvokeContainerWizardWebService
+    extends BaseWebService
     implements ContainerWizardConstants {
 
   private static Log log = LogFactory.getLog(InvokeContainerWizardWebService.class);
@@ -147,8 +148,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
       // By loading each time, technically it could change mid-instance.
       ContainerWizardConfUtils confUtils = new ContainerWizardConfUtils();
       String confAlias = args.getFirstString(PARAM_NAME_CONF_ALIAS);
-      ContainerWizardConf conf =
-          confUtils.getContainerWizardConf(user, context.getManagedObjectService(), confAlias);
+      ContainerWizardConf conf = confUtils.getContainerWizardConf(user, context
+          .getManagedObjectService(), confAlias);
 
       // Re-constitute or get a new container wizard.
       ContainerWizard wizard = getContainerWizard(args.getFirstString(PARAM_NAME_CONTAINER_WIZARD),
@@ -168,8 +169,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
       }
 
       // Retain values provided by the user.
-      retainUserInput(context.getSearchService(), user, wizard, args,
-          pageNav.getCurrentSubPageIdx());
+      retainUserInput(context.getSearchService(), user, wizard, args, pageNav
+          .getCurrentSubPageIdx());
       log.info(wizard.getInfo()); // TODO: when to stop this?
 
       if (pageNav.isPageRequested()) {
@@ -184,8 +185,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
         // Time to create the container!
         // FIXME: Presumes home container desired.
         String parentId = context.getContentAssemblyService().getRootFolder(user).getId();
-        ContentAssemblyNodeContainer ca =
-            createPrimaryContainer(context, context.getSession(), conf, wizard, parentId);
+        ContentAssemblyNodeContainer ca = createPrimaryContainer(context, context.getSession(),
+            conf, wizard, parentId);
         return getContainerCreatedRestResult(context, ca, parentId);
       }
 
@@ -280,8 +281,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
       String[] templateMoIds = args.getValuesArray(PARAM_NAME_XML_TEMPLATE_MO_ID);
       if (templateMoIds != null) {
         FutureManagedObject fmo;
-        List<FutureManagedObject> futureMoList =
-            wizard.getFutureManagedObjectListByKey(String.valueOf(currentSubPageIdx));
+        List<FutureManagedObject> futureMoList = wizard.getFutureManagedObjectListByKey(String
+            .valueOf(currentSubPageIdx));
         String[] titles = args.getValuesArray(PARAM_NAME_SECTION_TITLE);
         for (int i = 0; i < templateMoIds.length; i++) {
           String templateMoId = templateMoIds[i];
@@ -307,8 +308,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
   public static void performDataReEntryTest(CallArgument arg, CallArgumentList args)
       throws RSuiteException {
     if (arg != null && args != null) {
-      String val2 = args.getFirstString(
-          new StringBuilder(arg.getName()).append(PARAM_NAME_SUFFIX_VERIFY).toString());
+      String val2 = args.getFirstString(new StringBuilder(arg.getName()).append(
+          PARAM_NAME_SUFFIX_VERIFY).toString());
       if (StringUtils.isNotBlank(val2)) {
         String val1 = arg.getValue().trim();
         val2 = val2.trim();
@@ -318,9 +319,9 @@ public class InvokeContainerWizardWebService extends BaseWebService
            * client-side test; or, could re-display form with values provided by user plus an error
            * message.
            */
-          throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
-              new StringBuilder("\"").append(arg.getName()).append("\" values do not match: ")
-                  .append(val1).append(", ").append(val2).toString());
+          throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID, new StringBuilder("\"")
+              .append(arg.getName()).append("\" values do not match: ").append(val1).append(", ")
+              .append(val2).toString());
         }
       }
     }
@@ -339,8 +340,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
 
     List<ManagedObject> containers = searchIfJobCodeIsAlreadyAssigned(user, searchService, jobCode);
     if (containers != null && !containers.isEmpty()) {
-      throw new RSuiteException(RSuiteException.ERROR_ALREADY_EXISTS,
-          "Job code '" + jobCode + "' is already assigned to a product.");
+      throw new RSuiteException(RSuiteException.ERROR_ALREADY_EXISTS, "Job code '" + jobCode
+          + "' is already assigned to a product.");
     }
   }
 
@@ -412,9 +413,9 @@ public class InvokeContainerWizardWebService extends BaseWebService
     // spot; this is corrected below.
     String parentId = addContext.shouldCreateAsTopLevelMos() ? addContext.getContainerId()
         : addContext.getParentMoId();
-    AddXmlMoResult addXmlMoResult = addManagedObjects(context, user, getXPathEvaluator(),
-        addContext.shouldCreateAsTopLevelMos(), parentId,
-        wizard.getFirstAndOnlyFutureManagedObjectList(), acl, adjacentSubMoId, insertBefore);
+    AddXmlMoResult addXmlMoResult = addManagedObjects(context, user, getXPathEvaluator(), addContext
+        .shouldCreateAsTopLevelMos(), parentId, wizard.getFirstAndOnlyFutureManagedObjectList(),
+        acl, adjacentSubMoId, insertBefore);
 
     /*
      * When top-level MOs are created, move the references.
@@ -426,8 +427,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
     if (addContext.shouldCreateAsTopLevelMos()) {
       ContentAssemblyService caService = context.getContentAssemblyService();
       ChildrenInfoContainerVisitor visitor = new ChildrenInfoContainerVisitor(context, user);
-      visitor.visitContentAssemblyNodeContainer(
-          caService.getContentAssemblyNodeContainer(user, parentId));
+      visitor.visitContentAssemblyNodeContainer(caService.getContentAssemblyNodeContainer(user,
+          parentId));
       ObjectReferenceMoveOptions options = new ObjectReferenceMoveOptions();
       options.setBeforeId(visitor.getMoRef(addContext.getInsertBeforeId()).getId());
       for (ManagedObject mo : addXmlMoResult.getManagedObjects()) {
@@ -456,8 +457,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
    */
   public RestResult getMosAddedRestResult(ExecutionContext context, AddXmlMoResult addXmlMoResult,
       String... refreshIds) throws RSuiteException {
-    StringBuilder sb =
-        new StringBuilder("Created ").append(addXmlMoResult.getCount()).append(" piece");
+    StringBuilder sb = new StringBuilder("Created ").append(addXmlMoResult.getCount()).append(
+        " piece");
     if (addXmlMoResult.getCount() != 1) {
       sb.append("s");
     }
@@ -488,10 +489,10 @@ public class InvokeContainerWizardWebService extends BaseWebService
     log.info("Created primary container with ID " + primaryContainer.getId());
 
     // Construct AclMap using new container's ID, and create new roles.
-    AclMap aclMap = new AclMap(context.getSecurityService(), conf,
-        AclMap.getContainerRoleNamePrefix(primaryContainer));
-    aclMap.createUndefinedContainerRoles(systemUser,
-        context.getAuthorizationService().getRoleManager());
+    AclMap aclMap = new AclMap(context.getSecurityService(), conf, AclMap
+        .getContainerRoleNamePrefix(primaryContainer));
+    aclMap.createUndefinedContainerRoles(systemUser, context.getAuthorizationService()
+        .getRoleManager());
 
     /*
      * Grant roles to current user, reconstruct user instance, and set the container's ACL. When the
@@ -517,8 +518,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
 
         ACL acl = aclMap.get(xmlMoConf.getAclId() != null ? xmlMoConf.getAclId() : defaultAclId);
 
-        addManagedObjects(context, user, getXPathEvaluator(), true, primaryContainer.getId(),
-            wizard.getFutureManagedObjectListByKey(String.valueOf(xmlMoConfIdx)), acl, null, false);
+        addManagedObjects(context, user, getXPathEvaluator(), true, primaryContainer.getId(), wizard
+            .getFutureManagedObjectListByKey(String.valueOf(xmlMoConfIdx)), acl, null, false);
       } else {
         log.warn("Skipped unexpected object with class " + o.getClass().getSimpleName());
       }
@@ -548,8 +549,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
     } else if (user.getUserType() == UserType.LOCAL) {
       LocalUserManager localUserManager = authService.getLocalUserManager();
 
-      localUserManager.updateUser(user.getUserId(), user.getFullName(), user.getEmail(),
-          StringUtils.join(aclMap.getRoleNames(user, allowedRoleNameSuffixes), ","));
+      localUserManager.updateUser(user.getUserId(), user.getFullName(), user.getEmail(), StringUtils
+          .join(aclMap.getRoleNames(user, allowedRoleNameSuffixes), ","));
 
       // Necessary for RSuite to honor recently granted roles.
       log.info("Reloading local user accounts...");
@@ -569,9 +570,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
     options.setACL(aclMap.get(conf.getAclId() != null ? conf.getAclId() : defaultAclId));
     options.setType(conf.getType());
     options.setMetaDataItems(getMetadataList(conf.getMetadataConf(), null));
-    return caService
-        .createContentAssembly(user, primaryContainer.getId(), conf.getDisplayName(), options)
-        .getId();
+    return caService.createContentAssembly(user, primaryContainer.getId(), conf.getDisplayName(),
+        options).getId();
   }
 
   /**
@@ -612,10 +612,10 @@ public class InvokeContainerWizardWebService extends BaseWebService
     if (fmoList != null && fmoList.size() > 0) {
       ManagedObjectAdvisor advisor = new LocalManagedObjectAdvisor(acl);
 
-      String rsuiteIdAttName =
-          new StringBuilder(RSuiteNamespaces.MetaDataNS.getPrefix()).append(":rsuiteId").toString();
-      String nodesWithRSuiteIdAttXPath =
-          new StringBuilder("//*[@").append(rsuiteIdAttName).append("]").toString();
+      String rsuiteIdAttName = new StringBuilder(RSuiteNamespaces.MetaDataNS.getPrefix()).append(
+          ":rsuiteId").toString();
+      String nodesWithRSuiteIdAttXPath = new StringBuilder("//*[@").append(rsuiteIdAttName).append(
+          "]").toString();
       String idAttName = "id";
 
       ManagedObject templateMo;
@@ -645,8 +645,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
         // Set a container-unique ID on every element. May need to make this configurable.
         nodeArr = eval.executeXPathToNodeArray("//*", templateElem);
         for (Node node : nodeArr) {
-          id = new StringBuilder("id-").append(timestamp).append("-")
-              .append(Integer.toString(++idAttCnt)).toString();
+          id = new StringBuilder("id-").append(timestamp).append("-").append(Integer.toString(
+              ++idAttCnt)).toString();
           atts = node.getAttributes();
           att = atts.getNamedItem(idAttName);
           if (att == null) {
@@ -682,8 +682,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
 
       // When we didn't create top-level MOs, it's time to add the new MOs as sub-MOs.
       if (!createTopLevelMos && newSubMoNodeList.size() > 0) {
-        String xpath = new StringBuilder("//*[@").append(rsuiteIdAttName).append("='")
-            .append(adjacentSubMoId).append("']").toString();
+        String xpath = new StringBuilder("//*[@").append(rsuiteIdAttName).append("='").append(
+            adjacentSubMoId).append("']").toString();
         MOUtils.addNodesIntoExistingMo(moService, user, parentId, xpath, insertBefore, eval,
             newSubMoNodeList, true, context.getXmlApiManager().getTransformer((File) null));
       }
@@ -702,8 +702,8 @@ public class InvokeContainerWizardWebService extends BaseWebService
    */
   public RestResult getContainerCreatedRestResult(ExecutionContext context,
       ContentAssemblyNodeContainer ca, String parentId) {
-    RestResult rr = getNotificationResult(context,
-        "Created '" + ca.getDisplayName() + "' (ID: " + ca.getId() + ")", opName);
+    RestResult rr = getNotificationResult(context, "Created '" + ca.getDisplayName() + "' (ID: "
+        + ca.getId() + ")", opName);
     UserInterfaceAction action = new UserInterfaceAction("rsuite:refreshManagedObjects");
     action.addProperty("objects", parentId);
     action.addProperty("children", false);
@@ -744,17 +744,16 @@ public class InvokeContainerWizardWebService extends BaseWebService
   public ObjectSource getObjectSource(Element elem, ExecutionContext context, String filename)
       throws IOException, RSuiteException, TransformerException {
     Transformer transformer = context.getXmlApiManager().getTransformer((File) null);
-    return MOUtils.getObjectSource(context, filename,
-        DomUtils.serializeToString(transformer, elem, true, true, DEFAULT_CHARACTER_ENCODING),
-        DEFAULT_CHARACTER_ENCODING);
+    return MOUtils.getObjectSource(context, filename, DomUtils.serializeToString(transformer, elem,
+        true, true, DEFAULT_CHARACTER_ENCODING), DEFAULT_CHARACTER_ENCODING);
   }
 
   public ContentAssemblyCreateOptions getCaCreateOptions(PrimaryContainer pcConf,
       ContainerWizard wizard) {
 
     ContentAssemblyCreateOptions pcOptions = new ContentAssemblyCreateOptions();
-    pcOptions.setMetaDataItems(
-        getMetadataList(pcConf.getMetadataConf(), wizard.getContainerMetadataAsList()));
+    pcOptions.setMetaDataItems(getMetadataList(pcConf.getMetadataConf(), wizard
+        .getContainerMetadataAsList()));
     pcOptions.setType(pcConf.getType());
     return pcOptions;
 

@@ -30,7 +30,8 @@ import com.rsicms.rsuite.utils.webService.CallArgumentUtils;
  * contents form by interpreting the wizard's configuration, starting at a specified XML MO
  * configuration (by index).
  */
-public class GetSectionTypeInfoWebService extends BaseWebService
+public class GetSectionTypeInfoWebService
+    extends BaseWebService
     implements ContainerWizardConstants {
 
   private static Log log = LogFactory.getLog(GetSectionTypeInfoWebService.class);
@@ -50,12 +51,12 @@ public class GetSectionTypeInfoWebService extends BaseWebService
       // We need the wizard configuration to get the section type's details.
       String confAlias = args.getFirstString(PARAM_NAME_CONF_ALIAS);
       if (StringUtils.isBlank(confAlias)) {
-        return getErrorResult(
-            "The '" + PARAM_NAME_CONF_ALIAS + "' parameter was not specified but is required.");
+        return getErrorResult("The '" + PARAM_NAME_CONF_ALIAS
+            + "' parameter was not specified but is required.");
       }
       ContainerWizardConfUtils confUtils = new ContainerWizardConfUtils();
-      ManagedObject confMo =
-          confUtils.getContainerWizardConfMo(user, context.getManagedObjectService(), confAlias);
+      ManagedObject confMo = confUtils.getContainerWizardConfMo(user, context
+          .getManagedObjectService(), confAlias);
       log.info("conf MO ID: " + confMo.getId());
       ContainerWizardConf conf = confUtils.getContainerWizardConf(confMo);
       log.info("have conf ?= " + (conf != null));

@@ -37,11 +37,12 @@ public class ContainerWizardTestUtils {
    * @throws RSuiteException
    * @throws JAXBException
    */
-  public ContainerWizardConf newContainerWizardConfForTests() throws SAXException, IOException,
-      ParserConfigurationException, RSuiteException, JAXBException {
+  public ContainerWizardConf newContainerWizardConfForTests()
+      throws SAXException, IOException, ParserConfigurationException, RSuiteException,
+      JAXBException {
 
-    InputStream inputStream = this.getClass().getClassLoader()
-        .getResourceAsStream("SampleContainerWizardConfiguration.xml");
+    InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(
+        "SampleContainerWizardConfiguration.xml");
     assertNotNull("Unable to load the test's wizard configuration file.", inputStream);
 
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();

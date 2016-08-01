@@ -5,7 +5,8 @@ package com.rsicms.rsuite.containerWizard;
  */
 public enum InsertionPosition {
 
-  BEFORE(), AFTER();
+  BEFORE(),
+  AFTER();
 
   /**
    * Get one of this enum's values from a string. Defaults to BELOW.

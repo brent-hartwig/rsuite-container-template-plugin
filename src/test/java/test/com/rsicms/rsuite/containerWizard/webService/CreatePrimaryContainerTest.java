@@ -66,8 +66,9 @@ public class CreatePrimaryContainerTest {
    * the primary container create options (to be used by ContentAssemblyService)
    */
   @Test
-  public void verifyMetaData() throws SAXException, IOException, ParserConfigurationException,
-      RSuiteException, JAXBException {
+  public void verifyMetaData()
+      throws SAXException, IOException, ParserConfigurationException, RSuiteException,
+      JAXBException {
 
     /*
      * Sample Container Wizard Configuration has the following meta data: <metadata-conf>
@@ -145,30 +146,29 @@ public class CreatePrimaryContainerTest {
     Mockito.when(authorizationService.getRoleManager()).thenReturn(roleManager);
 
     ContentAssemblyService caService = Mockito.mock(ContentAssemblyService.class);
-    Mockito
-        .when(caService.createContentAssembly(Mockito.any(User.class), Mockito.anyString(),
-            Mockito.anyString(), Mockito.any(ContentAssemblyCreateOptions.class)))
-        .thenReturn(primaryContainer);
+    Mockito.when(caService.createContentAssembly(Mockito.any(User.class), Mockito.anyString(),
+        Mockito.anyString(), Mockito.any(ContentAssemblyCreateOptions.class))).thenReturn(
+            primaryContainer);
 
     ExecutionContext context = Mockito.mock(ExecutionContext.class);
     Mockito.when(context.getContentAssemblyService()).thenReturn(caService);
     Mockito.when(context.getAuthorizationService()).thenReturn(authorizationService);
     Mockito.when(context.getSecurityService()).thenReturn(securityService);
 
-    InvokeContainerWizardWebService invokeService =
-        Mockito.mock(InvokeContainerWizardWebService.class);
+    InvokeContainerWizardWebService invokeService = Mockito.mock(
+        InvokeContainerWizardWebService.class);
     Mockito.when(invokeService.getXPathEvaluator()).thenReturn(eval);
     Mockito.doCallRealMethod().when(invokeService).createPrimaryContainer(context, session, conf,
         wizard, parentId);
 
-    ContentAssemblyNodeContainer resultPrimaryContainer =
-        invokeService.createPrimaryContainer(context, session, conf, wizard, parentId);
+    ContentAssemblyNodeContainer resultPrimaryContainer = invokeService.createPrimaryContainer(
+        context, session, conf, wizard, parentId);
 
     // primary container is created
     assertNotNull("Created primary container is null.", resultPrimaryContainer);
 
     // primary container ID is expected as 22222
-    assertEquals(resultPrimaryContainer.getId(), expectedId);
+    assertEquals(expectedId, resultPrimaryContainer.getId());
 
   }
 
@@ -179,8 +179,9 @@ public class CreatePrimaryContainerTest {
    * product (container and associated contents).
    */
   @Test
-  public void verifyCreateUndefinedContainerRole() throws SAXException, IOException,
-      ParserConfigurationException, RSuiteException, JAXBException {
+  public void verifyCreateUndefinedContainerRole()
+      throws SAXException, IOException, ParserConfigurationException, RSuiteException,
+      JAXBException {
 
     // ID of new product container can be retrieved.
     String newContainerId = "22222";
@@ -206,10 +207,8 @@ public class CreatePrimaryContainerTest {
 
         ACE rACE = aclMapTests.new ACEImpl(aclMapTests.new RoleImpl(roleName));
 
-        Mockito
-            .when(securityService.constructACE(roleName,
-                aAce.getContentPermissions().replace(StringUtils.SPACE, StringUtils.EMPTY)))
-            .thenReturn(rACE);
+        Mockito.when(securityService.constructACE(roleName, aAce.getContentPermissions().replace(
+            StringUtils.SPACE, StringUtils.EMPTY))).thenReturn(rACE);
 
         builtACEs[index][i] = rACE;
       }
@@ -238,8 +237,8 @@ public class CreatePrimaryContainerTest {
     expectedRoleNameSet.add("22222_Managers");
 
     // Verify that result role names are 22222_SMEs, 22222_Reviewers, 22222_Managers
-    assertEquals(resultRoleNameSet.contains(expectedRoleNameSet),
-        expectedRoleNameSet.contains(resultRoleNameSet));
+    assertEquals(resultRoleNameSet.contains(expectedRoleNameSet), expectedRoleNameSet.contains(
+        resultRoleNameSet));
 
   }
 
@@ -247,8 +246,9 @@ public class CreatePrimaryContainerTest {
    * Verify a list of ca nodes are added as content.
    */
   @Test
-  public void addContainer() throws RSuiteException, SAXException, IOException,
-      ParserConfigurationException, JAXBException {
+  public void addContainer()
+      throws RSuiteException, SAXException, IOException, ParserConfigurationException,
+      JAXBException {
 
     String newContainerId = "22222";
 
@@ -268,10 +268,8 @@ public class CreatePrimaryContainerTest {
     Mockito.when(caNode.getId()).thenReturn(defaultAclId);
 
     Mockito.when(primaryContainer.getId()).thenReturn(newContainerId);
-    Mockito
-        .when(caService.createContentAssembly(Mockito.any(User.class), Mockito.anyString(),
-            Mockito.anyString(), Mockito.any(ContentAssemblyCreateOptions.class)))
-        .thenReturn(caNode);
+    Mockito.when(caService.createContentAssembly(Mockito.any(User.class), Mockito.anyString(),
+        Mockito.anyString(), Mockito.any(ContentAssemblyCreateOptions.class))).thenReturn(caNode);
 
     InvokeContainerWizardWebService service = new InvokeContainerWizardWebService();
 
@@ -299,8 +297,9 @@ public class CreatePrimaryContainerTest {
    * Verify a list of managed objects are added as content.
    */
   @Test
-  public void addManagedObjects() throws SAXException, IOException, ParserConfigurationException,
-      RSuiteException, JAXBException, TransformerException {
+  public void addManagedObjects()
+      throws SAXException, IOException, ParserConfigurationException, RSuiteException,
+      JAXBException, TransformerException {
 
     ContainerWizardConf conf = new ContainerWizardTestUtils().newContainerWizardConfForTests();
 
@@ -342,21 +341,19 @@ public class CreatePrimaryContainerTest {
     ACL acl = Mockito.mock(ACL.class);
 
     InvokeContainerWizardWebService service = Mockito.mock(InvokeContainerWizardWebService.class);
-    Mockito
-        .when(service.loadMo(Mockito.any(Element.class), Mockito.any(ExecutionContext.class),
-            Mockito.any(User.class), Mockito.anyString(), Mockito.any(ManagedObjectAdvisor.class)))
+    Mockito.when(service.loadMo(Mockito.any(Element.class), Mockito.any(ExecutionContext.class),
+        Mockito.any(User.class), Mockito.anyString(), Mockito.any(ManagedObjectAdvisor.class)))
         .thenReturn(templateMo);
-    Mockito.when(service.getObjectSource(Mockito.any(Element.class),
-        Mockito.any(ExecutionContext.class), Mockito.anyString())).thenReturn(null);
+    Mockito.when(service.getObjectSource(Mockito.any(Element.class), Mockito.any(
+        ExecutionContext.class), Mockito.anyString())).thenReturn(null);
     Mockito.doCallRealMethod().when(service).addManagedObjects(context, user, eval, true,
         containerId, fmoList, acl, null, false);
 
     int actualNumberOfMos = 0;
     for (Object o : conf.getPrimaryContainer().getContainerConfOrXmlMoConf()) {
       if (o instanceof XmlMoConf) {
-        actualNumberOfMos += service
-            .addManagedObjects(context, user, eval, true, containerId, fmoList, acl, null, false)
-            .getCount();
+        actualNumberOfMos += service.addManagedObjects(context, user, eval, true, containerId,
+            fmoList, acl, null, false).getCount();
       }
     }
 

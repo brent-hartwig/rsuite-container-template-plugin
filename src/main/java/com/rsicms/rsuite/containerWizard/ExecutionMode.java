@@ -5,7 +5,9 @@ package com.rsicms.rsuite.containerWizard;
  */
 public enum ExecutionMode {
 
-  ADD_XML_MO(), CREATE_CONTAINER(), UNKNOWN();
+  ADD_XML_MO(),
+  CREATE_CONTAINER(),
+  UNKNOWN();
 
   /**
    * Get an execution mode value from a string. When the provided value is not recognized, the

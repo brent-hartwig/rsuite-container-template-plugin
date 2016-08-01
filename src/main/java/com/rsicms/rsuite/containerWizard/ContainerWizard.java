@@ -23,7 +23,8 @@ import biz.source_code.base64Coder.Base64Coder;
  * order to be passed between web service calls and form advisors (which is a way to retain state
  * without implementing a cache expiration policy).
  */
-public class ContainerWizard implements Serializable {
+public class ContainerWizard
+    implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
@@ -199,7 +200,9 @@ public class ContainerWizard implements Serializable {
   }
 
   public enum MetadataBehavior {
-    CREATE_IF_NULL(), MAY_RETURN_NULL(), CLEAR_EXISTING_VALUES();
+    CREATE_IF_NULL(),
+    MAY_RETURN_NULL(),
+    CLEAR_EXISTING_VALUES();
   }
 
   public String getInfo() {

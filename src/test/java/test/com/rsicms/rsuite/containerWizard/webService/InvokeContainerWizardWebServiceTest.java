@@ -28,7 +28,8 @@ import com.rsicms.rsuite.containerWizard.jaxb.NameValuePair;
 import com.rsicms.rsuite.containerWizard.jaxb.ObjectFactory;
 import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService;
 
-public class InvokeContainerWizardWebServiceTest implements ContainerWizardConstants {
+public class InvokeContainerWizardWebServiceTest
+    implements ContainerWizardConstants {
 
   /**
    * Verify the container name is set in container wizard.
@@ -76,8 +77,8 @@ public class InvokeContainerWizardWebServiceTest implements ContainerWizardConst
     InvokeContainerWizardWebService service = Mockito.mock(InvokeContainerWizardWebService.class);
     Mockito.doCallRealMethod().when(service).retainUserInput(searchService, user, wizard, args, -1);
     Mockito.doCallRealMethod().when(service).throwIfInvalidJobCode(user, searchService, jobCode);
-    Mockito.when(service.searchIfJobCodeIsAlreadyAssigned(user, searchService, jobCode))
-        .thenReturn(containers);
+    Mockito.when(service.searchIfJobCodeIsAlreadyAssigned(user, searchService, jobCode)).thenReturn(
+        containers);
 
     try {
       service.retainUserInput(searchService, user, wizard, args, -1);
@@ -177,8 +178,8 @@ public class InvokeContainerWizardWebServiceTest implements ContainerWizardConst
     expectedCombinedList.add(m1);
     expectedCombinedList.add(m2);
 
-    assertEqualMetadataLists(expectedCombinedList,
-        InvokeContainerWizardWebService.getMetadataList(metadataConf, starterList));
+    assertEqualMetadataLists(expectedCombinedList, InvokeContainerWizardWebService.getMetadataList(
+        metadataConf, starterList));
 
   }
 
@@ -206,8 +207,8 @@ public class InvokeContainerWizardWebServiceTest implements ContainerWizardConst
     expectedCombinedList.add(new MetaDataItem(nvp1.getName(), nvp1.getValue()));
     expectedCombinedList.add(new MetaDataItem(nvp2.getName(), nvp2.getValue()));
 
-    assertEqualMetadataLists(expectedCombinedList,
-        InvokeContainerWizardWebService.getMetadataList(metadataConf, null));
+    assertEqualMetadataLists(expectedCombinedList, InvokeContainerWizardWebService.getMetadataList(
+        metadataConf, null));
   }
 
   /*
@@ -234,7 +235,7 @@ public class InvokeContainerWizardWebServiceTest implements ContainerWizardConst
     expectedCombinedList.add(new MetaDataItem(nvp1.getName(), nvp1.getValue()));
     expectedCombinedList.add(new MetaDataItem(nvp2.getName(), nvp2.getValue()));
 
-    assertEqualMetadataLists(expectedCombinedList, InvokeContainerWizardWebService
-        .getMetadataList(metadataConf, new ArrayList<MetaDataItem>()));
+    assertEqualMetadataLists(expectedCombinedList, InvokeContainerWizardWebService.getMetadataList(
+        metadataConf, new ArrayList<MetaDataItem>()));
   }
 }

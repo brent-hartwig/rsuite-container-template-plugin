@@ -50,8 +50,8 @@ public class ContainerWizardConfUtilsTests {
     } catch (RSuiteException e) {
       assertThat(
           "Error message should indicate not being able to find the configuration MO by the specified alias.",
-          e.getMessage(),
-          containsString("The alias for the wizard configuration MO was not provided."));
+          e.getMessage(), containsString(
+              "The alias for the wizard configuration MO was not provided."));
       return;
     }
 
@@ -75,8 +75,8 @@ public class ContainerWizardConfUtilsTests {
     } catch (RSuiteException e) {
       assertThat(
           "Error message should indicate not being able to find the configuration MO by the specified alias.",
-          e.getMessage(),
-          containsString("The alias for the wizard configuration MO was not provided."));
+          e.getMessage(), containsString(
+              "The alias for the wizard configuration MO was not provided."));
       return;
     }
 
@@ -156,8 +156,8 @@ public class ContainerWizardConfUtilsTests {
 
     Mockito.doReturn(moList).when(moService).getObjectsByAlias(user, alias);
 
-    ManagedObject mo =
-        new ContainerWizardConfUtils().getContainerWizardConfMo(user, moService, alias);
+    ManagedObject mo = new ContainerWizardConfUtils().getContainerWizardConfMo(user, moService,
+        alias);
     assertNotNull(mo);
     assertEquals(mo.getId(), "12");
   }
@@ -183,8 +183,8 @@ public class ContainerWizardConfUtilsTests {
     try {
       new ContainerWizardConfUtils().getContainerWizardConfMo(user, moService, alias);
     } catch (RSuiteException e) {
-      assertThat("Error message should indicate more than one was found with the same alias.",
-          e.getMessage(), containsString("when exactly one is required"));
+      assertThat("Error message should indicate more than one was found with the same alias.", e
+          .getMessage(), containsString("when exactly one is required"));
       return;
     }
 
@@ -197,8 +197,9 @@ public class ContainerWizardConfUtilsTests {
    * object using JAXB.
    */
   @Test
-  public void ableToUnmarshallElementToContainerWizardConf() throws ParserConfigurationException,
-      SAXException, IOException, URISyntaxException, RSuiteException, JAXBException {
+  public void ableToUnmarshallElementToContainerWizardConf()
+      throws ParserConfigurationException, SAXException, IOException, URISyntaxException,
+      RSuiteException, JAXBException {
 
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     DocumentBuilder db = dbf.newDocumentBuilder();
@@ -222,8 +223,9 @@ public class ContainerWizardConfUtilsTests {
    * objects.
    */
   @Test
-  public void getXmlMoConfs() throws ParserConfigurationException, SAXException, IOException,
-      RSuiteException, JAXBException {
+  public void getXmlMoConfs()
+      throws ParserConfigurationException, SAXException, IOException, RSuiteException,
+      JAXBException {
 
     String expectedXmlMoConfName = "Cover";
 
@@ -237,8 +239,8 @@ public class ContainerWizardConfUtilsTests {
     Element primaryContainer = doc.createElementNS(
         "http://www.rsicms.com/rsuite/ns/conf/container-wizard", "primary-container");
 
-    Element xmlMoConf =
-        doc.createElementNS("http://www.rsicms.com/rsuite/ns/conf/container-wizard", "xml-mo-conf");
+    Element xmlMoConf = doc.createElementNS("http://www.rsicms.com/rsuite/ns/conf/container-wizard",
+        "xml-mo-conf");
     xmlMoConf.setAttribute("display-name", expectedXmlMoConfName);
 
     primaryContainer.appendChild(xmlMoConf);
@@ -260,8 +262,9 @@ public class ContainerWizardConfUtilsTests {
    * objects.
    */
   @Test
-  public void getXmlMoConfsSubList() throws ParserConfigurationException, SAXException, IOException,
-      RSuiteException, JAXBException {
+  public void getXmlMoConfsSubList()
+      throws ParserConfigurationException, SAXException, IOException, RSuiteException,
+      JAXBException {
 
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     DocumentBuilder db = dbf.newDocumentBuilder();

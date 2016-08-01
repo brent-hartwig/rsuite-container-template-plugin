@@ -23,7 +23,8 @@ import com.rsicms.rsuite.utils.mo.MOUtils;
 /**
  * Provides context to the "add XML MO" execution mode of the container wizard.
  */
-public class AddXmlMoContext implements Serializable, ContainerWizardConstants {
+public class AddXmlMoContext
+    implements Serializable, ContainerWizardConstants {
 
   private static final long serialVersionUID = 1L;
 
@@ -49,13 +50,15 @@ public class AddXmlMoContext implements Serializable, ContainerWizardConstants {
    * @param args
    * @throws RSuiteException
    */
-  public AddXmlMoContext(ExecutionContext context, User user, ContainerWizardConf conf,
-      ContainerWizardConfUtils confUtils, CallArgumentList args) throws RSuiteException {
+  public AddXmlMoContext(
+      ExecutionContext context, User user, ContainerWizardConf conf,
+      ContainerWizardConfUtils confUtils, CallArgumentList args)
+      throws RSuiteException {
 
     ManagedObjectService moService = context.getManagedObjectService();
 
-    boolean insertBefore = InsertionPosition
-        .get(args.getFirstString(PARAM_NAME_INSERTION_POSITION)) == InsertionPosition.BEFORE;
+    boolean insertBefore = InsertionPosition.get(args.getFirstString(
+        PARAM_NAME_INSERTION_POSITION)) == InsertionPosition.BEFORE;
 
     this.existingMoId = args.getFirstString(PARAM_NAME_RSUITE_ID);
     if (StringUtils.isBlank(this.existingMoId)) {
@@ -103,9 +106,9 @@ public class AddXmlMoContext implements Serializable, ContainerWizardConstants {
       }
     } else {
       // When not a sub-MO, require a container, of a specific type.
-      container =
-          ContainerUtils.getContentAssemblyNodeContainer(context.getContentAssemblyService(), user,
-              args.getFirstContentObjectPath(user), conf.getPrimaryContainer().getType());
+      container = ContainerUtils.getContentAssemblyNodeContainer(context
+          .getContentAssemblyService(), user, args.getFirstContentObjectPath(user), conf
+              .getPrimaryContainer().getType());
       if (container == null) {
         throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
             "Unable to determine the container.");
@@ -122,12 +125,11 @@ public class AddXmlMoContext implements Serializable, ContainerWizardConstants {
       // Let's see what we found.
       ContentAssemblyItem siblingCaItem = insertBefore ? visitor.getAnySiblingBefore(existingMoId)
           : visitor.getAnySiblingAfter(existingMoId);
-      ManagedObjectReference siblingMoRef =
-          insertBefore ? visitor.getMoRefSiblingBefore(existingMoId)
-              : visitor.getMoRefSiblingAfter(existingMoId);
+      ManagedObjectReference siblingMoRef = insertBefore ? visitor.getMoRefSiblingBefore(
+          existingMoId) : visitor.getMoRefSiblingAfter(existingMoId);
       if (siblingMoRef != null) {
-        siblingMo =
-            context.getManagedObjectService().getManagedObject(user, siblingMoRef.getTargetId());
+        siblingMo = context.getManagedObjectService().getManagedObject(user, siblingMoRef
+            .getTargetId());
       }
 
       // Determine the ID of the object to insert before. When null, the system will be expected to
@@ -156,8 +158,8 @@ public class AddXmlMoContext implements Serializable, ContainerWizardConstants {
 
     // TODO: we also need to know the last allowed index, and get that to the section
     // type web service.
-    this.xmlMoConfIdx =
-        confUtils.getFirstAllowedXmlMoConfIndex(conf, localNameBefore, localNameAfter);
+    this.xmlMoConfIdx = confUtils.getFirstAllowedXmlMoConfIndex(conf, localNameBefore,
+        localNameAfter);
 
     if (this.xmlMoConfIdx < 0) {
       throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,

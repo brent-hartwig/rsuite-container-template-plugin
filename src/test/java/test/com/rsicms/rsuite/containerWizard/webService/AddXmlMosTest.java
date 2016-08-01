@@ -53,8 +53,9 @@ public class AddXmlMosTest {
    * Verify a sub mo is added successfully.
    */
   @Test
-  public void addAnXmlMo() throws SAXException, IOException, ParserConfigurationException,
-      RSuiteException, JAXBException, TransformerException {
+  public void addAnXmlMo()
+      throws SAXException, IOException, ParserConfigurationException, RSuiteException,
+      JAXBException, TransformerException {
 
     ContainerWizardConf conf = new ContainerWizardTestUtils().newContainerWizardConfForTests();
 
@@ -83,14 +84,14 @@ public class AddXmlMosTest {
     Mockito.when(moService.getManagedObject(Mockito.any(User.class), Mockito.anyString()))
         .thenReturn(templateMo);
     // mo needs to be checked out before inserting in MOUtils
-    Mockito.when(moService.isCheckedOut(Mockito.any(User.class), Mockito.anyString()))
-        .thenReturn(true);
+    Mockito.when(moService.isCheckedOut(Mockito.any(User.class), Mockito.anyString())).thenReturn(
+        true);
 
     ContentAssemblyService caService = Mockito.mock(ContentAssemblyService.class);
     Mockito.when(caService.attach(Mockito.any(User.class), Mockito.anyString(), Mockito.anyString(),
         Mockito.any(ObjectAttachOptions.class))).thenReturn(templateMo);
-    Mockito.when(caService.getContentAssemblyNodeContainer(user, containerId))
-        .thenReturn(nodeContainer);
+    Mockito.when(caService.getContentAssemblyNodeContainer(user, containerId)).thenReturn(
+        nodeContainer);
 
     ExecutionContext context = Mockito.mock(ExecutionContext.class);
     Mockito.when(context.getManagedObjectService()).thenReturn(moService);
@@ -137,12 +138,11 @@ public class AddXmlMosTest {
 
     // to mock the web service partially, some mock methods and some real methods
     InvokeContainerWizardWebService service = Mockito.mock(InvokeContainerWizardWebService.class);
-    Mockito
-        .when(service.loadMo(Mockito.any(Element.class), Mockito.any(ExecutionContext.class),
-            Mockito.any(User.class), Mockito.anyString(), Mockito.any(ManagedObjectAdvisor.class)))
+    Mockito.when(service.loadMo(Mockito.any(Element.class), Mockito.any(ExecutionContext.class),
+        Mockito.any(User.class), Mockito.anyString(), Mockito.any(ManagedObjectAdvisor.class)))
         .thenReturn(templateMo);
-    Mockito.when(service.getObjectSource(Mockito.any(Element.class),
-        Mockito.any(ExecutionContext.class), Mockito.anyString())).thenReturn(null);
+    Mockito.when(service.getObjectSource(Mockito.any(Element.class), Mockito.any(
+        ExecutionContext.class), Mockito.anyString())).thenReturn(null);
     Mockito.when(service.getXPathEvaluator()).thenReturn(eval);
     Mockito.doCallRealMethod().when(service).addManagedObjects(context, user, eval, false,
         containerId, fmoList, acl, null, false);

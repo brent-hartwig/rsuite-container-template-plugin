@@ -12,13 +12,16 @@ import com.reallysi.rsuite.api.security.ACL;
 /**
  * A local MO advisor used to set the ACL of MOs created by this plugin.
  */
-public class LocalManagedObjectAdvisor extends DefaultManagedObjectAdvisor {
+public class LocalManagedObjectAdvisor
+    extends DefaultManagedObjectAdvisor {
 
   private static Log log = LogFactory.getLog(LocalManagedObjectAdvisor.class);
 
   protected ACL acl;
 
-  public LocalManagedObjectAdvisor(ACL acl) throws RSuiteException {
+  public LocalManagedObjectAdvisor(
+      ACL acl)
+      throws RSuiteException {
     this.acl = acl;
   }
 

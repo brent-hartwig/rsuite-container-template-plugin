@@ -17,7 +17,8 @@ import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 import com.rsicms.rsuite.containerWizard.jaxb.Page;
 import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService;
 
-public class PageNavigation implements ContainerWizardConstants {
+public class PageNavigation
+    implements ContainerWizardConstants {
 
   private static Log defaultLog = LogFactory.getLog(InvokeContainerWizardWebService.class);
 
@@ -33,8 +34,10 @@ public class PageNavigation implements ContainerWizardConstants {
   private boolean shouldSetNextPageIdx;
   private boolean shouldSetNextSubPageIdx;
 
-  public PageNavigation(ContainerWizard wizard, ContainerWizardConf conf,
-      ContainerWizardConfUtils confUtils, CallArgumentList args, Log log) throws RSuiteException {
+  public PageNavigation(
+      ContainerWizard wizard, ContainerWizardConf conf, ContainerWizardConfUtils confUtils,
+      CallArgumentList args, Log log)
+      throws RSuiteException {
     this.wizard = wizard;
     this.conf = conf;
     this.confUtils = confUtils;
@@ -235,8 +238,8 @@ public class PageNavigation implements ContainerWizardConstants {
   public RestResult constructFormRequest(String confAlias, Page page) throws IOException {
     log.info("Constructing a form request...");
 
-    InvokeWebServiceAction serviceAction =
-        new InvokeWebServiceAction(args.getFirstString(PARAM_NAME_API_NAME));
+    InvokeWebServiceAction serviceAction = new InvokeWebServiceAction(args.getFirstString(
+        PARAM_NAME_API_NAME));
     serviceAction.setFormId(page.getFormId());
 
     serviceAction.addServiceParameter(PARAM_NAME_CONF_ALIAS, confAlias);
@@ -248,8 +251,8 @@ public class PageNavigation implements ContainerWizardConstants {
     }
     if (shouldSetNextSubPageIdx) {
       log.info("Setting next sub page index to " + getNextSubPageIdx());
-      serviceAction.addFormParameter(PARAM_NAME_NEXT_SUB_PAGE_IDX,
-          String.valueOf(getNextSubPageIdx()));
+      serviceAction.addFormParameter(PARAM_NAME_NEXT_SUB_PAGE_IDX, String.valueOf(
+          getNextSubPageIdx()));
     }
 
     // Make the web service string params also available to the form.
@@ -290,8 +293,8 @@ public class PageNavigation implements ContainerWizardConstants {
     // TODO: use shouldSetNextSubPageIdx?
     if (page.isSubPages()) {
       Integer nextSubPageOffset = getIntValue(args.getFirst(PARAM_NAME_SECTION_TYPE_IDX), 0);
-      Integer nextSubPageIdx = wizard.isInAddXmlMoMode()
-          ? wizard.getAddXmlMoContext().getXmlMoConfIdx() : getNextSubPageIdx() + nextSubPageOffset;
+      Integer nextSubPageIdx = wizard.isInAddXmlMoMode() ? wizard.getAddXmlMoContext()
+          .getXmlMoConfIdx() : getNextSubPageIdx() + nextSubPageOffset;
       log.info("Setting next sub page index to " + nextSubPageIdx + " (offset was "
           + nextSubPageOffset + ")");
       wizardPage.addProperty(PARAM_NAME_NEXT_SUB_PAGE_IDX, nextSubPageIdx);

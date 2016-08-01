@@ -27,7 +27,8 @@ import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 /**
  * Serve up a map of RSuite ACLs defined by a container wizard configuration instance.
  */
-public class AclMap extends HashMap<String, ACL> {
+public class AclMap
+    extends HashMap<String, ACL> {
 
   private static final long serialVersionUID = 1L;
 
@@ -44,8 +45,9 @@ public class AclMap extends HashMap<String, ACL> {
    * @param containerRoleNamePrefix
    * @throws RSuiteException
    */
-  public AclMap(SecurityService securityService, ContainerWizardConf conf,
-      String containerRoleNamePrefix) throws RSuiteException {
+  public AclMap(
+      SecurityService securityService, ContainerWizardConf conf, String containerRoleNamePrefix)
+      throws RSuiteException {
     super();
 
     if (conf != null && conf.getAcls() != null && conf.getAcls().getAcl() != null) {
@@ -55,9 +57,9 @@ public class AclMap extends HashMap<String, ACL> {
         Ace ace;
         for (int i = 0; i < acl.getAce().size(); i++) {
           ace = acl.getAce().get(i);
-          rsuiteAceArr[i] = securityService.constructACE(
-              getContainerRoleName(containerRoleNamePrefix, ace.getProjectRole()),
-              ace.getContentPermissions().replaceAll(StringUtils.SPACE, StringUtils.EMPTY));
+          rsuiteAceArr[i] = securityService.constructACE(getContainerRoleName(
+              containerRoleNamePrefix, ace.getProjectRole()), ace.getContentPermissions()
+                  .replaceAll(StringUtils.SPACE, StringUtils.EMPTY));
         }
         put(acl.getId(), securityService.constructACL(rsuiteAceArr));
       }

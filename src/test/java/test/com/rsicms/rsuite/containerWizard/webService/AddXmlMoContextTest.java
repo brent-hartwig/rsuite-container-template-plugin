@@ -35,7 +35,8 @@ import test.helpers.ContainerWizardTestUtils;
  * Unit tests to verify AddXmlMoContext creation.
  *
  */
-public class AddXmlMoContextTest implements ContainerWizardConstants {
+public class AddXmlMoContextTest
+    implements ContainerWizardConstants {
 
   private static String existingMoId = "12345";
   private static String parentMoId = "11111";
@@ -56,8 +57,9 @@ public class AddXmlMoContextTest implements ContainerWizardConstants {
    * It is a Sub mo.
    */
   @Before
-  public void setUp() throws SAXException, IOException, ParserConfigurationException,
-      RSuiteException, JAXBException {
+  public void setUp()
+      throws SAXException, IOException, ParserConfigurationException, RSuiteException,
+      JAXBException {
 
     conf = new ContainerWizardTestUtils().newContainerWizardConfForTests();
     confUtils = new ContainerWizardConfUtils();

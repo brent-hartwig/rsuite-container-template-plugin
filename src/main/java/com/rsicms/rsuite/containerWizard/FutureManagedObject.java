@@ -2,7 +2,8 @@ package com.rsicms.rsuite.containerWizard;
 
 import java.io.Serializable;
 
-public class FutureManagedObject implements Serializable {
+public class FutureManagedObject
+    implements Serializable {
 
   private static final long serialVersionUID = 1L;
 

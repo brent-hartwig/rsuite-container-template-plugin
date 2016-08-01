@@ -38,8 +38,8 @@ public class DataReEntryTests {
     try {
       InvokeContainerWizardWebService.performDataReEntryTest(arg, args);
     } catch (RSuiteException e) {
-      assertThat("Error message should report values do not match.", e.getMessage(),
-          containsString("values do not match"));
+      assertThat("Error message should report values do not match.", e.getMessage(), containsString(
+          "values do not match"));
       return;
     }
 

@@ -45,8 +45,8 @@ public class ContainerWizardConfUtils {
 
   public ContainerWizardConf getContainerWizardConf(ManagedObject mo)
       throws JAXBException, RSuiteException {
-    JAXBContext jaxbContext = JAXBContext.newInstance(
-        ContainerWizardConf.class.getPackage().getName(), ObjectFactory.class.getClassLoader());
+    JAXBContext jaxbContext = JAXBContext.newInstance(ContainerWizardConf.class.getPackage()
+        .getName(), ObjectFactory.class.getClassLoader());
     return (ContainerWizardConf) jaxbContext.createUnmarshaller().unmarshal(mo.getElement());
   }
 

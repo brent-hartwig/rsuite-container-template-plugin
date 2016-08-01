@@ -26,7 +26,9 @@ import com.rsicms.rsuite.utils.webService.CallArgumentUtils;
  * Supporting web service responsible for serving up information on XML templates found by a
  * specified XML template type.
  */
-public class GetTemplateInfoWebService extends BaseWebService implements ContainerWizardConstants {
+public class GetTemplateInfoWebService
+    extends BaseWebService
+    implements ContainerWizardConstants {
 
   private static Log log = LogFactory.getLog(GetTemplateInfoWebService.class);
 
@@ -48,9 +50,8 @@ public class GetTemplateInfoWebService extends BaseWebService implements Contain
 
       // Users may not have permissions to the templates; it's okay (and needed) to include those in
       // the search results.
-      List<ManagedObject> moList = ContainerWizardSearchUtils.getXmlTemplates(
-          context.getAuthorizationService().getSystemUser(), context.getSearchService(),
-          xmlTemplateType);
+      List<ManagedObject> moList = ContainerWizardSearchUtils.getXmlTemplates(context
+          .getAuthorizationService().getSystemUser(), context.getSearchService(), xmlTemplateType);
       List<Map<String, String>> responseList = new ArrayList<Map<String, String>>();
       for (ManagedObject mo : moList) {
         Map<String, String> map = new HashMap<String, String>();

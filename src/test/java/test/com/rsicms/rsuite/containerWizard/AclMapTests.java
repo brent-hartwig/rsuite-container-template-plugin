@@ -29,10 +29,12 @@ import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 public class AclMapTests {
 
   // Stub RSuite security role implementation for security service
-  public class RoleImpl implements Role {
+  public class RoleImpl
+      implements Role {
     String name = null;
 
-    public RoleImpl(String name) {
+    public RoleImpl(
+        String name) {
       this.name = name;
     }
 
@@ -48,10 +50,12 @@ public class AclMapTests {
   };
 
   // Stub RSuite security ACE implementation for security service
-  public class ACEImpl implements ACE {
+  public class ACEImpl
+      implements ACE {
     Role role = null;
 
-    public ACEImpl(Role role) {
+    public ACEImpl(
+        Role role) {
       this.role = role;
     }
 
@@ -92,10 +96,12 @@ public class AclMapTests {
   };
 
   // Stub RSuite security ACL implementation for security service
-  public class ACLImpl implements ACL {
+  public class ACLImpl
+      implements ACL {
     ACE[] aces = null;
 
-    public ACLImpl(ACE[] aces) {
+    public ACLImpl(
+        ACE[] aces) {
       this.aces = aces;
     }
 
@@ -104,7 +110,8 @@ public class AclMapTests {
       return new SimpleIterator();
     }
 
-    class SimpleIterator implements Iterator<ACE> {
+    class SimpleIterator
+        implements Iterator<ACE> {
       private int cursor = 0;
 
       @Override
@@ -191,10 +198,8 @@ public class AclMapTests {
     String roleName = AclMap.getContainerRoleName(newContainerId, containerAce.getProjectRole());
 
     SecurityService securityService = Mockito.mock(SecurityService.class);
-    Mockito
-        .when(securityService.constructACE(roleName,
-            containerAce.getContentPermissions().replaceAll(StringUtils.SPACE, StringUtils.EMPTY)))
-        .thenReturn(ace);
+    Mockito.when(securityService.constructACE(roleName, containerAce.getContentPermissions()
+        .replaceAll(StringUtils.SPACE, StringUtils.EMPTY))).thenReturn(ace);
     Mockito.when(securityService.constructACL(aces)).thenReturn(acl);
     ContainerWizardConf conf = Mockito.mock(ContainerWizardConf.class);
     Mockito.when(conf.getAcls()).thenReturn(containerAcls);
@@ -210,8 +215,8 @@ public class AclMapTests {
     List<String> resultRoleNames = aclMap.createUndefinedContainerRoles(user, roleManager);
 
     String resultRoleName = resultRoleNames.get(0);
-    String expectedRoleName = new StringBuilder(newContainerId).append(DELIM)
-        .append(containerAce.getProjectRole()).toString();
+    String expectedRoleName = new StringBuilder(newContainerId).append(DELIM).append(containerAce
+        .getProjectRole()).toString();
     assertEquals(resultRoleName, expectedRoleName);
 
     // createRole is a void method, but we can verify it's really called once in the unit test.
