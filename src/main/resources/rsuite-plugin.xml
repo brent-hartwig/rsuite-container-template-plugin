@@ -1,8 +1,5 @@
 <rsuite-plugin id="@pluginId@" version="@pluginVersion@ at @timeStamp@">
 
-    <lifecycleListener
-        type="com.rsicms.rsuite.containerWizard.lifecycle.ProjectPluginLifecycleListener" />
-
 	<extensionProvider id="rsuite.WebService">
 	
 		<staticWebService path="/WebContent" root="/@pluginId@" />
@@ -28,31 +25,6 @@
 		<scriptInclude src="@pluginId@/ContainerWiz/XmlMoConfView.js" />
 		<styleInclude src="@pluginId@/ContainerWiz/XmlMoConfView.less" />
 
-    </extensionProvider>
-
-    <extensionProvider id="rsuite.Forms">
-    
-        <datatypeDefinition name="@pluginId@-dt-loading" label="Loading" formControlType="select" baseType="string">
-          <optionListProvider
-              handler="com.rsicms.rsuite.containerWizard.datatype.LoadingOptionValuesProviderHandler"/>
-        </datatypeDefinition>
-
-        <datatypeDefinition name="@pluginId@-dt-close-and-continue" label="Choice to close or continue" formControlType="button" baseType="string">
-          <optionListProvider
-              handler="com.rsicms.rsuite.containerWizard.datatype.CloseOrContinueOptionValuesProviderHandler"/>
-        </datatypeDefinition>
-        
-        <datatypeDefinition name="@pluginId@-dt-close" label="Close" formControlType="button" baseType="string">
-          <optionListProvider
-              handler="com.rsicms.rsuite.containerWizard.datatype.CloseOnlyOptionValuesProviderHandler"/>
-        </datatypeDefinition>
-        
-        <formDefinition id="@pluginId@-form-container-contents"
-            label="Container Contents" 
-            description="Enable user to configure the contents of the new container"
-            handler="com.rsicms.rsuite.containerWizard.advisor.form.ContainerContentsFormHandler">
-        </formDefinition>
-        
     </extensionProvider>
 
 </rsuite-plugin>

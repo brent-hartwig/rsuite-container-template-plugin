@@ -230,7 +230,7 @@ public class AclMapTests {
     String actualName = AclMap.getContainerRoleName(prefix, base);
     String expectedName = new StringBuilder(prefix).append(DELIM).append(base).toString();
 
-    assertEquals(actualName, expectedName);
+    assertEquals(expectedName, actualName);
   }
 
   /**
@@ -247,7 +247,7 @@ public class AclMapTests {
     String actualName = AclMap.getContainerRoleName(prefix, base);
     String expectedName = new StringBuilder(cleanPrefix).append(DELIM).append(cleanBase).toString();
 
-    assertEquals(actualName, expectedName);
+    assertEquals(expectedName, actualName);
   }
 
 }

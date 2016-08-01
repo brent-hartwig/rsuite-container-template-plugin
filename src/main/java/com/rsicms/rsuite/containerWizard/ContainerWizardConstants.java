@@ -29,11 +29,6 @@ public interface ContainerWizardConstants {
   final String LMD_NAME_JOB_CODE = "JobCode";
   final String LMD_NAME_PRODUCT_ID = "ProductId";
 
-  final String DATA_TYPE_NAME_LOADING = "rsuite-container-wizard-plugin-dt-loading";
-  final String DATA_TYPE_NAME_CLOSE_AND_CONTINUE =
-      "rsuite-container-wizard-plugin-dt-close-and-continue";
-  final String DATA_TYPE_NAME_CLOSE_ONLY = "rsuite-container-wizard-plugin-dt-close";
-
   /**
    * The suffix of the container role name to grant to the user that creates the container.
    * 

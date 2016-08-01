@@ -72,6 +72,10 @@ dependencies {
 		transitive=false
 	}
 	
+	testRuntime ('org.json:org.json:2.0') {
+		transitive=false
+	}
+	
 	includeInJar ('rsuite-community:rsuite-conf-utils-lib:0.0.1') {
 		transitive=false
 	}
