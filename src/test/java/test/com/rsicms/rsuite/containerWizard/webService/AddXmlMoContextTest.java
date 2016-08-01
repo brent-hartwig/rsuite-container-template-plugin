@@ -33,7 +33,6 @@ import test.helpers.ContainerWizardTestUtils;
 
 /**
  * Unit tests to verify AddXmlMoContext creation.
- *
  */
 public class AddXmlMoContextTest
     implements ContainerWizardConstants {
@@ -129,8 +128,7 @@ public class AddXmlMoContextTest
     AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args);
 
     // based on sample configuration, section index for discovery is 3
-    int expectedXmlMoConfIdx = 3;
-    assertEquals(addXmlMoContext.getXmlMoConfIdx(), expectedXmlMoConfIdx);
+    assertEquals(3, addXmlMoContext.getXmlMoConfIdx());
 
   }
 
@@ -155,8 +153,7 @@ public class AddXmlMoContextTest
     AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args);
 
     // based on sample configuration, section index for discovery is 3
-    int expectedXmlMoConfIdx = 3;
-    assertEquals(addXmlMoContext.getXmlMoConfIdx(), expectedXmlMoConfIdx);
+    assertEquals(3, addXmlMoContext.getXmlMoConfIdx());
 
   }
 
@@ -178,9 +175,27 @@ public class AddXmlMoContextTest
     argList.add(arg2);
     CallArgumentList args = new CallArgumentList(argList);
 
-    @SuppressWarnings("unused")
-    AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args);
+    new AddXmlMoContext(context, user, conf, confUtils, args);
 
   }
 
+
+  @Test
+  public void onlyCreateTopLevelMos() throws RSuiteException {
+    // valid user
+    SecurityService secService = Mockito.mock(SecurityService.class);
+    Mockito.when(secService.hasEditPermission(user, parentMoId)).thenReturn(true);
+    Mockito.when(context.getSecurityService()).thenReturn(secService);
+
+    CallArgument arg1 = new CallArgument(PARAM_NAME_RSUITE_ID, existingMoId);
+    CallArgument arg2 = new CallArgument(PARAM_NAME_INSERTION_POSITION, "AFTER");
+    List<CallArgument> argList = new ArrayList<CallArgument>();
+    argList.add(arg1);
+    argList.add(arg2);
+    CallArgumentList args = new CallArgumentList(argList);
+
+    AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args);
+
+
+  }
 }

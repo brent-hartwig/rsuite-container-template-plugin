@@ -31,6 +31,7 @@ public class GetTemplateInfoWebService
     implements ContainerWizardConstants {
 
   private static Log log = LogFactory.getLog(GetTemplateInfoWebService.class);
+  private MOUtils moUtils = new MOUtils();
 
   @Override
   public RemoteApiResult execute(RemoteApiExecutionContext context, CallArgumentList args)
@@ -82,7 +83,7 @@ public class GetTemplateInfoWebService
    * @return Either the MO's display name, it's ID, or a truncated version.
    */
   public String getDisplayName(ManagedObject mo) {
-    String name = MOUtils.getDisplayNameQuietly(mo);
+    String name = moUtils.getDisplayNameQuietly(mo);
     if (StringUtils.isBlank(name)) {
       return mo.getId();
     } else if (name.length() > 30) {

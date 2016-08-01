@@ -2,6 +2,8 @@ package test.com.rsicms.rsuite.containerWizard.webService;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ import com.reallysi.rsuite.service.ManagedObjectService;
 import com.reallysi.rsuite.service.SecurityService;
 import com.rsicms.rsuite.containerWizard.AclMap;
 import com.rsicms.rsuite.containerWizard.ContainerWizard;
+import com.rsicms.rsuite.containerWizard.ContainerWizardConfUtils;
 import com.rsicms.rsuite.containerWizard.FutureManagedObject;
 import com.rsicms.rsuite.containerWizard.jaxb.Ace;
 import com.rsicms.rsuite.containerWizard.jaxb.Acl;
@@ -155,14 +158,14 @@ public class CreatePrimaryContainerTest {
     Mockito.when(context.getAuthorizationService()).thenReturn(authorizationService);
     Mockito.when(context.getSecurityService()).thenReturn(securityService);
 
-    InvokeContainerWizardWebService invokeService = Mockito.mock(
+    InvokeContainerWizardWebService webService = Mockito.mock(
         InvokeContainerWizardWebService.class);
-    Mockito.when(invokeService.getXPathEvaluator()).thenReturn(eval);
-    Mockito.doCallRealMethod().when(invokeService).createPrimaryContainer(context, session, conf,
+    Mockito.when(webService.getXPathEvaluator()).thenReturn(eval);
+    Mockito.doCallRealMethod().when(webService).createPrimaryContainer(context, session, conf,
         wizard, parentId);
 
-    ContentAssemblyNodeContainer resultPrimaryContainer = invokeService.createPrimaryContainer(
-        context, session, conf, wizard, parentId);
+    ContentAssemblyNodeContainer resultPrimaryContainer = webService.createPrimaryContainer(context,
+        session, conf, wizard, parentId);
 
     // primary container is created
     assertNotNull("Created primary container is null.", resultPrimaryContainer);
@@ -170,6 +173,65 @@ public class CreatePrimaryContainerTest {
     // primary container ID is expected as 22222
     assertEquals(expectedId, resultPrimaryContainer.getId());
 
+    // Verify particular methods were invoked.
+    Mockito.verify(webService).getCaCreateOptions(any(PrimaryContainer.class), any(
+        ContainerWizard.class));
+    Mockito.verify(caService).createContentAssembly(Mockito.any(User.class), Mockito.anyString(),
+        Mockito.anyString(), Mockito.any(ContentAssemblyCreateOptions.class));
+    Mockito.verify(webService).grantRoles(any(AuthorizationService.class), any(User.class), any(
+        AclMap.class), any(String.class));
+    Mockito.verify(session).getUser();
+    Mockito.verify(securityService).setACL(any(User.class), any(String.class), any(ACL.class));
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void createPrimaryContainerAddsContainersAndXmlMos()
+      throws SAXException, IOException, ParserConfigurationException, RSuiteException,
+      JAXBException, TransformerException {
+
+    ContentAssembly container = Mockito.mock(ContentAssembly.class);
+    Mockito.when(container.getId()).thenReturn("248578029345");
+
+    SecurityService securityService = Mockito.mock(SecurityService.class);
+    Mockito.when(securityService.constructACE(any(String.class), any(String.class))).thenReturn(
+        Mockito.mock(ACE.class));
+
+    ContentAssemblyService caService = Mockito.mock(ContentAssemblyService.class);
+    Mockito.when(caService.createContentAssembly(any(User.class), any(String.class), any(
+        String.class), any(ContentAssemblyCreateOptions.class))).thenReturn(container);
+
+    AuthorizationService authService = Mockito.mock(AuthorizationService.class);
+    Mockito.when(authService.getRoleManager()).thenReturn(Mockito.mock(RoleManager.class));
+
+    ExecutionContext context = Mockito.mock(ExecutionContext.class);
+    Mockito.when(context.getSecurityService()).thenReturn(securityService);
+    Mockito.when(context.getContentAssemblyService()).thenReturn(caService);
+    Mockito.when(context.getAuthorizationService()).thenReturn(authService);
+
+    Session session = Mockito.mock(Session.class);
+
+    ContainerWizardConf conf = new ContainerWizardTestUtils().newContainerWizardConfForTests();
+
+    ContainerWizard wizard = Mockito.mock(ContainerWizard.class);
+    String newContainerName = "Unit Test";
+    Mockito.when(wizard.getContainerName()).thenReturn(newContainerName);
+
+    InvokeContainerWizardWebService webService = Mockito.mock(
+        InvokeContainerWizardWebService.class);
+    String parentId = "1234";
+    Mockito.doCallRealMethod().when(webService).createPrimaryContainer(context, session, conf,
+        wizard, parentId);
+
+    webService.createPrimaryContainer(context, session, conf, wizard, parentId);
+
+    ContainerWizardConfUtils confUtils = new ContainerWizardConfUtils();
+    Mockito.verify(webService, Mockito.times(confUtils.getContainerConfCount(conf))).addContainer(
+        any(ContentAssemblyService.class), any(User.class), any(ContentAssemblyNodeContainer.class),
+        any(ContainerConf.class), any(AclMap.class), any(String.class));
+    Mockito.verify(webService, Mockito.times(confUtils.getXmlMoConfCount(conf))).addManagedObjects(
+        any(ExecutionContext.class), any(User.class), any(XPathEvaluator.class), eq(true), any(
+            String.class), any(List.class), any(ACL.class), any(String.class), eq(false));
   }
 
   /**

@@ -113,7 +113,7 @@ public class InvokeContainerWizardWebServiceTest
     service.retainUserInput(searchService, user, wizard, args, 0);
 
     List<FutureManagedObject> futureMoList = wizard.getFutureManagedObjectListByKey("0");
-    assertEquals(futureMoList.get(0).getTemplateMoId(), expectedTemplateMoId);
+    assertEquals(expectedTemplateMoId, futureMoList.get(0).getTemplateMoId());
 
   }
 

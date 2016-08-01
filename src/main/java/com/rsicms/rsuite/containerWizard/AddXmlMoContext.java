@@ -31,6 +31,7 @@ public class AddXmlMoContext
   @SuppressWarnings("unused")
   private static Log log = LogFactory.getLog(AddXmlMoContext.class);
 
+  private MOUtils moUtils;
   private String containerId;
   private String parentMoId;
   private boolean checkInParentMo;
@@ -38,6 +39,10 @@ public class AddXmlMoContext
   private String insertBeforeId;
   private String insertAfterId;
   private int xmlMoConfIdx;
+
+  private AddXmlMoContext() {
+    this.moUtils = new MOUtils();
+  }
 
   /**
    * Construct an instance, inspecting the parameters in order to make all getter methods
@@ -55,6 +60,11 @@ public class AddXmlMoContext
       ContainerWizardConfUtils confUtils, CallArgumentList args)
       throws RSuiteException {
 
+    this();
+
+    // For testing purposes, avoid using member var directly.
+    MOUtils moUtils = getMOUtils();
+
     ManagedObjectService moService = context.getManagedObjectService();
 
     boolean insertBefore = InsertionPosition.get(args.getFirstString(
@@ -71,7 +81,7 @@ public class AddXmlMoContext
     String existingMoLocalName = existingMo.getLocalName();
     String localNameBefore = null;
     String localNameAfter = null;
-    boolean isSubMo = MOUtils.isSubMo(moService, user, existingMo);
+    boolean isSubMo = moUtils.isSubMo(moService, user, existingMo);
     ManagedObject parentMo = null;
     ManagedObject siblingMo = null;
     if (isSubMo) {
@@ -83,13 +93,13 @@ public class AddXmlMoContext
 
       // Require check out, and remember if we should check it in at the end.
       this.checkInParentMo = !user.getUserId().equals(parentMo.getCheckedOutUser());
-      MOUtils.checkout(context, user, parentMo.getId());
+      moUtils.checkout(context, user, parentMo.getId());
 
       if (insertBefore) {
         this.insertBeforeId = existingMo.getId();
         localNameAfter = existingMoLocalName;
         if (!existingMo.isFirstChild()) {
-          siblingMo = MOUtils.getPrecedingSubMo(moService, user, existingMo);
+          siblingMo = moUtils.getPrecedingSubMo(moService, user, existingMo);
           if (siblingMo != null) {
             localNameBefore = siblingMo.getLocalName();
           }
@@ -98,7 +108,7 @@ public class AddXmlMoContext
         this.insertAfterId = existingMo.getId();
         localNameBefore = existingMoLocalName;
         if (!existingMo.isLastChild()) {
-          siblingMo = MOUtils.getFollowingSubMo(moService, user, existingMo);
+          siblingMo = moUtils.getFollowingSubMo(moService, user, existingMo);
           if (siblingMo != null) {
             localNameAfter = siblingMo.getLocalName();
           }
@@ -169,6 +179,15 @@ public class AddXmlMoContext
   }
 
   /**
+   * Get the instance of MOUtils this class is to use.
+   * 
+   * @return The instance of MOUtils this class is to use.
+   */
+  public MOUtils getMOUtils() {
+    return moUtils;
+  }
+
+  /**
    * Determine if this user is authorized to add content within the specified object.
    * 
    * @param context
@@ -219,7 +238,7 @@ public class AddXmlMoContext
     if (isNotAuthorized(context, user, id, args)) {
       ManagedObject mo = context.getManagedObjectService().getManagedObject(user, id);
       throw new RSuiteException("The user account with ID '" + user.getUserId()
-          + "' is not authorized to add content within '" + MOUtils.getDisplayNameQuietly(mo)
+          + "' is not authorized to add content within '" + getMOUtils().getDisplayNameQuietly(mo)
           + "' (ID: " + mo.getId() + ").");
     }
   }

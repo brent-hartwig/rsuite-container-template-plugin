@@ -121,6 +121,7 @@ public class InvokeContainerWizardWebService
   protected String opName;
   protected User systemUser;
   protected XPathEvaluator eval;
+  protected MOUtils moUtils;
 
   @Override
   public RemoteApiResult execute(RemoteApiExecutionContext context, CallArgumentList args)
@@ -139,6 +140,7 @@ public class InvokeContainerWizardWebService
       this.systemUser = context.getAuthorizationService().getSystemUser();
       this.eval = new XPathUtils().getXPathEvaluator(context.getXmlApiManager(),
           RSuiteNamespaces.MetaDataNS);
+      this.moUtils = new MOUtils();
 
       // Determine the execution mode (e.g., create container or add XML MO) and the
       // insertion position, which is only applicable to one mode.
@@ -209,6 +211,15 @@ public class InvokeContainerWizardWebService
    */
   public XPathEvaluator getXPathEvaluator() {
     return eval;
+  }
+
+  /**
+   * Get the instance of MOUtils used by this web service.
+   * 
+   * @return The instance of MOUtils used by this web service.
+   */
+  public MOUtils getMOUtils() {
+    return moUtils;
   }
 
   /**
@@ -489,8 +500,8 @@ public class InvokeContainerWizardWebService
     log.info("Created primary container with ID " + primaryContainer.getId());
 
     // Construct AclMap using new container's ID, and create new roles.
-    AclMap aclMap = new AclMap(context.getSecurityService(), conf, AclMap
-        .getContainerRoleNamePrefix(primaryContainer));
+    AclMap aclMap = new AclMap(securityService, conf, AclMap.getContainerRoleNamePrefix(
+        primaryContainer));
     aclMap.createUndefinedContainerRoles(systemUser, context.getAuthorizationService()
         .getRoleManager());
 
@@ -684,7 +695,7 @@ public class InvokeContainerWizardWebService
       if (!createTopLevelMos && newSubMoNodeList.size() > 0) {
         String xpath = new StringBuilder("//*[@").append(rsuiteIdAttName).append("='").append(
             adjacentSubMoId).append("']").toString();
-        MOUtils.addNodesIntoExistingMo(moService, user, parentId, xpath, insertBefore, eval,
+        getMOUtils().addNodesIntoExistingMo(moService, user, parentId, xpath, insertBefore, eval,
             newSubMoNodeList, true, context.getXmlApiManager().getTransformer((File) null));
       }
     }
@@ -726,7 +737,7 @@ public class InvokeContainerWizardWebService
    */
   public ManagedObject loadMo(Element elem, ExecutionContext context, User user, String filename,
       ManagedObjectAdvisor moAdvisor) throws RSuiteException, IOException, TransformerException {
-    return MOUtils.load(context, user, filename, getObjectSource(elem, context, filename),
+    return getMOUtils().load(context, user, filename, getObjectSource(elem, context, filename),
         moAdvisor);
   }
 
@@ -744,8 +755,8 @@ public class InvokeContainerWizardWebService
   public ObjectSource getObjectSource(Element elem, ExecutionContext context, String filename)
       throws IOException, RSuiteException, TransformerException {
     Transformer transformer = context.getXmlApiManager().getTransformer((File) null);
-    return MOUtils.getObjectSource(context, filename, DomUtils.serializeToString(transformer, elem,
-        true, true, DEFAULT_CHARACTER_ENCODING), DEFAULT_CHARACTER_ENCODING);
+    return getMOUtils().getObjectSource(context, filename, DomUtils.serializeToString(transformer,
+        elem, true, true, DEFAULT_CHARACTER_ENCODING), DEFAULT_CHARACTER_ENCODING);
   }
 
   public ContentAssemblyCreateOptions getCaCreateOptions(PrimaryContainer pcConf,

@@ -39,6 +39,7 @@ import com.rsicms.rsuite.containerWizard.ContainerWizard;
 import com.rsicms.rsuite.containerWizard.FutureManagedObject;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 import com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService;
+import com.rsicms.rsuite.utils.mo.MOUtils;
 
 import test.helpers.ContainerWizardTestUtils;
 
@@ -144,6 +145,7 @@ public class AddXmlMosTest {
     Mockito.when(service.getObjectSource(Mockito.any(Element.class), Mockito.any(
         ExecutionContext.class), Mockito.anyString())).thenReturn(null);
     Mockito.when(service.getXPathEvaluator()).thenReturn(eval);
+    Mockito.when(service.getMOUtils()).thenReturn(new MOUtils());
     Mockito.doCallRealMethod().when(service).addManagedObjects(context, user, eval, false,
         containerId, fmoList, acl, null, false);
     Mockito.doCallRealMethod().when(service).addXmlMos(context, user, conf, wizard);

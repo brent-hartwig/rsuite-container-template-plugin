@@ -12,6 +12,7 @@ import com.reallysi.rsuite.api.ManagedObject;
 import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.User;
 import com.reallysi.rsuite.service.ManagedObjectService;
+import com.rsicms.rsuite.containerWizard.jaxb.ContainerConf;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 import com.rsicms.rsuite.containerWizard.jaxb.ObjectFactory;
 import com.rsicms.rsuite.containerWizard.jaxb.XmlMoConf;
@@ -51,6 +52,26 @@ public class ContainerWizardConfUtils {
   }
 
   /**
+   * Get the number of container configurations in the provided wizard configuration.
+   * 
+   * @param conf
+   * @return The number of container configurations in the provided wizard configuration.
+   */
+  public int getContainerConfCount(ContainerWizardConf conf) {
+    return getContainerConfList(conf).size();
+  }
+
+  public List<ContainerConf> getContainerConfList(ContainerWizardConf conf) {
+    List<ContainerConf> containerConfList = new ArrayList<ContainerConf>();
+    for (Object o : conf.getPrimaryContainer().getContainerConfOrXmlMoConf()) {
+      if (o instanceof ContainerConf) {
+        containerConfList.add((ContainerConf) o);
+      }
+    }
+    return containerConfList;
+  }
+
+  /**
    * Get the number of XML MO configurations in the provided wizard configuration.
    * 
    * @param conf
@@ -61,13 +82,13 @@ public class ContainerWizardConfUtils {
   }
 
   public List<XmlMoConf> getXmlMoConfList(ContainerWizardConf conf) {
-    List<XmlMoConf> XmlMoConfList = new ArrayList<XmlMoConf>();
+    List<XmlMoConf> xmlMoConfList = new ArrayList<XmlMoConf>();
     for (Object o : conf.getPrimaryContainer().getContainerConfOrXmlMoConf()) {
       if (o instanceof XmlMoConf) {
-        XmlMoConfList.add((XmlMoConf) o);
+        xmlMoConfList.add((XmlMoConf) o);
       }
     }
-    return XmlMoConfList;
+    return xmlMoConfList;
   }
 
   /**
