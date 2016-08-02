@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -199,7 +199,7 @@ public class AclMapTests {
 
     SecurityService securityService = Mockito.mock(SecurityService.class);
     Mockito.when(securityService.constructACE(roleName, containerAce.getContentPermissions()
-        .replaceAll(StringUtils.SPACE, StringUtils.EMPTY))).thenReturn(ace);
+        .replaceAll(" ", StringUtils.EMPTY))).thenReturn(ace);
     Mockito.when(securityService.constructACL(aces)).thenReturn(acl);
     ContainerWizardConf conf = Mockito.mock(ContainerWizardConf.class);
     Mockito.when(conf.getAcls()).thenReturn(containerAcls);

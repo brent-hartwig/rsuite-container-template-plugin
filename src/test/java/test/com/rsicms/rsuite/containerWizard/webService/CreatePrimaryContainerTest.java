@@ -15,7 +15,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.w3c.dom.Element;
@@ -270,7 +270,7 @@ public class CreatePrimaryContainerTest {
         ACE rACE = aclMapTests.new ACEImpl(aclMapTests.new RoleImpl(roleName));
 
         Mockito.when(securityService.constructACE(roleName, aAce.getContentPermissions().replace(
-            StringUtils.SPACE, StringUtils.EMPTY))).thenReturn(rACE);
+            " ", StringUtils.EMPTY))).thenReturn(rACE);
 
         builtACEs[index][i] = rACE;
       }

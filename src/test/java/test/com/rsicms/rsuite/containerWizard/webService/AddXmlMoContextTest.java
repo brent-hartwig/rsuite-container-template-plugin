@@ -28,6 +28,7 @@ import com.rsicms.rsuite.containerWizard.AddXmlMoContext;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConfUtils;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConstants;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
+import com.rsicms.rsuite.utils.mo.MOUtils;
 
 import test.helpers.ContainerWizardTestUtils;
 
@@ -125,7 +126,9 @@ public class AddXmlMoContextTest
     argList.add(arg2);
     CallArgumentList args = new CallArgumentList(argList);
 
-    AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args);
+    MOUtils moUtils = Mockito.mock(MOUtils.class);
+    AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args,
+        moUtils);
 
     // based on sample configuration, section index for discovery is 3
     assertEquals(3, addXmlMoContext.getXmlMoConfIdx());
@@ -150,7 +153,9 @@ public class AddXmlMoContextTest
     argList.add(arg2);
     CallArgumentList args = new CallArgumentList(argList);
 
-    AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args);
+    MOUtils moUtils = Mockito.mock(MOUtils.class);
+    AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args,
+        moUtils);
 
     // based on sample configuration, section index for discovery is 3
     assertEquals(3, addXmlMoContext.getXmlMoConfIdx());
@@ -175,7 +180,8 @@ public class AddXmlMoContextTest
     argList.add(arg2);
     CallArgumentList args = new CallArgumentList(argList);
 
-    new AddXmlMoContext(context, user, conf, confUtils, args);
+    MOUtils moUtils = Mockito.mock(MOUtils.class);
+    new AddXmlMoContext(context, user, conf, confUtils, args, moUtils);
 
   }
 
@@ -194,7 +200,9 @@ public class AddXmlMoContextTest
     argList.add(arg2);
     CallArgumentList args = new CallArgumentList(argList);
 
-    AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args);
+    MOUtils moUtils = Mockito.mock(MOUtils.class);
+    AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args,
+        moUtils);
 
 
   }

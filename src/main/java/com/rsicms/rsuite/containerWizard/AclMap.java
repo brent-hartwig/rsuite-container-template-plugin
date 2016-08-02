@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -35,6 +35,7 @@ public class AclMap
   private static final Log log = LogFactory.getLog(AclMap.class);
 
   protected static final String UNDERSCORE = "_";
+  protected static final String SPACE = " ";
 
   /**
    * Construct and populate an ACL map from the provided container wizard configuration and the
@@ -59,7 +60,7 @@ public class AclMap
           ace = acl.getAce().get(i);
           rsuiteAceArr[i] = securityService.constructACE(getContainerRoleName(
               containerRoleNamePrefix, ace.getProjectRole()), ace.getContentPermissions()
-                  .replaceAll(StringUtils.SPACE, StringUtils.EMPTY));
+                  .replaceAll(SPACE, StringUtils.EMPTY));
         }
         put(acl.getId(), securityService.constructACL(rsuiteAceArr));
       }

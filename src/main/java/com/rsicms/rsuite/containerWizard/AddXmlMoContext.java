@@ -2,7 +2,7 @@ package com.rsicms.rsuite.containerWizard;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -31,7 +31,6 @@ public class AddXmlMoContext
   @SuppressWarnings("unused")
   private static Log log = LogFactory.getLog(AddXmlMoContext.class);
 
-  private MOUtils moUtils;
   private String containerId;
   private String parentMoId;
   private boolean checkInParentMo;
@@ -39,10 +38,6 @@ public class AddXmlMoContext
   private String insertBeforeId;
   private String insertAfterId;
   private int xmlMoConfIdx;
-
-  private AddXmlMoContext() {
-    this.moUtils = new MOUtils();
-  }
 
   /**
    * Construct an instance, inspecting the parameters in order to make all getter methods
@@ -57,13 +52,8 @@ public class AddXmlMoContext
    */
   public AddXmlMoContext(
       ExecutionContext context, User user, ContainerWizardConf conf,
-      ContainerWizardConfUtils confUtils, CallArgumentList args)
+      ContainerWizardConfUtils confUtils, CallArgumentList args, MOUtils moUtils)
       throws RSuiteException {
-
-    this();
-
-    // For testing purposes, avoid using member var directly.
-    MOUtils moUtils = getMOUtils();
 
     ManagedObjectService moService = context.getManagedObjectService();
 
@@ -89,7 +79,7 @@ public class AddXmlMoContext
       this.parentMoId = parentMo.getId();
 
       // Verify user may add content in the parent MO.
-      throwIfNotAuthorized(context, user, parentMo.getId(), args);
+      throwIfNotAuthorized(context, user, parentMo.getId(), args, moUtils);
 
       // Require check out, and remember if we should check it in at the end.
       this.checkInParentMo = !user.getUserId().equals(parentMo.getCheckedOutUser());
@@ -126,7 +116,7 @@ public class AddXmlMoContext
       this.containerId = container.getId();
 
       // Verify user may add content in this container.
-      throwIfNotAuthorized(context, user, container.getId(), args);
+      throwIfNotAuthorized(context, user, container.getId(), args, moUtils);
 
       // Visit container in order to answer some questions.
       ChildrenInfoContainerVisitor visitor = new ChildrenInfoContainerVisitor(context, user);
@@ -179,15 +169,6 @@ public class AddXmlMoContext
   }
 
   /**
-   * Get the instance of MOUtils this class is to use.
-   * 
-   * @return The instance of MOUtils this class is to use.
-   */
-  public MOUtils getMOUtils() {
-    return moUtils;
-  }
-
-  /**
    * Determine if this user is authorized to add content within the specified object.
    * 
    * @param context
@@ -234,11 +215,11 @@ public class AddXmlMoContext
    *         exception.
    */
   public void throwIfNotAuthorized(ExecutionContext context, User user, String id,
-      CallArgumentList args) throws RSuiteException {
+      CallArgumentList args, MOUtils moUtils) throws RSuiteException {
     if (isNotAuthorized(context, user, id, args)) {
       ManagedObject mo = context.getManagedObjectService().getManagedObject(user, id);
       throw new RSuiteException("The user account with ID '" + user.getUserId()
-          + "' is not authorized to add content within '" + getMOUtils().getDisplayNameQuietly(mo)
+          + "' is not authorized to add content within '" + moUtils.getDisplayNameQuietly(mo)
           + "' (ID: " + mo.getId() + ").");
     }
   }

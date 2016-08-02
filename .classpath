@@ -7,16 +7,16 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="lib" path="java/lib/rsuite-web-services-lib-0.0.1.jar" sourcepath="/rsuite-web-services-lib"/>
 	<classpathentry kind="lib" path="java/lib/commons-io-1.4.jar"/>
-	<classpathentry kind="lib" path="java/lib/commons-lang-3.3.1.jar"/>
 	<classpathentry kind="lib" path="java/lib/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="java/lib/rsuite-message-props-lib-0.0.1.jar"/>
 	<classpathentry kind="lib" path="java/lib/rsuite-operation-lib-0.0.1.jar" sourcepath="/rsuite-operation-lib"/>
-	<classpathentry kind="lib" path="java/lib/rsuite-xml-utils-lib-0.0.1.jar" sourcepath="/rsuite-xml-utils-lib"/>
 	<classpathentry kind="lib" path="java/lib/rsuite-search-utils-lib-0.0.1.jar" sourcepath="/rsuite-search-utils-lib"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="java/lib/mockito-all-1.9.5.jar"/>
 	<classpathentry kind="lib" path="java/lib/rsuite-api-4.1.14.jar"/>
 	<classpathentry kind="lib" path="java/lib/rsuite-container-utils-lib-0.0.1.jar" sourcepath="/rsuite-container-utils-lib"/>
 	<classpathentry kind="lib" path="java/lib/rsuite-mo-utils-lib-1.0.1.jar"/>
+	<classpathentry kind="lib" path="java/lib/commons-lang-2.4.jar"/>
+	<classpathentry kind="lib" path="java/lib/rsuite-xml-utils-lib-1.0.0.jar"/>
 	<classpathentry kind="output" path="target"/>
 </classpath>

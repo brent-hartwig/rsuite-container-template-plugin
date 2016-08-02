@@ -9,7 +9,7 @@ import java.util.List;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
@@ -159,7 +159,8 @@ public class InvokeContainerWizardWebService
       this.opName = wizard.getOperationName();
 
       if (ExecutionMode.ADD_XML_MO == mode && !wizard.isInAddXmlMoMode()) {
-        wizard.setAddXmlMoContext(new AddXmlMoContext(context, user, conf, confUtils, args));
+        wizard.setAddXmlMoContext(new AddXmlMoContext(context, user, conf, confUtils, args,
+            moUtils));
       }
 
       // Get our page navigation object.
