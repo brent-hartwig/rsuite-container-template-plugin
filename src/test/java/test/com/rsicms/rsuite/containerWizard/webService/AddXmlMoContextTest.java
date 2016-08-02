@@ -1,6 +1,7 @@
 package test.com.rsicms.rsuite.containerWizard.webService;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -127,6 +128,8 @@ public class AddXmlMoContextTest
     CallArgumentList args = new CallArgumentList(argList);
 
     MOUtils moUtils = Mockito.mock(MOUtils.class);
+    Mockito.when(moUtils.isSubMo(any(ManagedObjectService.class), any(User.class), any(
+        ManagedObject.class))).thenReturn(true);
     AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args,
         moUtils);
 
@@ -154,6 +157,8 @@ public class AddXmlMoContextTest
     CallArgumentList args = new CallArgumentList(argList);
 
     MOUtils moUtils = Mockito.mock(MOUtils.class);
+    Mockito.when(moUtils.isSubMo(any(ManagedObjectService.class), any(User.class), any(
+        ManagedObject.class))).thenReturn(true);
     AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args,
         moUtils);
 
@@ -181,6 +186,8 @@ public class AddXmlMoContextTest
     CallArgumentList args = new CallArgumentList(argList);
 
     MOUtils moUtils = Mockito.mock(MOUtils.class);
+    Mockito.when(moUtils.isSubMo(any(ManagedObjectService.class), any(User.class), any(
+        ManagedObject.class))).thenReturn(true);
     new AddXmlMoContext(context, user, conf, confUtils, args, moUtils);
 
   }
