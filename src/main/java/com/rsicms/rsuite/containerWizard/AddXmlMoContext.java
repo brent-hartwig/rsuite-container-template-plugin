@@ -48,11 +48,14 @@ public class AddXmlMoContext
    * @param conf
    * @param confUtils
    * @param args
+   * @param moUtils
+   * @param containerUtils
    * @throws RSuiteException
    */
   public AddXmlMoContext(
       ExecutionContext context, User user, ContainerWizardConf conf,
-      ContainerWizardConfUtils confUtils, CallArgumentList args, MOUtils moUtils)
+      ContainerWizardConfUtils confUtils, CallArgumentList args, MOUtils moUtils,
+      ContainerUtils containerUtils)
       throws RSuiteException {
 
     ManagedObjectService moService = context.getManagedObjectService();
@@ -106,7 +109,7 @@ public class AddXmlMoContext
       }
     } else {
       // When not a sub-MO, require a container, of a specific type.
-      container = ContainerUtils.getContentAssemblyNodeContainer(context
+      container = containerUtils.getContentAssemblyNodeContainer(context
           .getContentAssemblyService(), user, args.getFirstContentObjectPath(user), conf
               .getPrimaryContainer().getType());
       if (container == null) {
@@ -128,8 +131,7 @@ public class AddXmlMoContext
       ManagedObjectReference siblingMoRef = insertBefore ? visitor.getMoRefSiblingBefore(
           existingMoId) : visitor.getMoRefSiblingAfter(existingMoId);
       if (siblingMoRef != null) {
-        siblingMo = context.getManagedObjectService().getManagedObject(user, siblingMoRef
-            .getTargetId());
+        siblingMo = moService.getManagedObject(user, siblingMoRef.getTargetId());
       }
 
       // Determine the ID of the object to insert before. When null, the system will be expected to

@@ -1,6 +1,8 @@
 package test.com.rsicms.rsuite.containerWizard.webService;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 
 import java.io.IOException;
@@ -15,20 +17,24 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.xml.sax.SAXException;
 
+import com.reallysi.rsuite.api.ContentAssemblyNodeContainer;
 import com.reallysi.rsuite.api.ManagedObject;
 import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.User;
 import com.reallysi.rsuite.api.browse.BrowseInfo;
+import com.reallysi.rsuite.api.content.ContentObjectPath;
 import com.reallysi.rsuite.api.extensions.ExecutionContext;
 import com.reallysi.rsuite.api.remoteapi.CallArgument;
 import com.reallysi.rsuite.api.remoteapi.CallArgumentList;
 import com.reallysi.rsuite.service.AuthorizationService;
+import com.reallysi.rsuite.service.ContentAssemblyService;
 import com.reallysi.rsuite.service.ManagedObjectService;
 import com.reallysi.rsuite.service.SecurityService;
 import com.rsicms.rsuite.containerWizard.AddXmlMoContext;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConfUtils;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConstants;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
+import com.rsicms.rsuite.utils.container.ContainerUtils;
 import com.rsicms.rsuite.utils.mo.MOUtils;
 
 import test.helpers.ContainerWizardTestUtils;
@@ -61,6 +67,8 @@ public class AddXmlMoContextTest
   public void setUp()
       throws SAXException, IOException, ParserConfigurationException, RSuiteException,
       JAXBException {
+
+    // FIXME: Doesn't seem thread safe, especially if a unit test can modify these variables.
 
     conf = new ContainerWizardTestUtils().newContainerWizardConfForTests();
     confUtils = new ContainerWizardConfUtils();
@@ -130,8 +138,11 @@ public class AddXmlMoContextTest
     MOUtils moUtils = Mockito.mock(MOUtils.class);
     Mockito.when(moUtils.isSubMo(any(ManagedObjectService.class), any(User.class), any(
         ManagedObject.class))).thenReturn(true);
+
+    ContainerUtils containerUtils = Mockito.mock(ContainerUtils.class);
+
     AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args,
-        moUtils);
+        moUtils, containerUtils);
 
     // based on sample configuration, section index for discovery is 3
     assertEquals(3, addXmlMoContext.getXmlMoConfIdx());
@@ -159,8 +170,11 @@ public class AddXmlMoContextTest
     MOUtils moUtils = Mockito.mock(MOUtils.class);
     Mockito.when(moUtils.isSubMo(any(ManagedObjectService.class), any(User.class), any(
         ManagedObject.class))).thenReturn(true);
+
+    ContainerUtils containerUtils = Mockito.mock(ContainerUtils.class);
+
     AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args,
-        moUtils);
+        moUtils, containerUtils);
 
     // based on sample configuration, section index for discovery is 3
     assertEquals(3, addXmlMoContext.getXmlMoConfIdx());
@@ -188,28 +202,58 @@ public class AddXmlMoContextTest
     MOUtils moUtils = Mockito.mock(MOUtils.class);
     Mockito.when(moUtils.isSubMo(any(ManagedObjectService.class), any(User.class), any(
         ManagedObject.class))).thenReturn(true);
-    new AddXmlMoContext(context, user, conf, confUtils, args, moUtils);
+
+    ContainerUtils containerUtils = Mockito.mock(ContainerUtils.class);
+
+    new AddXmlMoContext(context, user, conf, confUtils, args, moUtils, containerUtils);
 
   }
 
-
+  /**
+   * Make sure the add context instructs the wizard to create top-level MOs.
+   * 
+   * @throws RSuiteException
+   */
   @Test
   public void onlyCreateTopLevelMos() throws RSuiteException {
-    // valid user
-    SecurityService secService = Mockito.mock(SecurityService.class);
-    Mockito.when(secService.hasEditPermission(user, parentMoId)).thenReturn(true);
-    Mockito.when(context.getSecurityService()).thenReturn(secService);
 
-    CallArgument arg1 = new CallArgument(PARAM_NAME_RSUITE_ID, existingMoId);
-    CallArgument arg2 = new CallArgument(PARAM_NAME_INSERTION_POSITION, "AFTER");
-    List<CallArgument> argList = new ArrayList<CallArgument>();
-    argList.add(arg1);
-    argList.add(arg2);
-    CallArgumentList args = new CallArgumentList(argList);
+    // ExecutionContext context = Mockito.mock(ExecutionContext.class);
+    // Mockito.when(context.getManagedObjectService()).thenReturn(Mockito.mock(
+    // ManagedObjectService.class));
+    // Mockito.when(context.getAuthorizationService()).thenReturn(Mockito.mock(
+    // AuthorizationService.class));
+
+    // valid user
+    SecurityService securityService = Mockito.mock(SecurityService.class);
+    Mockito.when(securityService.hasEditPermission(any(User.class), any(String.class))).thenReturn(
+        true);
+    Mockito.when(context.getSecurityService()).thenReturn(securityService);
+
+    CallArgumentList args = Mockito.mock(CallArgumentList.class);
+    Mockito.when(args.getFirstString(PARAM_NAME_INSERTION_POSITION)).thenReturn("AFTER");
+    Mockito.when(args.getFirstString(PARAM_NAME_RSUITE_ID)).thenReturn(existingMoId);
 
     MOUtils moUtils = Mockito.mock(MOUtils.class);
+    Mockito.when(moUtils.isSubMo(any(ManagedObjectService.class), any(User.class), any(
+        ManagedObject.class))).thenReturn(false);
+
+    String expectedContainerId = "139487";
+    ContentAssemblyNodeContainer container = Mockito.mock(ContentAssemblyNodeContainer.class);
+    Mockito.when(container.getId()).thenReturn(expectedContainerId);
+
+    // List<? extends ContentAssemblyItem> children = new ArrayList<ContentAssemblyItem>();
+    // Mockito.when(container.getChildrenObjects()).thenReturn(children);
+
+    ContainerUtils containerUtils = Mockito.mock(ContainerUtils.class);
+    Mockito.when(containerUtils.getContentAssemblyNodeContainer(any(ContentAssemblyService.class),
+        any(User.class), any(ContentObjectPath.class), any(String.class))).thenReturn(container);
+
     AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args,
-        moUtils);
+        moUtils, containerUtils);
+    assertTrue("Doesn't instruct to create top-level MOs.", addXmlMoContext
+        .shouldCreateAsTopLevelMos());
+    assertNotEquals("Instructed to create top-level and sub MOs.", addXmlMoContext
+        .shouldCreateAsTopLevelMos(), addXmlMoContext.shouldCreateAsSubMos());
 
 
   }

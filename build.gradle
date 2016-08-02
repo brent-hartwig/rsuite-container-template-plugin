@@ -27,7 +27,7 @@ dependencies {
 	compile ('rsi:rsuite-api:4.1.14') {
 		transitive=false
 	}
-	compile ('rsuite-community:rsuite-container-utils-lib:0.0.1') {
+	compile ('rsuite-community:rsuite-container-utils-lib:1.0.0') {
 		transitive=false
 	}
 	compile ('rsuite-community:rsuite-message-props-lib:0.0.1') {
@@ -73,6 +73,9 @@ dependencies {
 	}
 	
 	testRuntime ('org.json:org.json:2.0') {
+		transitive=false
+	}
+	testRuntime ('log4j:log4j:1.2.15') {
 		transitive=false
 	}
 	

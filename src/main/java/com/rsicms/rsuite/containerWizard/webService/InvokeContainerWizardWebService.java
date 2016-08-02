@@ -62,6 +62,7 @@ import com.rsicms.rsuite.containerWizard.jaxb.MetadataConf;
 import com.rsicms.rsuite.containerWizard.jaxb.NameValuePair;
 import com.rsicms.rsuite.containerWizard.jaxb.PrimaryContainer;
 import com.rsicms.rsuite.containerWizard.jaxb.XmlMoConf;
+import com.rsicms.rsuite.utils.container.ContainerUtils;
 import com.rsicms.rsuite.utils.container.visitor.ChildrenInfoContainerVisitor;
 import com.rsicms.rsuite.utils.mo.MOUtils;
 import com.rsicms.rsuite.utils.search.SearchUtils;
@@ -159,8 +160,8 @@ public class InvokeContainerWizardWebService
       this.opName = wizard.getOperationName();
 
       if (ExecutionMode.ADD_XML_MO == mode && !wizard.isInAddXmlMoMode()) {
-        wizard.setAddXmlMoContext(new AddXmlMoContext(context, user, conf, confUtils, args,
-            moUtils));
+        wizard.setAddXmlMoContext(new AddXmlMoContext(context, user, conf, confUtils, args, moUtils,
+            new ContainerUtils()));
       }
 
       // Get our page navigation object.
