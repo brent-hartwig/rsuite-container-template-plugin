@@ -82,13 +82,13 @@ dependencies {
 	includeInJar ('rsuite-community:rsuite-conf-utils-lib:0.0.1') {
 		transitive=false
 	}
-	includeInJar ('rsuite-community:rsuite-container-utils-lib:0.0.1') {
+	includeInJar ('rsuite-community:rsuite-container-utils-lib:1.0.0') {
 		transitive=false
 	}
 	includeInJar ('rsuite-community:rsuite-message-props-lib:0.0.1') {
 		transitive=false
 	}
-	includeInJar ('rsuite-community:rsuite-mo-utils-lib:1.0.0') {
+	includeInJar ('rsuite-community:rsuite-mo-utils-lib:1.0.1') {
 		transitive=false
 	}
 	includeInJar ('rsuite-community:rsuite-operation-lib:0.0.1') {
