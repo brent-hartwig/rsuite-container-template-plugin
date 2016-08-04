@@ -1,8 +1,6 @@
 package test.com.rsicms.rsuite.containerWizard.webService;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 
 import java.io.IOException;
@@ -17,17 +15,14 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.xml.sax.SAXException;
 
-import com.reallysi.rsuite.api.ContentAssemblyNodeContainer;
 import com.reallysi.rsuite.api.ManagedObject;
 import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.User;
 import com.reallysi.rsuite.api.browse.BrowseInfo;
-import com.reallysi.rsuite.api.content.ContentObjectPath;
 import com.reallysi.rsuite.api.extensions.ExecutionContext;
 import com.reallysi.rsuite.api.remoteapi.CallArgument;
 import com.reallysi.rsuite.api.remoteapi.CallArgumentList;
 import com.reallysi.rsuite.service.AuthorizationService;
-import com.reallysi.rsuite.service.ContentAssemblyService;
 import com.reallysi.rsuite.service.ManagedObjectService;
 import com.reallysi.rsuite.service.SecurityService;
 import com.rsicms.rsuite.containerWizard.AddXmlMoContext;
@@ -209,52 +204,4 @@ public class AddXmlMoContextTest
 
   }
 
-  /**
-   * Make sure the add context instructs the wizard to create top-level MOs.
-   * 
-   * @throws RSuiteException
-   */
-  @Test
-  public void onlyCreateTopLevelMos() throws RSuiteException {
-
-    // ExecutionContext context = Mockito.mock(ExecutionContext.class);
-    // Mockito.when(context.getManagedObjectService()).thenReturn(Mockito.mock(
-    // ManagedObjectService.class));
-    // Mockito.when(context.getAuthorizationService()).thenReturn(Mockito.mock(
-    // AuthorizationService.class));
-
-    // valid user
-    SecurityService securityService = Mockito.mock(SecurityService.class);
-    Mockito.when(securityService.hasEditPermission(any(User.class), any(String.class))).thenReturn(
-        true);
-    Mockito.when(context.getSecurityService()).thenReturn(securityService);
-
-    CallArgumentList args = Mockito.mock(CallArgumentList.class);
-    Mockito.when(args.getFirstString(PARAM_NAME_INSERTION_POSITION)).thenReturn("AFTER");
-    Mockito.when(args.getFirstString(PARAM_NAME_RSUITE_ID)).thenReturn(existingMoId);
-
-    MOUtils moUtils = Mockito.mock(MOUtils.class);
-    Mockito.when(moUtils.isSubMo(any(ManagedObjectService.class), any(User.class), any(
-        ManagedObject.class))).thenReturn(false);
-
-    String expectedContainerId = "139487";
-    ContentAssemblyNodeContainer container = Mockito.mock(ContentAssemblyNodeContainer.class);
-    Mockito.when(container.getId()).thenReturn(expectedContainerId);
-
-    // List<? extends ContentAssemblyItem> children = new ArrayList<ContentAssemblyItem>();
-    // Mockito.when(container.getChildrenObjects()).thenReturn(children);
-
-    ContainerUtils containerUtils = Mockito.mock(ContainerUtils.class);
-    Mockito.when(containerUtils.getContentAssemblyNodeContainer(any(ContentAssemblyService.class),
-        any(User.class), any(ContentObjectPath.class), any(String.class))).thenReturn(container);
-
-    AddXmlMoContext addXmlMoContext = new AddXmlMoContext(context, user, conf, confUtils, args,
-        moUtils, containerUtils);
-    assertTrue("Doesn't instruct to create top-level MOs.", addXmlMoContext
-        .shouldCreateAsTopLevelMos());
-    assertNotEquals("Instructed to create top-level and sub MOs.", addXmlMoContext
-        .shouldCreateAsTopLevelMos(), addXmlMoContext.shouldCreateAsSubMos());
-
-
-  }
 }
