@@ -27,31 +27,7 @@ dependencies {
 	compile ('rsi:rsuite-api:4.1.14') {
 		transitive=false
 	}
-	compile ('rsuite-community:rsuite-container-utils-lib:1.0.0') {
-		transitive=false
-	}
-	compile ('rsuite-community:rsuite-message-props-lib:0.0.1') {
-		transitive=false
-	}
-	compile ('rsuite-community:rsuite-mo-utils-lib:1.0.1') {
-		transitive=false
-	}
-	compile ('rsuite-community:rsuite-operation-lib:0.0.1') {
-		transitive=false
-	}
-	compile ('rsuite-community:rsuite-search-utils-lib:0.0.1') {
-		transitive=false
-	}
-	compile ('rsuite-community:rsuite-web-services-lib:0.0.1') {
-		transitive=false
-	}
-	compile ('rsuite-community:rsuite-xml-utils-lib:1.0.0') {
-		transitive=false
-	}
 	compile ('apache:commons-io:1.4') {
-		transitive=false
-	}
-	compile ('apache:commons-lang:2.4') {
 		transitive=false
 	}
 	compile ('apache:commons-logging:1.1.1') {
