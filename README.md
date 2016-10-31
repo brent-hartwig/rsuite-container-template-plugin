@@ -64,6 +64,10 @@ Sample:
 ### ACLs
 The `acls` element may be used to define the ACL to apply to the main container, its child containers, and its MOs.  An ACL may be defined once and used multiple times.  Use the `*acl-id` attribute on and within the `primary-container` element.
 
+ACL configuration is limited to project-specific ACLs.  The container ID plus the value of the `project-role` attribute are used in the role name.  New roles are created automatically.
+
+Version 0.9.7 includes a hard-coded project-agnostic role, "Viewers".  It provides the list and view content permissions to users with the "Viewers" role.  Should this be adopted by a second project, we should take the time to make this configurable (i.e., alternative attribute to `project-role`). 
+
 Sample:
 
 ```
