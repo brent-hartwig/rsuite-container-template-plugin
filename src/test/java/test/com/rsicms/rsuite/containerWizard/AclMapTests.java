@@ -1,6 +1,7 @@
 package test.com.rsicms.rsuite.containerWizard;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.Iterator;
 import java.util.List;
@@ -178,28 +179,37 @@ public class AclMapTests {
     String newContainerId = "12345";
 
     // Mock access control in container wizard configuration
-    Ace containerAce = new Ace();
-    containerAce.setContentPermissions("list, view, edit");
-    containerAce.setProjectRole("Authors");
+    Ace containerAce1 = new Ace();
+    containerAce1.setContentPermissions("list, view, edit");
+    containerAce1.setProjectRole("Authors");
+    Ace containerAce2 = new Ace();
+    containerAce2.setContentPermissions("list, view");
+    containerAce2.setProjectRole("Viewers");
     Acl containerAcl = new Acl();
     containerAcl.setId("non-feedback-containers");
-    containerAcl.getAce().add(containerAce);
+    containerAcl.getAce().add(containerAce1);
     Acls containerAcls = new Acls();
     containerAcls.getAcl().add(containerAcl);
 
-    Role role = new RoleImpl(newContainerId + DELIM + "Authors");
+    Role role1 = new RoleImpl(newContainerId + DELIM + "Authors");
+    Role role2 = new RoleImpl("Viewers");
 
-    ACE ace = new ACEImpl(role);
+    ACE ace1 = new ACEImpl(role1);
+    ACE ace2 = new ACEImpl(role2);
 
-    ACE[] aces = new ACE[1];
-    aces[0] = ace;
+    ACE[] aces = new ACE[2];
+    aces[0] = ace1;
+    aces[1] = ace2;
     ACL acl = new ACLImpl(aces);
 
-    String roleName = AclMap.getContainerRoleName(newContainerId, containerAce.getProjectRole());
+    String roleName1 = AclMap.getContainerRoleName(newContainerId, containerAce1.getProjectRole());
+    String roleName2 = containerAce2.getProjectRole();
 
     SecurityService securityService = Mockito.mock(SecurityService.class);
-    Mockito.when(securityService.constructACE(roleName, containerAce.getContentPermissions()
-        .replaceAll(" ", StringUtils.EMPTY))).thenReturn(ace);
+    Mockito.when(securityService.constructACE(roleName1, containerAce1.getContentPermissions()
+        .replaceAll(" ", StringUtils.EMPTY))).thenReturn(ace1);
+    Mockito.when(securityService.constructACE(roleName2, containerAce2.getContentPermissions()
+        .replaceAll(" ", StringUtils.EMPTY))).thenReturn(ace2);
     Mockito.when(securityService.constructACL(aces)).thenReturn(acl);
     ContainerWizardConf conf = Mockito.mock(ContainerWizardConf.class);
     Mockito.when(conf.getAcls()).thenReturn(containerAcls);
@@ -209,18 +219,20 @@ public class AclMapTests {
 
     User user = Mockito.mock(User.class);
     RoleManager roleManager = Mockito.mock(RoleManager.class);
-    Mockito.doNothing().when(roleManager).createRole(user, roleName, roleName, roleName);
 
     // call createUndefinedRoles with mocked user and roleManager
     List<String> resultRoleNames = aclMap.createUndefinedContainerRoles(user, roleManager);
 
-    String resultRoleName = resultRoleNames.get(0);
-    String expectedRoleName = new StringBuilder(newContainerId).append(DELIM).append(containerAce
-        .getProjectRole()).toString();
-    assertEquals(resultRoleName, expectedRoleName);
+    assertEquals(2, resultRoleNames.size());
 
-    // createRole is a void method, but we can verify it's really called once in the unit test.
-    Mockito.verify(roleManager, Mockito.times(1)).createRole(user, roleName, roleName, roleName);
+    for (String actualRoleName : resultRoleNames) {
+      if (actualRoleName.equals(roleName1) || actualRoleName.equals(roleName2)) {
+        Mockito.verify(roleManager, Mockito.times(1)).createRole(user, actualRoleName,
+            actualRoleName, actualRoleName);
+      } else {
+        fail("Unexpected role name: " + actualRoleName);
+      }
+    }
 
   }
 

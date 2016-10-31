@@ -52,26 +52,25 @@ public class AclMap
     super();
 
     if (conf != null && conf.getAcls() != null && conf.getAcls().getAcl() != null) {
-      ACE[] rsuiteAceArr;
+      List<ACE> rsuiteAceList;
       for (Acl acl : conf.getAcls().getAcl()) {
-        rsuiteAceArr = new ACE[acl.getAce().size() + 1];
-        Ace ace;
-        for (int i = 0; i < acl.getAce().size(); i++) {
-          ace = acl.getAce().get(i);
-          rsuiteAceArr[i] = securityService.constructACE(getContainerRoleName(
+        rsuiteAceList = new ArrayList<ACE>();
+        for (Ace ace : acl.getAce()) {
+          rsuiteAceList.add(securityService.constructACE(getContainerRoleName(
               containerRoleNamePrefix, ace.getProjectRole()), ace.getContentPermissions()
-                  .replaceAll(SPACE, StringUtils.EMPTY));
+                  .replaceAll(SPACE, StringUtils.EMPTY)));
         }
 
         // FIXME: Below, we're hard-coding a project-agnostic role of "Viewer". If anyone else uses
         // this code, they'll probably want to make this part configurable. We're to grant this so
         // long as it isn't for the feedback container.
         if (acl.getId() != "feedback-container") {
-          rsuiteAceArr[acl.getAce().size()] = securityService.constructACE("Viewers", "list, view"
-              .replaceAll(SPACE, StringUtils.EMPTY));
+          rsuiteAceList.add(securityService.constructACE("Viewers", "list, view".replaceAll(SPACE,
+              StringUtils.EMPTY)));
         }
 
-        put(acl.getId(), securityService.constructACL(rsuiteAceArr));
+        put(acl.getId(), securityService.constructACL(rsuiteAceList.toArray(new ACE[rsuiteAceList
+            .size()])));
       }
     }
   }
