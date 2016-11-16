@@ -297,7 +297,7 @@ var createProductHandler = (function () {
 
         // Stitch the HTML together
         divForInput.append("<div style='margin-top:20px;'><strong>Template</strong> " + templateSelectElem.prop("outerHTML") + "</div>");
-        divForInput.append("<div><strong>Type</strong> " + templateTitleInputElem.prop("outerHTML"));
+        divForInput.append("<div><strong>Title</strong> " + templateTitleInputElem.prop("outerHTML"));
 
         if (spanForDelete !== null) {
             divForInput.append(spanForDelete.prop("outerHTML"));
