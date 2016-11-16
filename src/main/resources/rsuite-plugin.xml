@@ -24,7 +24,7 @@
 		<scriptInclude src="@pluginId@/ContainerWiz/SectionType.js" />
 		<scriptInclude src="@pluginId@/ContainerWiz/XmlMoConfView.js" />
 	    <scriptInclude src="@pluginId@/ContainerWizNoEmber/jquery.initialize.js" /> <!-- From: https://github.com/timpler/jquery.initialize -->
-	    <scriptInclude src="@pluginId@/ContainerWizNoEmber/create-product-wizard-handler.js" /> 
+	    <scriptInclude src="@pluginId@/ContainerWizNoEmber/create-product-wizard-handler.js" /> <!-- The ContainerWizNoEmber files are to be used in RSuite 5 instances unless someone makes the original files - in ContainerWiz/ - work in v5+ -->
 		<styleInclude src="@pluginId@/ContainerWiz/XmlMoConfView.less" />
 
     </extensionProvider>

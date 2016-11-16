@@ -1,0 +1,2 @@
+ContainerWiz/ directory contains JS used in pre-v5 of container wizard (custom Ember UI stuff), which breaks in v5+ (due to Ember upgrade)
+ContainerWizNoEmber/ directory contains JS that provides a way to use container wizard in v5 without any Ember code, makes use of overriding a dummy form input provided by a form handler
