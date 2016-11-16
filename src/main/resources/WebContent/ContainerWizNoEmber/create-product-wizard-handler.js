@@ -372,7 +372,7 @@ var createProductHandler = (function () {
 
     // The entry point
     function overrideForm() {
-        var formName = ".gao-newblue-create-product-template-form";
+        var formName = ".rsuite-container-wizard-plugin-create-product-template-form";
 
         var sectionSelectElem = $(document.createElement("select"));
 
