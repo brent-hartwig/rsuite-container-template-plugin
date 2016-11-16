@@ -11,6 +11,7 @@ import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.remoteapi.CallArgument;
 import com.reallysi.rsuite.api.remoteapi.CallArgumentList;
 import com.reallysi.rsuite.api.remoteapi.result.InvokeWebServiceAction;
+import com.reallysi.rsuite.api.remoteapi.result.JQueryDialogOptions;
 import com.reallysi.rsuite.api.remoteapi.result.RestResult;
 import com.reallysi.rsuite.api.remoteapi.result.UserInterfaceAction;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
@@ -247,6 +248,11 @@ public class PageNavigation
 
     if (shouldSetNextPageIdx) {
       log.info("Setting next page index to " + nextPageIdx);
+
+      if (wizard.isInAddXmlMoMode()) {
+        // Needed to make this work when using a form request
+        nextPageIdx = wizard.getAddXmlMoContext().getXmlMoConfIdx();
+      }
       serviceAction.addServiceParameter(PARAM_NAME_NEXT_PAGE_IDX, String.valueOf(nextPageIdx));
     }
     if (shouldSetNextSubPageIdx) {
@@ -254,6 +260,28 @@ public class PageNavigation
       serviceAction.addFormParameter(PARAM_NAME_NEXT_SUB_PAGE_IDX, String.valueOf(
           getNextSubPageIdx()));
     }
+
+    // copied from constructActionRequest ...
+    serviceAction.addProperty(PARAM_NAME_API_NAME, args.getFirstString(PARAM_NAME_API_NAME));
+    serviceAction.addProperty(PARAM_NAME_OPERATION_NAME, wizard.getOperationName());
+
+    if (page.isSubPages()) {
+      Integer nextSubPageOffset = getIntValue(args.getFirst(PARAM_NAME_SECTION_TYPE_IDX), 0);
+      Integer nextSubPageIdx = wizard.isInAddXmlMoMode() ? wizard.getAddXmlMoContext()
+          .getXmlMoConfIdx() : getNextSubPageIdx() + nextSubPageOffset;
+      log.info("A Setting next sub page index to " + nextSubPageIdx + " (offset was "
+          + nextSubPageOffset + ")");
+      // Needed to make this work when using a form request
+      serviceAction.addServiceParameter(PARAM_NAME_NEXT_SUB_PAGE_IDX, Integer.toString(
+          nextSubPageIdx));
+      // set a specific width
+      JQueryDialogOptions dialogOptions = new JQueryDialogOptions();
+      dialogOptions.setWidth(400);
+      serviceAction.setDialogOptions(dialogOptions);
+    }
+
+    // end copy
+
 
     // Make the web service string params also available to the form.
     for (CallArgument arg : serviceAction.getServiceParameters().values()) {

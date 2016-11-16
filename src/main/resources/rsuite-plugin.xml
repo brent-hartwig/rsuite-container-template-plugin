@@ -23,8 +23,20 @@
 		<scriptInclude src="@pluginId@/ContainerWiz.js" />
 		<scriptInclude src="@pluginId@/ContainerWiz/SectionType.js" />
 		<scriptInclude src="@pluginId@/ContainerWiz/XmlMoConfView.js" />
+	    <scriptInclude src="@pluginId@/ContainerWizNoEmber/jquery.initialize.js" /> <!-- From: https://github.com/timpler/jquery.initialize -->
+	    <scriptInclude src="@pluginId@/ContainerWizNoEmber/create-product-wizard-handler.js" /> 
 		<styleInclude src="@pluginId@/ContainerWiz/XmlMoConfView.less" />
 
     </extensionProvider>
 
+  	<extensionProvider id="rsuite.Forms">
+  	    
+  	    <formDefinition id="@pluginId@-create-product-template-form"
+  	        label="Create Product" 
+  	        description="Template pages of the Create Product Wizard"
+  	        handler="com.rsicms.rsuite.containerWizard.form.advisor.CreateProductFormHandler">
+  	        <instructions>Complete the form and click Next. If you do not see any template options below Section Type, please click the refresh icon.</instructions>
+  	        <paramList/>
+  	    </formDefinition>
+  	</extensionProvider>
 </rsuite-plugin>
