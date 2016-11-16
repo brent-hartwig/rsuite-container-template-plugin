@@ -280,6 +280,9 @@ public class PageNavigation
       serviceAction.setDialogOptions(dialogOptions);
     }
 
+    if (wizard.isInAddXmlMoMode()) {
+      serviceAction.addServiceParameter(PARAM_NAME_EXECUTION_MODE, "AddXmlMo");
+    }
     // end copy
 
 

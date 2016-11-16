@@ -415,6 +415,10 @@ var createProductHandler = (function () {
             changeSubmitTextNodeToNext(this);
         });
 
+		// Change title of form if we are in execution mode AddXmlMo
+		if ($("input[name='executionMode']").val() === "AddXmlMo") {
+			$(".ui-dialog-title").html("Add Section");
+		}
         // Not sure how to add a cancel button. Oh well. Users can use the x in the top right.
 
         // perform a sectionInfo call
