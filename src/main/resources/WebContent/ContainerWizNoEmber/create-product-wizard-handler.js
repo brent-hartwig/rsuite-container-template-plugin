@@ -377,7 +377,7 @@ var createProductHandler = (function () {
     function overrideForm() {
 
         var formName = ".@pluginId@-create-product-template-form";
-
+        
         var sectionSelectElem = $(document.createElement("select"));
 
         var objectKey;
@@ -396,31 +396,10 @@ var createProductHandler = (function () {
         containerWizard = $("input[name=containerWizard]").val();
 
         // Change the text of the button from "Submit" to "Next"
-        $(formName).find("button").first().each(function () {
-            function changeSubmitTextNodeToNext(node) {
-                console.log("In changeSubmitTextNodeToNext; node.nodeType: " + node.nodeType);
-            
-                var next;
-                if (node.nodeType === 1) {
-                    // (Element node)
-                    if (node = node.firstChild) {
-                        do {
-                            // Recursively call traverseChildNodes
-                            // on each child node
-                            next = node.nextSibling;
-                            changeSubmitTextNodeToNext(node);
-                        } while (node = next);
-                    }
-                } else if (node.nodeType === 3) {
-                    // (Text node)
-                    if (node.data === "Submit") {
-                        console.log("Changing button text from Submit to Next!");
-                        node.data = "Next";
-                    }
-                }
-            }
-            changeSubmitTextNodeToNext(this);
-        });
+        var buttonLabel = $(formName + " button label");
+        if (buttonLabel.text().toLowerCase().indexOf("submit") >= 0) {
+            buttonLabel.text("Next");
+        }
 
 		// Change title of form if we are in execution mode AddXmlMo
 		if ($("input[name='executionMode']").val() === "AddXmlMo") {
@@ -467,11 +446,11 @@ var createProductHandler = (function () {
         // Set the css values so our new button will look the same
         //$("#createProductButton").css(emberSubmitBtnCss);
 
-        $("#createProductButton").click(function(event) {
-            // The CMS UI listens for <button>s to be clicked, so prevent it from doing so
-            event.preventDefault();
-            event.stopImmediatePropagation();
-        });
+        //$("#createProductButton").click(function(event) {
+        //    // The CMS UI listens for <button>s to be clicked, so prevent it from doing so
+        //    event.preventDefault();
+        //    event.stopImmediatePropagation();
+        //});
 
         $(".createProductReport").prop("outerHTML", sectionSelectHTML + "<div id='createProductTemplateHolder' style='overflow-y: auto;'></div><div id='createProductTemplateRepeatHolder'></div>");
 
