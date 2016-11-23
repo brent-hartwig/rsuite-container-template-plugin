@@ -307,6 +307,9 @@ var createProductHandler = (function () {
 
         // Insert the html into the form
         $("#createProductTemplateHolder").append(divForInput.prop("outerHTML"));
+        
+        // Scroll to the bottom of the div containing these fields
+        $("div.fieldset").scrollTop($("div.fieldset").innerHeight());
     }
 
     // After choosing a section type (either automatically via next or choosing a different option in a dropdown,
@@ -372,7 +375,7 @@ var createProductHandler = (function () {
 
     // The entry point
     function overrideForm() {
-    	
+
         var formName = ".@pluginId@-create-product-template-form";
 
         var sectionSelectElem = $(document.createElement("select"));
@@ -470,9 +473,21 @@ var createProductHandler = (function () {
             event.stopImmediatePropagation();
         });
 
-        $(".createProductReport").prop("outerHTML", sectionSelectHTML + "<div id='createProductTemplateHolder'></div><div id='createProductTemplateRepeatHolder'></div>");
+        $(".createProductReport").prop("outerHTML", sectionSelectHTML + "<div id='createProductTemplateHolder' style='overflow-y: auto;'></div><div id='createProductTemplateRepeatHolder'></div>");
 
         populateTemplateChoices();
+        
+        // After we have our initial height, lock it in as the max such that the scroll bar will appear should the user 
+        // user add another set of controls for the same template type.  Else, the bottom of the form can be pushed off
+        // the screen.  This 'fix' breaks the user's ability to manually resize the form, whereby the form will use 
+        // additional space provided by the user.
+        var height = $(formName).height();
+        if (height > 0) {
+            console.log("Setting form's maximum height to " + height);
+            $(formName).css('max-height', height);
+        } else {
+            console.log("Told form height is 0; electing not to set a max height.");
+        }
     }
 
     function init(instantiatedHandlerNameParam) {
