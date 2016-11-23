@@ -643,6 +643,12 @@ public class InvokeContainerWizardWebService
       long timestamp = System.currentTimeMillis();
       int idAttCnt = 0;
       for (FutureManagedObject fmo : fmoList) {
+        if (!fmo.isInputValid()) {
+          log.warn("Skipping over future MO with template MO ID '" + fmo.getTemplateMoId()
+              + "' as its input is considered invalid.");
+          continue;
+        }
+
         // Make sure user can get the template.
         templateMo = moService.getManagedObject(systemUser, fmo.getTemplateMoId());
 

@@ -234,6 +234,7 @@ public class ContainerWizard
         for (FutureManagedObject fmo : entry.getValue()) {
           sb.append("\n      XML template MO ID: ").append(fmo.getTemplateMoId());
           sb.append("\n      Title: ").append(fmo.getTitle());
+          sb.append("\n      Valid input: ").append(fmo.isInputValid());
           sb.append("\n      ---------------");
         }
       }
