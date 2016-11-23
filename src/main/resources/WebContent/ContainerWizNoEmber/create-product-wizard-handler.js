@@ -1,7 +1,7 @@
 /*
-* Instead of using Ember to create custom form controls, we'll do it using pretty vanilla JS (making use of jQuery).
-* There is a "dummy" form handler that gets called by the create product wizard. At the bottom of this file is a piece
-* of code that "listens" for a form input item of a certain class to appear (it does this by using the jquery-initialize
+ * Instead of using Ember to create custom form controls, we'll do it using pretty vanilla JS (making use of jQuery).
+ * There is a "dummy" form handler that gets called by the create product wizard. At the bottom of this file is a piece
+ * of code that "listens" for a form input item of a certain class to appear (it does this by using the jquery-initialize
  * js library, which is essentially a wrapper for MutationObject). When the "listener" is triggered, it kicks off
  * a process which queries create-product's web services and displays a form to the user. The user clicks to continue
  * and the process repeats until done as defined by the create-product web service.
@@ -110,7 +110,7 @@ var createProductHandler = (function () {
     function doTemplateInfoCall(xmlTemplateType) {
         var skey = getSkey();
         var response;
-        var apiUri = "api/rsuite-container-wizard-plugin-ws-get-template-info";
+        var apiUri = "api/@pluginId@-ws-get-template-info";
         var url = window.location.protocol + '//' + window.location.host + "/rsuite/rest/v1/" + apiUri + "?skey=" + skey + "&xmlTemplateType=" + xmlTemplateType;
         var success = function (apiResponse) {
             // not doing anything here
@@ -157,7 +157,7 @@ var createProductHandler = (function () {
     function doSectionInfoCall() {
         var skey = getSkey();
         var response;
-        var apiUri = "api/rsuite-container-wizard-plugin-ws-get-section-type-info";
+        var apiUri = "api/@pluginId@-ws-get-section-type-info";
         var url = window.location.protocol + '//' + window.location.host + "/rsuite/rest/v1/" + apiUri + "?skey=" + skey + "&confAlias=" + confAlias + "&nextSubPageIdx=" + nextSubPageIdx;
         var success = function (apiResponse) {
             // not doing anything here
@@ -372,7 +372,8 @@ var createProductHandler = (function () {
 
     // The entry point
     function overrideForm() {
-        var formName = ".rsuite-container-wizard-plugin-create-product-template-form";
+    	
+        var formName = ".@pluginId@-create-product-template-form";
 
         var sectionSelectElem = $(document.createElement("select"));
 
@@ -394,6 +395,8 @@ var createProductHandler = (function () {
         // Change the text of the button from "Submit" to "Next"
         $(formName).find("button").first().each(function () {
             function changeSubmitTextNodeToNext(node) {
+                console.log("In changeSubmitTextNodeToNext; node.nodeType: " + node.nodeType);
+            
                 var next;
                 if (node.nodeType === 1) {
                     // (Element node)
@@ -408,6 +411,7 @@ var createProductHandler = (function () {
                 } else if (node.nodeType === 3) {
                     // (Text node)
                     if (node.data === "Submit") {
+                        console.log("Changing button text from Submit to Next!");
                         node.data = "Next";
                     }
                 }

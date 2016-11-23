@@ -1,8 +1,8 @@
 <rsuite-plugin id="@pluginId@" version="@pluginVersion@ at @timeStamp@">
 
-	<extensionProvider id="rsuite.WebService">
-	
-		<staticWebService path="/WebContent" root="/@pluginId@" />
+    <extensionProvider id="rsuite.WebService">
+    
+        <staticWebService path="/WebContent" root="/@pluginId@" />
 
         <remoteApiDefinition id="@pluginId@-ws-invoke-wizard"
             handler="com.rsicms.rsuite.containerWizard.webService.InvokeContainerWizardWebService"
@@ -16,27 +16,24 @@
             handler="com.rsicms.rsuite.containerWizard.webService.GetTemplateInfoWebService"
             label="Get Template Information" />
 
-	</extensionProvider>
-	
+    </extensionProvider>
+    
     <extensionProvider id="rsuite.UI">
 
-		<scriptInclude src="@pluginId@/ContainerWiz.js" />
-		<scriptInclude src="@pluginId@/ContainerWiz/SectionType.js" />
-		<scriptInclude src="@pluginId@/ContainerWiz/XmlMoConfView.js" />
-	    <scriptInclude src="@pluginId@/ContainerWizNoEmber/jquery.initialize.js" /> <!-- From: https://github.com/timpler/jquery.initialize -->
-	    <scriptInclude src="@pluginId@/ContainerWizNoEmber/create-product-wizard-handler.js" /> <!-- The ContainerWizNoEmber files are to be used in RSuite 5 instances unless someone makes the original files - in ContainerWiz/ - work in v5+ -->
-		<styleInclude src="@pluginId@/ContainerWiz/XmlMoConfView.less" />
+        <scriptInclude src="@pluginId@/ContainerWizNoEmber/jquery.initialize.js" /> <!-- From: https://github.com/timpler/jquery.initialize -->
+        <scriptInclude src="@pluginId@/ContainerWizNoEmber/create-product-wizard-handler.js" /> <!-- The ContainerWizNoEmber files are to be used in RSuite 5 instances unless someone makes the original files - in ContainerWiz/ - work in v5+ -->
+        <scriptInclude src="@pluginId@/ContainerWizNoEmber/initialize-create-product-wizard-handler.js" /> 
 
     </extensionProvider>
 
-  	<extensionProvider id="rsuite.Forms">
-  	    
-  	    <formDefinition id="@pluginId@-create-product-template-form"
-  	        label="Create Product" 
-  	        description="Template pages of the Create Product Wizard"
-  	        handler="com.rsicms.rsuite.containerWizard.form.advisor.CreateProductFormHandler">
-  	        <instructions>Complete the form and click Next. If you do not see any template options below Section Type, please click the refresh icon.</instructions>
-  	        <paramList/>
-  	    </formDefinition>
-  	</extensionProvider>
+      <extensionProvider id="rsuite.Forms">
+          
+          <formDefinition id="@pluginId@-create-product-template-form"
+              label="Create Product" 
+              description="Template pages of the Create Product Wizard"
+              handler="com.rsicms.rsuite.containerWizard.form.advisor.CreateProductFormHandler">
+              <instructions>Complete the form and click Next. If you do not see any template options below Section Type, please click the refresh icon.</instructions>
+              <paramList/>
+          </formDefinition>
+      </extensionProvider>
 </rsuite-plugin>
