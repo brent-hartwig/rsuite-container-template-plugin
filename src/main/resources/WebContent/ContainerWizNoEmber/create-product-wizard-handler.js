@@ -18,6 +18,7 @@ var createProductHandler = (function () {
     var containerWizard;
     var retrievedSectionOptions;
     var instantiatedHandlerName;
+    var formName = ".@pluginId@-create-product-template-form";
 
     // Helper function; useful for debugging, will take XML node and convert to string
     function serializeXml(xml) {
@@ -258,6 +259,7 @@ var createProductHandler = (function () {
         }
 
         divForInput.attr("id", "template" + templateNumber);
+        divForInput.attr("class", "template");
 
         if (templateOptions !== undefined && templateOptions !== null) {
             // templateOptions looks good, so we are likely doing this from the section's initialization
@@ -308,8 +310,10 @@ var createProductHandler = (function () {
         // Insert the html into the form
         $("#createProductTemplateHolder").append(divForInput.prop("outerHTML"));
         
-        // Scroll to the bottom of the div containing these fields
-        $("div.fieldset").scrollTop($("div.fieldset").innerHeight());
+        // Scroll to the bottom of the div containing these fields.  Using a dynamic value like 
+        // $("div.fieldset").innerHeight() worked for a while but then gave out.  If someone 
+        // goes beyond 10,000, they need something better to do :)
+        $("div.fieldset").scrollTop(10000);
     }
 
     // After choosing a section type (either automatically via next or choosing a different option in a dropdown,
@@ -376,8 +380,6 @@ var createProductHandler = (function () {
     // The entry point
     function overrideForm() {
 
-        var formName = ".@pluginId@-create-product-template-form";
-        
         var sectionSelectElem = $(document.createElement("select"));
 
         var objectKey;
@@ -453,20 +455,25 @@ var createProductHandler = (function () {
         //});
 
         $(".createProductReport").prop("outerHTML", sectionSelectHTML + "<div id='createProductTemplateHolder' style='overflow-y: auto;'></div><div id='createProductTemplateRepeatHolder'></div>");
-
-        populateTemplateChoices();
         
-        // After we have our initial height, lock it in as the max such that the scroll bar will appear should the user 
-        // user add another set of controls for the same template type.  Else, the bottom of the form can be pushed off
-        // the screen.  This 'fix' breaks the user's ability to manually resize the form, whereby the form will use 
-        // additional space provided by the user.
-        var height = $(formName).height();
-        if (height > 0) {
-            console.log("Setting form's maximum height to " + height);
-            $(formName).css('max-height', height);
-        } else {
-            console.log("Told form height is 0; electing not to set a max height.");
-        }
+        // Delay populating the template choices until after the DOM is happy.  Intermittently and apparently, one would 
+        // beat the other and the controls would not appear.
+        $("#createProductTemplateHolder").initialize( function(){
+            // This method is called more often than we need it to.  Only press on when we need to.
+            if ($("#template0").length === 0) {
+                populateTemplateChoices();
+
+                // Lock in the form's initial height as its maximum height such that the scroll bar will appear should the 
+                // user add another set of controls for the same template type.  Else, the bottom of the form can be pushed 
+                // off the screen.  This 'fix' breaks the user's ability to manually resize the form, whereby the form will 
+                // use additional space provided by the user.  At times, the height is reported as zero; when that happens,
+                // don't set the height.
+                var height = $(formName).height();
+                if (height > 0) {
+                    $(formName).css('max-height', height);
+                }
+            }
+        });
     }
 
     function init(instantiatedHandlerNameParam) {
