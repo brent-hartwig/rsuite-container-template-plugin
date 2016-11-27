@@ -252,7 +252,7 @@ var createProductHandler = (function () {
             templateNumber = $(".inputTemplateType").length;
             if (templateNumber > 0) {
                 spanForDelete = $(document.createElement("span"));
-                spanForDelete.html("<img src='/rsuite-cms/plugin/gao-newblue/cmsui/images/16/delete.png' title='Delete' alt='Delete' />");
+                spanForDelete.html("<img src='/rsuite-cms/plugin/@pluginId@/cmsui/images/16/delete.png' title='Delete' alt='Delete' />");
                 spanForDelete.attr("onclick", instantiatedHandlerName + ".removeTemplateInputRow('template" + templateNumber + "')");
                 spanForDelete.css("cursor", "pointer");
             }
@@ -366,7 +366,7 @@ var createProductHandler = (function () {
 
         if (mayRepeat) {
             spanForRepeat = $(document.createElement("span"));
-            spanForRepeat.html("Add another <img src='/rsuite-cms/plugin/gao-newblue/cmsui/images/16/add.png' title='Add' alt='Add' />");
+            spanForRepeat.html("Add another <img src='/rsuite-cms/plugin/@pluginId@/cmsui/images/16/add.png' title='Add' alt='Add' />");
             spanForRepeat.attr("onclick", instantiatedHandlerName + ".addTemplateInput('" + sectionOption + "', null, true)");
             spanForRepeat.css("cursor", "pointer");
             $("#createProductTemplateRepeatHolder").html(spanForRepeat.prop("outerHTML"));

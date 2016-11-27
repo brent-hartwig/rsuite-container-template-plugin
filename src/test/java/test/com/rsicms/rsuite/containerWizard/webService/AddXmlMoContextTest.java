@@ -69,7 +69,7 @@ public class AddXmlMoContextTest
     confUtils = new ContainerWizardConfUtils();
 
     user = Mockito.mock(User.class);
-    Mockito.when(user.getUserId()).thenReturn("gao");
+    Mockito.when(user.getUserId()).thenReturn("tester");
 
     existingMo = Mockito.mock(ManagedObject.class);
     // to add discovery section
