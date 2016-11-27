@@ -468,10 +468,7 @@ var createProductHandler = (function () {
                 
                 // If there is only one section type, visually differentiate such that the user knows not to bother looking for other options.
                 if ($("#selectSectionType option").length === 1) {
-                    var selectElem = $("#selectSectionType");
-                    selectElem.css("font-weight", "bold");
-                    // Slightly increase width to compensate for bold text.
-                    selectElem.width(selectElem.width() + 10);
+                    $("#selectSectionType").css("text-decoration", "underline");
                 }
             }
         });
