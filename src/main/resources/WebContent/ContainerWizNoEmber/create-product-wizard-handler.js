@@ -387,9 +387,6 @@ var createProductHandler = (function () {
 
         var sectionSelectHTML = "<div><strong>Section type</strong> ";
 
-        var defaultSectionOption = "";
-        var firstSectionOptionSeen = false;
-
         // Retrieve values from hidden form inputs
         confAlias = $("input[name=confAlias]").val();
         sectionTypeIdx = $("input[name=sectionTypeIdx]").val();
@@ -425,10 +422,6 @@ var createProductHandler = (function () {
                 optionElem.val(retrievedSectionOptions[objectKey].xmlTemplateType);
                 optionElem.html(retrievedSectionOptions[objectKey].name);
                 sectionSelectElem.append(optionElem);
-                if (!firstSectionOptionSeen) {
-                    defaultSectionOption = retrievedSectionOptions[objectKey].xmlTemplateType;
-                }
-                firstSectionOptionSeen = true;
             }
         }
 
@@ -471,6 +464,14 @@ var createProductHandler = (function () {
                 var height = $(formName).height();
                 if (height > 0) {
                     $(formName).css('max-height', height);
+                }
+                
+                // If there is only one section type, visually differentiate such that the user knows not to bother looking for other options.
+                if ($("#selectSectionType option").length === 1) {
+                    var selectElem = $("#selectSectionType");
+                    selectElem.css("font-weight", "bold");
+                    // Slightly increase width to compensate for bold text.
+                    selectElem.width(selectElem.width() + 10);
                 }
             }
         });
