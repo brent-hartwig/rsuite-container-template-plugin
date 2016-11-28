@@ -22,6 +22,7 @@ import com.reallysi.rsuite.api.MetaDataItem;
 import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.Session;
 import com.reallysi.rsuite.api.User;
+import com.reallysi.rsuite.api.UserType;
 import com.reallysi.rsuite.api.VersionType;
 import com.reallysi.rsuite.api.control.ContentAssemblyCreateOptions;
 import com.reallysi.rsuite.api.control.ManagedObjectAdvisor;
@@ -37,6 +38,8 @@ import com.reallysi.rsuite.api.remoteapi.RemoteApiResult;
 import com.reallysi.rsuite.api.remoteapi.result.RestResult;
 import com.reallysi.rsuite.api.remoteapi.result.UserInterfaceAction;
 import com.reallysi.rsuite.api.security.ACL;
+import com.reallysi.rsuite.api.security.LocalUserManager;
+import com.reallysi.rsuite.api.security.RoleManager;
 import com.reallysi.rsuite.api.xml.RSuiteNamespaces;
 import com.reallysi.rsuite.api.xml.XPathEvaluator;
 import com.reallysi.rsuite.service.AuthorizationService;
@@ -559,14 +562,24 @@ public class InvokeContainerWizardWebService
       return user;
     }
 
-    // Get a list of product roles. Don't pass in the user as we no longer need to include the
-    // user's existing roles.
+    RoleManager roleManager = authService.getRoleManager();
+    LocalUserManager localUserManager = authService.getLocalUserManager();
+
+    // Get a list of product roles. When using the role manager, don't pass in the user as we no
+    // longer need to include the user's existing roles.
     List<String> roleNames = aclMap.getRoleNames(null, allowedRoleNameSuffixes);
     if (roleNames != null && roleNames.size() > 0) {
       for (String roleName : roleNames) {
         log.info("Granting the '" + roleName + "' to user '" + user.getUserId() + "'");
-        authService.getRoleManager().addUserToRole(authService.getSystemUser(), roleName, user
-            .getUserId());
+        roleManager.addUserToRole(authService.getSystemUser(), roleName, user.getUserId());
+
+        // In order to continue supporting local users, found it is necessary to also grant the role
+        // using the local user manager. When using the local user manager, pass in the user when
+        // coming up with the list of roles so as not to lose the user's existing roles.
+        if (UserType.LOCAL == user.getUserType()) {
+          localUserManager.updateUser(user.getUserId(), user.getFullName(), user.getEmail(),
+              StringUtils.join(aclMap.getRoleNames(user, allowedRoleNameSuffixes), ","));
+        }
       }
     } else {
       log.info("No roles to grant user '" + user.getUserId() + "'.");
