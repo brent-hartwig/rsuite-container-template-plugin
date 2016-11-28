@@ -22,7 +22,6 @@ import com.reallysi.rsuite.api.MetaDataItem;
 import com.reallysi.rsuite.api.RSuiteException;
 import com.reallysi.rsuite.api.Session;
 import com.reallysi.rsuite.api.User;
-import com.reallysi.rsuite.api.UserType;
 import com.reallysi.rsuite.api.VersionType;
 import com.reallysi.rsuite.api.control.ContentAssemblyCreateOptions;
 import com.reallysi.rsuite.api.control.ManagedObjectAdvisor;
@@ -38,7 +37,6 @@ import com.reallysi.rsuite.api.remoteapi.RemoteApiResult;
 import com.reallysi.rsuite.api.remoteapi.result.RestResult;
 import com.reallysi.rsuite.api.remoteapi.result.UserInterfaceAction;
 import com.reallysi.rsuite.api.security.ACL;
-import com.reallysi.rsuite.api.security.LocalUserManager;
 import com.reallysi.rsuite.api.xml.RSuiteNamespaces;
 import com.reallysi.rsuite.api.xml.XPathEvaluator;
 import com.reallysi.rsuite.service.AuthorizationService;
@@ -559,21 +557,24 @@ public class InvokeContainerWizardWebService
 
     if (authService.isAdministrator(user)) {
       return user;
-    } else if (user.getUserType() == UserType.LOCAL) {
-      LocalUserManager localUserManager = authService.getLocalUserManager();
-
-      localUserManager.updateUser(user.getUserId(), user.getFullName(), user.getEmail(), StringUtils
-          .join(aclMap.getRoleNames(user, allowedRoleNameSuffixes), ","));
-
-      // Necessary for RSuite to honor recently granted roles.
-      log.info("Reloading local user accounts...");
-      localUserManager.reload();
-
-      return localUserManager.getUser(user.getUserId());
     }
 
-    throw new RSuiteException(RSuiteException.ERROR_FUNCTIONALITY_NOT_SUPPORTED,
-        "This feature does not yet support non-local users.");
+    // Get a list of product roles. Don't pass in the user as we no longer need to include the
+    // user's existing roles.
+    List<String> roleNames = aclMap.getRoleNames(null, allowedRoleNameSuffixes);
+    if (roleNames != null && roleNames.size() > 0) {
+      for (String roleName : roleNames) {
+        log.info("Granting the '" + roleName + "' to user '" + user.getUserId() + "'");
+        authService.getRoleManager().addUserToRole(authService.getSystemUser(), roleName, user
+            .getUserId());
+      }
+    } else {
+      log.info("No roles to grant user '" + user.getUserId() + "'.");
+    }
+
+    // Retrieve and updated instance of the User object to ensure the new role is associated to the
+    // user.
+    return authService.findUser(user.getUserId());
   }
 
   public String addContainer(ContentAssemblyService caService, User user,
