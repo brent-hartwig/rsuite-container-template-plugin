@@ -20,6 +20,7 @@ import com.reallysi.rsuite.api.remoteapi.RemoteApiResult;
 import com.reallysi.rsuite.api.remoteapi.result.RestResult;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConfUtils;
 import com.rsicms.rsuite.containerWizard.ContainerWizardConstants;
+import com.rsicms.rsuite.containerWizard.ExecutionMode;
 import com.rsicms.rsuite.containerWizard.jaxb.ContainerWizardConf;
 import com.rsicms.rsuite.containerWizard.jaxb.XmlMoConf;
 import com.rsicms.rsuite.utils.webService.BaseWebService;
@@ -63,13 +64,15 @@ public class GetSectionTypeInfoWebService
 
       List<Map<String, String>> responseList = new ArrayList<Map<String, String>>();
 
-      // Restrict by sub page idx
+      // Restrict by sub page idx and execution mode.
       if (StringUtils.isBlank(args.getFirstString(PARAM_NAME_NEXT_SUB_PAGE_IDX))) {
         return getErrorResult("The '" + PARAM_NAME_NEXT_SUB_PAGE_IDX
             + "' parameter was not specified but is required.");
       }
       Integer currentSubPageIdx = args.getFirstInteger(PARAM_NAME_NEXT_SUB_PAGE_IDX, 0);
-      List<XmlMoConf> xmlMoConfList = confUtils.getXmlMoConfSubList(conf, currentSubPageIdx, true);
+      ExecutionMode mode = ExecutionMode.get(args.getFirstString(PARAM_NAME_EXECUTION_MODE,
+          ExecutionMode.CREATE_CONTAINER.name()));
+      List<XmlMoConf> xmlMoConfList = confUtils.getXmlMoConfSubList(conf, currentSubPageIdx, mode);
 
       for (XmlMoConf xmlMoConf : xmlMoConfList) {
         Map<String, String> map = new HashMap<String, String>();

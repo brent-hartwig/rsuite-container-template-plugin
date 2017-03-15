@@ -179,7 +179,7 @@ public class InvokeContainerWizardWebService
       log.info(wizard.getInfo()); // TODO: when to stop this?
 
       if (pageNav.isPageRequested()) {
-        return pageNav.getRestResult(confAlias);
+        return pageNav.getRestResult(confAlias, mode);
       } else if (wizard.isInAddXmlMoMode()) {
         AddXmlMoResult addXmlMoResult = addXmlMos(context, user, conf, wizard);
         AddXmlMoContext addContext = wizard.getAddXmlMoContext();

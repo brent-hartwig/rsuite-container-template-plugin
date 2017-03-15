@@ -205,11 +205,13 @@ public class PageNavigation
    * Get the REST result for this page navigation.
    * 
    * @param confAlias
+   * @param mode
    * @return The rest result for this page navigation.
    * @throws RSuiteException
    * @throws IOException
    */
-  public RestResult getRestResult(String confAlias) throws RSuiteException, IOException {
+  public RestResult getRestResult(String confAlias, ExecutionMode mode)
+      throws RSuiteException, IOException {
     if (!hasRequestedPage()) {
       throw new RSuiteException(RSuiteException.ERROR_PARAM_INVALID,
           "The requested page does not exist.");
@@ -217,9 +219,9 @@ public class PageNavigation
 
     Page page = getRequestedPageConf();
     if (StringUtils.isNotBlank(page.getFormId())) {
-      return constructFormRequest(confAlias, page);
+      return constructFormRequest(confAlias, page, mode);
     } else if (StringUtils.isNotBlank(page.getActionId())) {
-      return constructActionRequest(confAlias, page);
+      return constructActionRequest(confAlias, page, mode);
     } else {
       // Configuration error (no form or action).
       throw new RSuiteException(RSuiteException.ERROR_CONFIGURATION_PROBLEM,
@@ -233,10 +235,12 @@ public class PageNavigation
    * 
    * @param confAlias
    * @param page
+   * @param mode
    * @return a REST result that'll request a form.
    * @throws IOException
    */
-  public RestResult constructFormRequest(String confAlias, Page page) throws IOException {
+  public RestResult constructFormRequest(String confAlias, Page page, ExecutionMode mode)
+      throws IOException {
     log.info("Constructing a form request...");
 
     InvokeWebServiceAction serviceAction = new InvokeWebServiceAction(args.getFirstString(
@@ -256,7 +260,7 @@ public class PageNavigation
       serviceAction.addServiceParameter(PARAM_NAME_NEXT_PAGE_IDX, String.valueOf(nextPageIdx));
     }
     if (shouldSetNextSubPageIdx) {
-      log.info("Setting next sub page index to " + getNextSubPageIdx());
+      log.info("Setting next sub page index form parameter to " + getNextSubPageIdx());
       serviceAction.addFormParameter(PARAM_NAME_NEXT_SUB_PAGE_IDX, String.valueOf(
           getNextSubPageIdx()));
     }
@@ -269,8 +273,8 @@ public class PageNavigation
       Integer nextSubPageOffset = getIntValue(args.getFirst(PARAM_NAME_SECTION_TYPE_IDX), 0);
       Integer nextSubPageIdx = wizard.isInAddXmlMoMode() ? wizard.getAddXmlMoContext()
           .getXmlMoConfIdx() : getNextSubPageIdx() + nextSubPageOffset;
-      log.info("A Setting next sub page index to " + nextSubPageIdx + " (offset was "
-          + nextSubPageOffset + ")");
+      log.info("Setting next sub page index service parameter to " + nextSubPageIdx
+          + " (offset was " + nextSubPageOffset + ")");
       // Needed to make this work when using a form request
       serviceAction.addServiceParameter(PARAM_NAME_NEXT_SUB_PAGE_IDX, Integer.toString(
           nextSubPageIdx));
@@ -280,11 +284,9 @@ public class PageNavigation
       serviceAction.setDialogOptions(dialogOptions);
     }
 
-    if (wizard.isInAddXmlMoMode()) {
-      serviceAction.addServiceParameter(PARAM_NAME_EXECUTION_MODE, "AddXmlMo");
-    }
     // end copy
 
+    serviceAction.addServiceParameter(PARAM_NAME_EXECUTION_MODE, mode.name());
 
     // Make the web service string params also available to the form.
     for (CallArgument arg : serviceAction.getServiceParameters().values()) {
@@ -303,10 +305,12 @@ public class PageNavigation
    * 
    * @param confAlias
    * @param page
+   * @param mode
    * @return a REST result that'll request a CMS UI action.
    * @throws IOException
    */
-  public RestResult constructActionRequest(String confAlias, Page page) throws IOException {
+  public RestResult constructActionRequest(String confAlias, Page page, ExecutionMode mode)
+      throws IOException {
     log.info("Constructing an action request...");
 
     UserInterfaceAction wizardPage = new UserInterfaceAction(page.getActionId());

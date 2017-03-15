@@ -98,12 +98,15 @@ public class ContainerWizardConfUtils {
    * @param conf
    * @param startIdx Identify where in the list to start at. Submit zero to start at the beginning
    *        of the list.
-   * @param throughFirstRequired Submit true if none after the first qualifying XML MO configuration
-   *        instance marked as required should be included.
+   * @param mode The container wizard's execution mode. When <i>not</i> in the add XML MO execution
+   *        mode, stop at the first required section type. Else, when in the add XML execution mode,
+   *        go through the end and leave it up to users not to insert something they should not.
+   *        Trimming this list based on the existing sections existing above or below the insertion
+   *        point would require more effort, but is possible.
    * @return All or some of the XML MO configuration instances within the provided configuration.
    */
   public List<XmlMoConf> getXmlMoConfSubList(ContainerWizardConf conf, int startIdx,
-      boolean throughFirstRequired) {
+      ExecutionMode mode) {
     int i = 0;
     List<XmlMoConf> XmlMoConfList = new ArrayList<XmlMoConf>();
     XmlMoConf xmlMoConf;
@@ -112,7 +115,7 @@ public class ContainerWizardConfUtils {
         if (i >= startIdx) {
           xmlMoConf = (XmlMoConf) o;
           XmlMoConfList.add(xmlMoConf);
-          if (throughFirstRequired && xmlMoConf.isRequired()) {
+          if (mode != ExecutionMode.ADD_XML_MO && xmlMoConf.isRequired()) {
             break;
           }
         }

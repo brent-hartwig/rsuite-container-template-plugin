@@ -16,6 +16,7 @@ var createProductHandler = (function () {
     var nextSubPageIdx;
     var newNextSubPageIdx;
     var containerWizard;
+    var executionMode;
     var retrievedSectionOptions;
     var instantiatedHandlerName;
     var formName = ".@pluginId@-create-product-template-form";
@@ -159,7 +160,12 @@ var createProductHandler = (function () {
         var skey = getSkey();
         var response;
         var apiUri = "api/@pluginId@-ws-get-section-type-info";
-        var url = window.location.protocol + '//' + window.location.host + "/rsuite/rest/v1/" + apiUri + "?skey=" + skey + "&confAlias=" + confAlias + "&nextSubPageIdx=" + nextSubPageIdx;
+        var url = window.location.protocol + '//' + window.location.host + 
+            "/rsuite/rest/v1/" + apiUri + 
+            "?skey=" + skey + 
+            "&confAlias=" + confAlias + 
+            "&nextSubPageIdx=" + nextSubPageIdx + 
+            "&executionMode=" + executionMode;
         var success = function (apiResponse) {
             // not doing anything here
         };
@@ -393,6 +399,7 @@ var createProductHandler = (function () {
         nextPageIdx = $("input[name=nextPageIdx]").val();
         nextSubPageIdx = $("input[name=nextSubPageIdx]").val();
         containerWizard = $("input[name=containerWizard]").val();
+        executionMode = $("input[name=executionMode]").val();
 
         // Change the text of the button from "Submit" to "Next"
         var buttonLabel = $(formName + " button label");
@@ -401,7 +408,7 @@ var createProductHandler = (function () {
         }
 
 		// Change title of form if we are in execution mode AddXmlMo
-		if ($("input[name='executionMode']").val() === "AddXmlMo") {
+		if (executionMode === "ADD_XML_MO") {
 			$(".ui-dialog-title").html("Add Section");
 		}
         // Not sure how to add a cancel button. Oh well. Users can use the x in the top right.
