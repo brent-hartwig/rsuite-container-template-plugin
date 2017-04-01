@@ -64,6 +64,7 @@ import com.rsicms.rsuite.containerWizard.jaxb.NameValuePair;
 import com.rsicms.rsuite.containerWizard.jaxb.PrimaryContainer;
 import com.rsicms.rsuite.containerWizard.jaxb.XmlMoConf;
 import com.rsicms.rsuite.event.EventFiringStation;
+import com.rsicms.rsuite.event.data.UsersGrantedRolesEventData;
 import com.rsicms.rsuite.utils.container.ContainerUtils;
 import com.rsicms.rsuite.utils.container.visitor.ChildrenInfoContainerVisitor;
 import com.rsicms.rsuite.utils.mo.MOUtils;
@@ -570,11 +571,11 @@ public class InvokeContainerWizardWebService
     // longer need to include the user's existing roles.
     List<String> roleNames = aclMap.getRoleNames(null, allowedRoleNameSuffixes);
     if (roleNames != null && roleNames.size() > 0) {
+      UsersGrantedRolesEventData eventData = new UsersGrantedRolesEventData();
       for (String roleName : roleNames) {
         log.info("Granting the '" + roleName + "' to user '" + user.getUserId() + "'");
         roleManager.addUserToRole(authService.getSystemUser(), roleName, user.getUserId());
-        EventFiringStation.fireUserGrantedRoleEvent(context.getEventPublisher(), this, authService
-            .getSystemUser().getUserId(), user.getUserId(), roleName);
+        eventData.add(authService.getSystemUser().getUserId(), user.getUserId(), roleName);
 
         // In order to continue supporting local users, found it is necessary to also grant the role
         // using the local user manager. When using the local user manager, pass in the user when
@@ -583,6 +584,10 @@ public class InvokeContainerWizardWebService
           localUserManager.updateUser(user.getUserId(), user.getFullName(), user.getEmail(),
               StringUtils.join(aclMap.getRoleNames(user, allowedRoleNameSuffixes), ","));
         }
+      }
+      // If at least one role was granted, fire the event.
+      if (eventData.hasUserWithGrantedRole()) {
+        EventFiringStation.fireUsersGrantedRolesEvent(context.getEventPublisher(), this, eventData);
       }
     } else {
       log.info("No roles to grant user '" + user.getUserId() + "'.");
