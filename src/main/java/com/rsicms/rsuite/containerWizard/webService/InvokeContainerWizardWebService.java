@@ -63,6 +63,7 @@ import com.rsicms.rsuite.containerWizard.jaxb.MetadataConf;
 import com.rsicms.rsuite.containerWizard.jaxb.NameValuePair;
 import com.rsicms.rsuite.containerWizard.jaxb.PrimaryContainer;
 import com.rsicms.rsuite.containerWizard.jaxb.XmlMoConf;
+import com.rsicms.rsuite.event.EventFiringStation;
 import com.rsicms.rsuite.utils.container.ContainerUtils;
 import com.rsicms.rsuite.utils.container.visitor.ChildrenInfoContainerVisitor;
 import com.rsicms.rsuite.utils.mo.MOUtils;
@@ -513,8 +514,7 @@ public class InvokeContainerWizardWebService
      * time comes, this is where we'll use configuration to decide which are the allowed role name
      * suffixes.
      */
-    user = grantRoles(context.getAuthorizationService(), user, aclMap,
-        CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT);
+    user = grantRoles(context, user, aclMap, CONTAINER_ROLE_NAME_SUFFIX_TO_GRANT);
     session.setUser(user); // enables CMS UI user to access the new container.
     securityService.setACL(user, primaryContainer.getId(), aclMap.get(pcConf.getAclId()));
 
@@ -546,7 +546,7 @@ public class InvokeContainerWizardWebService
    * Grant the roles in the given AclMap to the specified user. The wizard does not provide a way to
    * grant the roles to additional users.
    * 
-   * @param authService
+   * @param context
    * @param user
    * @param aclMap
    * @param allowedRoleNameSuffixes Use to restrict which roles configured in the AclMap are
@@ -555,9 +555,10 @@ public class InvokeContainerWizardWebService
    * @return The user provided, but possibly an updated instance thereof (inclusive of new roles).
    * @throws RSuiteException
    */
-  public User grantRoles(AuthorizationService authService, User user, AclMap aclMap,
+  public User grantRoles(ExecutionContext context, User user, AclMap aclMap,
       String... allowedRoleNameSuffixes) throws RSuiteException {
 
+    AuthorizationService authService = context.getAuthorizationService();
     if (authService.isAdministrator(user)) {
       return user;
     }
@@ -572,6 +573,8 @@ public class InvokeContainerWizardWebService
       for (String roleName : roleNames) {
         log.info("Granting the '" + roleName + "' to user '" + user.getUserId() + "'");
         roleManager.addUserToRole(authService.getSystemUser(), roleName, user.getUserId());
+        EventFiringStation.fireUserGrantedRoleEvent(context.getEventPublisher(), this, authService
+            .getSystemUser().getUserId(), user.getUserId(), roleName);
 
         // In order to continue supporting local users, found it is necessary to also grant the role
         // using the local user manager. When using the local user manager, pass in the user when

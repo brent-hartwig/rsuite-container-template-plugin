@@ -24,7 +24,7 @@ dependencies {
 	compile 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
 	compile 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
 
-	compile ('rsi:rsuite-api:4.1.14') {
+	compile ('rsi:rsuite-api:5.0.5') {
 		transitive=false
 	}
 	compile ('apache:commons-io:1.4') {
@@ -79,6 +79,9 @@ dependencies {
 	includeInJar ('rsuite-community:rsuite-xml-utils-lib:1.0.0') {
 		transitive=false
 	}
+    includeInJar ('rsuite-community:rsuite-event-lib:1.0.0') {
+        transitive=false
+    }
 	includeInJar ('apache:commons-lang:2.4') {
 		transitive=false
 	}

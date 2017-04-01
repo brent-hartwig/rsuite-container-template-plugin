@@ -18,5 +18,6 @@
 	<classpathentry kind="lib" path="java/lib/commons-lang-2.4.jar"/>
 	<classpathentry kind="lib" path="java/lib/rsuite-xml-utils-lib-1.0.0.jar"/>
 	<classpathentry kind="lib" path="java/lib/rsuite-container-utils-lib-1.0.0.jar" sourcepath="/rsuite-container-utils-lib"/>
+	<classpathentry kind="lib" path="java/lib/rsuite-event-lib-1.0.0.jar"/>
 	<classpathentry kind="output" path="target"/>
 </classpath>
