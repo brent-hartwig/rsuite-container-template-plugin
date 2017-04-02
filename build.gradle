@@ -27,6 +27,10 @@ dependencies {
 	compile ('rsi:rsuite-api:5.0.5') {
 		transitive=false
 	}
+	// Do not include in JAR.
+    compile ('rsuite-community:rsuite-event-lib:1.0.0') {
+        transitive=false
+    }
 	compile ('apache:commons-io:1.4') {
 		transitive=false
 	}
@@ -79,9 +83,6 @@ dependencies {
 	includeInJar ('rsuite-community:rsuite-xml-utils-lib:1.0.0') {
 		transitive=false
 	}
-    includeInJar ('rsuite-community:rsuite-event-lib:1.0.0') {
-        transitive=false
-    }
 	includeInJar ('apache:commons-lang:2.4') {
 		transitive=false
 	}
