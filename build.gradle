@@ -74,7 +74,7 @@ dependencies {
 	includeInJar ('rsuite-community:rsuite-operation-lib:0.0.1') {
 		transitive=false
 	}
-	includeInJar ('rsuite-community:rsuite-search-utils-lib:0.0.1') {
+	includeInJar ('rsuite-community:rsuite-search-utils-lib:0.0.2') {
 		transitive=false
 	}
 	includeInJar ('rsuite-community:rsuite-web-services-lib:0.0.1') {
