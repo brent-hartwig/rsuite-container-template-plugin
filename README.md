@@ -1,8 +1,6 @@
 # rsuite-container-wizard-plugin
 Configure a wizard-like GUI to gather user input which is used to create an RSuite container and contents thereof.
 
-As of 5 May 16, this wizard isn't yet completely operational.  We expect to have a working version by 20 May 16.  
-
 ## Wizard Configuration
 The wizard is driven by a configuration file.  The configuration file must be accessible by an RSuite alias, and be a {http://www.rsicms.com/rsuite/ns/conf/container-wizard}:container-wizard-conf element.
 
