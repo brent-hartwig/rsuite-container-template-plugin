@@ -62,12 +62,9 @@ public class AclMap
         }
 
         // FIXME: Below, we're hard-coding a project-agnostic role of "Viewer". If anyone else uses
-        // this code, they'll probably want to make this part configurable. We're to grant this so
-        // long as it isn't for the feedback container.
-        if (acl.getId() != "feedback-container") {
-          rsuiteAceList.add(securityService.constructACE("Viewers", "list, view".replaceAll(SPACE,
-              StringUtils.EMPTY)));
-        }
+        // this code, they'll probably want to make this part configurable.
+        rsuiteAceList.add(securityService.constructACE("Viewers", "list, view".replaceAll(SPACE,
+            StringUtils.EMPTY)));
 
         put(acl.getId(), securityService.constructACL(rsuiteAceList.toArray(new ACE[rsuiteAceList
             .size()])));

@@ -66,7 +66,7 @@ ACL configuration is limited to project-specific ACLs.  The container ID plus th
 
 The user creating the container is automatically granted the container's "AIC_AD" role.  Unfortunately, for now, this is hard-coded.  Starting in version 1.0.4, immediately after granting this role, the "user granted role" event is fired.  For more information on this event, see the rsuite-event-lib project.
 
-Version 0.9.7 includes a hard-coded project-agnostic role, "Viewers".  It provides the list and view content permissions to users with the "Viewers" role on any container the wizard sets the ACL on, unless the ACL ID is "feedback-container".  Should this be adopted by a second project, we should take the time to make this configurable (i.e., alternative attribute to `project-role`). 
+Version 0.9.7 includes a hard-coded project-agnostic role, "Viewers".  It provides the list and view content permissions to users with the "Viewers" role on any container the wizard sets the ACL on, unless the ACL ID is "feedback-container".  Should this be adopted by a second project, we should take the time to make this configurable (i.e., alternative attribute to `project-role`).  In version 1.0.6, the feedback-container restriction was removed, making this applicable to all objects.
 
 Sample:
 
